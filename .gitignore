@@ -1,0 +1,128 @@
+# ASP.NET Core Build Results
+bin/
+obj/
+out/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio Files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.pidb
+*.sln.iml
+.vscode/
+.idea/
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Build Results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Docker Compose & Docker Files
+docker-compose.override.yml
+.dockerignore
+*.log
+.env
+.env.local
+.env.*.local
+
+# Database Files (local development)
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Node Modules & NPM (Tailwind CSS)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+
+# Tailwind CSS Generated Files
+wwwroot/css/site.css
+wwwroot/css/*.min.css
+
+# NPM & Build Tools
+.npm
+.eslintcache
+.node_repl_history
+*.tgz
+.yarn-integrity
+.parcel-cache
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Publish Profiles
+*.pubxml
+*.PublishSettings
+
+# Application Settings (sensitive)
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+
+# Connection Strings (if separate file)
+connectionstrings.config
+
+# Temporary Files
+*.tmp
+*.temp
+*.cache
+
+# Specific Folders
+Ui/

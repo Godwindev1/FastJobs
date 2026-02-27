@@ -1,0 +1,1 @@
+FastJobs is a lightweight background job queue library for .NET that allows you to enqueue and process background jobs with minimal setup. It uses a database-backed queue (currently MySQL) to persist and dispatch jobs, making it suitable for reliable fire-and-forget task execution across application restarts.
