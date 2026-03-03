@@ -14,7 +14,7 @@ public sealed class Job
     public  string ArgumentsJson { get; set; }
 
     public  string Queue { get; set; }
-    public int stateID  { get; set; }
+    public long stateID  { get; set; }
     public  string StateName { get; set; }
 
     public int RetryCount { get; set; }

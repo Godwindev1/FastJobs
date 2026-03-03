@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace FastJobs;
 
-public class QueueRepositoryTest
+internal class QueueRepositoryTest
 {
     private  IQueueRepository Testobject;
     internal List<Tuple<bool, string>> TestResults  = new List<Tuple<bool, string>>();
@@ -30,6 +30,11 @@ public class QueueRepositoryTest
         }
 
         return true;
+    }
+
+    internal async Task<bool?> Dequeue(string QueueName)
+    {
+        return  await Testobject.Dequeue(QueueName) != null ? true : false ;
     }
 
 

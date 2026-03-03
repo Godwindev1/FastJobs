@@ -19,7 +19,7 @@ public class JobRepoSitoryTest
     {
         var InsertedjobID = await Testobject.InsertAsync(job);
 
-        var Insertedjob = await Testobject.GetByIdAsync(InsertedjobID ?? 0);
+        var Insertedjob = await Testobject.GetByIdAsync(InsertedjobID);
         return Insertedjob;
     }
 

@@ -5,7 +5,7 @@ using Dapper;
 using System.Security.Cryptography;
 
 namespace FastJobs;
-internal sealed class JobRepository : IJobRepository
+internal sealed class JobRepository : IJobRepository, IDisposable
 {
     private readonly IDbConnection _connection;
 
@@ -16,7 +16,12 @@ internal sealed class JobRepository : IJobRepository
     }
 
 
-    public async Task<long?> InsertAsync(Job job)
+    /// <summary>
+    /// Inserts New Job To Jobs persistence Store
+    /// </summary>
+    /// <param name="job"></param>
+    /// <returns>Returns Id of inserted Job</returns>
+    public async Task<long> InsertAsync(Job job)
     {
         const string sql = @"
         INSERT INTO Jobs
@@ -34,6 +39,7 @@ internal sealed class JobRepository : IJobRepository
 
     }
 
+
     public async Task<Job?> GetByIdAsync(long id)
     {
         const string sql = "SELECT * FROM Jobs WHERE Id = @Id";
@@ -50,6 +56,13 @@ internal sealed class JobRepository : IJobRepository
 
         return await _connection.ExecuteAsync(sql);
     }
+
+    /// <summary>
+    /// Updates the Complete Job record  
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="job"></param>
+    /// <returns> returns affected rows</returns>
     public async Task<int> UpdateByIdAsync(long id, Job job)
     {
         const string sql = @"
@@ -85,16 +98,28 @@ internal sealed class JobRepository : IJobRepository
         });
     }
 
+    /// <summary>
+    /// Updates Select Fields Within a Job Record
+    /// </summary>
+    /// <param name="id">id of Job </param>
+    /// <param name="SqlValues"> Values formatted By @value <dapper format> </param>
+    /// <param name="job"></param>
+    /// <returns></returns>
     public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job)
     {
         string sql = $@"
         UPDATE Jobs
         SET 
           {SqlValues}
-        WHERE Id = {id};";
+        WHERE Id = {id}";
 
         return await _connection.ExecuteAsync(new CommandDefinition ( sql, job ));
 
+    }
+
+    public void Dispose()
+    {
+       _connection.Dispose(); 
     }
 
 }

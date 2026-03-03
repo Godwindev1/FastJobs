@@ -2,7 +2,7 @@ using System.Data;
 using Dapper;
 namespace FastJobs;
 
-public class StateHistoryRepository : IStateHistoryRepository
+public class StateHistoryRepository : IStateHistoryRepository, IDisposable
 {
     
     private readonly IDbConnection _connection;
@@ -21,10 +21,22 @@ public class StateHistoryRepository : IStateHistoryRepository
         (@StateName, @data, @Reason, @JobId, @CreatedAt);
 
         SELECT LAST_INSERT_ID()";
-
         
         var result = await _connection.ExecuteScalarAsync<long>( new CommandDefinition (sql, job) );
         return result;   
+    }
+
+    public async Task InsertAsync(IEnumerable<State> states, CancellationToken ct)
+    {
+        const string sql = @"
+            INSERT INTO State
+            (StateName, Data, Reason, JobId, CreatedAt)
+            VALUES
+            (@StateName, @Data, @Reason, @JobId, @CreatedAt);";
+
+        await _connection.ExecuteAsync(
+            new CommandDefinition(sql, states, cancellationToken: ct)
+        );
     }
     public async Task<State?> GetByIdAsync(int id, CancellationToken ct)
     {
@@ -35,4 +47,8 @@ public class StateHistoryRepository : IStateHistoryRepository
         return await _connection.QuerySingleAsync(sql);
     }
 
+    public void Dispose()
+    {
+       _connection.Dispose(); 
+    }
 }

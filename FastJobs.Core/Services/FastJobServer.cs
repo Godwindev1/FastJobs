@@ -1,6 +1,7 @@
 
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft;
 using Newtonsoft.Json;
@@ -43,10 +44,12 @@ public class FastJobServer
     }
 
 
-    public static void EnqueueJob(Expression<Action> ActionExpression)
+    public static async Task EnqueueJob(Expression<Action> ActionExpression)
     {
         FireAndForgetJobs fireAndForget = new FireAndForgetJobs(ActionExpression);
-        var JobRepository = ActivatorUtilities.CreateInstance<JobRepository>(_serverInstance._serviceProvider);
+        var JobRepository = _serverInstance._serviceProvider.GetRequiredService<IJobRepository>();
+        var stateHistoryRepository = _serverInstance._serviceProvider.GetRequiredService<IStateHistoryRepository>();
+        var queueRepository = _serverInstance._serviceProvider.GetRequiredService<IQueueRepository>();
 
         //Job Storage
         var Type = fireAndForget.GetType();
@@ -60,7 +63,6 @@ public class FastJobServer
         {
             throw new Exception("Lambda Should Contain Only A Method Call ");
         }
-
 
         
         Job job = new Job
@@ -79,11 +81,31 @@ public class FastJobServer
             CreatedAt = DateTime.Now,
             ExpiresAt = DateTime.Now
         };
+        
+
+        var JobID = JobRepository.InsertAsync(job).GetAwaiter().GetResult();
+        var State = new State
+        {
+            JobID = JobID,
+            StateName = QueueStateTypes.Enqueued,
+            Reason = "Enqueued Job",
+            data = "Enqueued Job",
+            CreatedAt = DateTime.Now
+        };
+            
+        var StateID = await stateHistoryRepository.InsertAsync(State, CancellationToken.None);
+        
+        await JobRepository.UpdateByIdAsync(JobID, "stateID = @stateID, StateName = @StateName", new Job { stateID =  StateID, StateName = QueueStateTypes.Enqueued});
+        
+        //enqueue
+        await queueRepository.EnqueueAsync(new Queue { 
+            JobId = JobID,
+            QueueName = FastJobConstants.DefaultQueue,
+            Priority = 2,
+            ScheduledAt = DateTime.Now
+        });
 
 
-        JobRepository.InsertAsync(job).GetAwaiter().GetResult();
-
-        //TODO: have Dedicated Background Workers For Procession Later On 
-        fireAndForget.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+        
     }
 }

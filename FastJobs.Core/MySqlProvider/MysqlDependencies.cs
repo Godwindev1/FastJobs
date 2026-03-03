@@ -13,6 +13,7 @@ public class FastJobMysqlDependincies : IDatabaseProviderDependencies
     {
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IQueueRepository, QueueRepository>();
+        services.AddScoped<IStateHistoryRepository, StateHistoryRepository>();
     }
 
     public void SetupDatabase(IServiceCollection Services, string ConnectionString)

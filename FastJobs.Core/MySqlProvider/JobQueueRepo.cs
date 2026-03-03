@@ -2,7 +2,7 @@ using Dapper;
 using FastJobs;
 using System.Data;
 
-public class QueueRepository : IQueueRepository
+public class QueueRepository : IQueueRepository, IDisposable
 {
     private readonly IDbConnection _connection;
 
@@ -11,21 +11,22 @@ public class QueueRepository : IQueueRepository
         _connection = connection;
     }
 
-    public async Task<long> EnqueueAsync(Queue job)
+    public async Task<long> EnqueueAsync(Queue jobEntry)
     {
         const string sql = @"
         INSERT INTO Queue
-        (QueueName, JobId, ScheduledAt)
+        (QueueName, JobId, Priority, ScheduledAt)
         VALUES
-        (@QueueName, @JobId, @ScheduledAt);
+        (@QueueName, @JobId, @priority, @ScheduledAt);
 
         SELECT LAST_INSERT_ID()";
 
         return await _connection.ExecuteScalarAsync<long>(sql, new
         {
-            job.QueueName,
-            job.JobId,
-            ScheduledAt = job.ScheduledAt
+            QueueName = jobEntry.QueueName,
+            JobId = jobEntry.JobId,
+            Priority = jobEntry.Priority,
+            ScheduledAt = jobEntry.ScheduledAt
         });
     }
 
@@ -47,5 +48,45 @@ public class QueueRepository : IQueueRepository
         var rows = await _connection.ExecuteAsync(sql, new { Id = id });
         return rows > 0;
     }
+
+    public async Task<Queue?> Dequeue(string queueName)
+    {
+
+        using var transaction = _connection.BeginTransaction();
+
+        try
+        {
+            string sql = @"
+                SELECT *
+                FROM Queue
+                WHERE ScheduledAt <= NOW()
+                AND QueueName = @QueueName
+                ORDER BY Priority DESC, Id ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED;
+            ";
+
+            var job = await _connection.QueryFirstOrDefaultAsync<Queue>(
+                sql,
+                new { QueueName = queueName },
+                transaction: transaction
+            );
+
+            transaction.Commit();
+            return job;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+
+    public void Dispose()
+    {
+       _connection.Dispose(); 
+    }
+
 
 }

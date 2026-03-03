@@ -43,6 +43,7 @@ public class FastJobRepoTests
         {
             QueueName = "Default",
             JobId = jobRes.Id,
+            Priority = 1,
             ScheduledAt = DateTime.Now
         };
 
@@ -50,6 +51,7 @@ public class FastJobRepoTests
         var Entry = await QueueTest.Enqueue(queue);
         QueueTest.TestResults.Add(new Tuple<bool, string> ( Entry != null,  nameof(QueueTest.Enqueue) ) );
         QueueTest.TestResults.Add(new Tuple<bool, string> ( await QueueTest.GetQueueEntry(Entry.Id), nameof(QueueTest.GetQueueEntry)) );
+        QueueTest.TestResults.Add(new Tuple<bool, string > ( await QueueTest.Dequeue("Default") ?? false, nameof(QueueTest.Dequeue) ));
         QueueTest.TestResults.Add(new Tuple<bool, string> ( await QueueTest.RemoveAsync(Entry.Id), nameof(QueueTest.RemoveAsync)) );
 
 

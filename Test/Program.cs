@@ -15,8 +15,8 @@ services.FastJobs( Option =>  Option.ConnectionString = connectionString , new F
 var Provider = services.BuildServiceProvider();
 Provider.UseFastJobs();
 
-//FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>());
-//await Test.RunTest();
+FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>());
+await Test.RunTest();
 
 FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
  
@@ -25,7 +25,7 @@ public static class JobsHelp
 {
     public static void Job()
     {
-        Console.WriteLine("Hello Booty");
+        Console.WriteLine("Hello Bootypaul");
     }   
 }
 

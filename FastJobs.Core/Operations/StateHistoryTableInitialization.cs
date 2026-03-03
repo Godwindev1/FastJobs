@@ -19,6 +19,7 @@ public class StateHistoryTableInitialization
 
         JobId BIGINT NOT NULL,
         FOREIGN KEY (JobId) REFERENCES Jobs(Id)
+        ON DELETE CASCADE
         
     ) ENGINE=InnoDB;";
 
@@ -29,7 +30,6 @@ public class StateHistoryTableInitialization
         CREATE INDEX IF NOT EXISTS IX_State_JobId
     ON State (JobId);";
 
-    
     public static async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);

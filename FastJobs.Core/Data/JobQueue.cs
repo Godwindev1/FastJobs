@@ -10,6 +10,8 @@ public class Queue
     // Job Reference (FK to Jobs table)
     public long JobId { get; set; }
 
+    public int Priority { get; set; }
+
     // Scheduling
     public DateTime? ScheduledAt { get; set; }
 }

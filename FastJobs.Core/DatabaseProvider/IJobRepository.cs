@@ -2,7 +2,7 @@
 namespace FastJobs;
 public interface IJobRepository
 {
-    Task<long?> InsertAsync(Job job);
+    Task<long> InsertAsync(Job job);
 
     Task<Job?> GetByIdAsync(long id);
 
