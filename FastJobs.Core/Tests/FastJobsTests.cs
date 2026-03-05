@@ -1,4 +1,7 @@
 using System.Data;
+using System.Runtime.CompilerServices;
+using FastJobs.SqlServer;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
 
@@ -6,15 +9,18 @@ public class FastJobRepoTests
 {
     JobRepoSitoryTest jobTest;
     QueueRepositoryTest QueueTest;
+    DBResourceLockingTest ResourceLockingTest;
 
-    public FastJobRepoTests(IJobRepository jobrepo, IQueueRepository queueRepository)
+    public FastJobRepoTests(IJobRepository jobrepo, IQueueRepository queueRepository, IServiceProvider provider)
     {
         jobTest = new JobRepoSitoryTest(jobrepo);
         QueueTest = new QueueRepositoryTest(queueRepository);
+        ResourceLockingTest = new DBResourceLockingTest(provider.GetRequiredService<LockProvider>());
     }
 
     async public Task RunTest()
     {
+
         //JOBS TEST
          var job = new Job
         {
@@ -69,6 +75,22 @@ public class FastJobRepoTests
             Console.WriteLine($"Test Result for {result.Item2} = { result.Item1 }");
         }
         
+
+        //RESOURCE LOCKING
+        ResourceLockingTest.TestResults.Add(
+            new Tuple<bool, string> ( 
+                await ResourceLockingTest.AcquireLock($"FastJobs.{job.MethodName}", TimeSpan.FromSeconds(20)),
+                nameof(ResourceLockingTest.AcquireLock)
+            )
+        );
+
+        ResourceLockingTest.ReleaseLock();
+
+        
+        foreach(var result in ResourceLockingTest.TestResults)
+        {
+            Console.WriteLine($"Test Result for {result.Item2} = { result.Item1 }");
+        }
 
     }
 }

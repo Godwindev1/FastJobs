@@ -5,7 +5,7 @@ using MySqlConnector;
 using Microsoft.Extensions.Configuration;
 using Dapper;
 
-namespace FastJobs;
+namespace FastJobs.SqlServer;
 
 public class FastJobMysqlDependincies : IDatabaseProviderDependencies
 {
@@ -14,6 +14,8 @@ public class FastJobMysqlDependincies : IDatabaseProviderDependencies
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IQueueRepository, QueueRepository>();
         services.AddScoped<IStateHistoryRepository, StateHistoryRepository>();
+        services.AddScoped<DbConnectionFactory, MySqlDbConnectionFactory>();
+        services.AddScoped<LockProvider, MySqlLockProvider>();
     }
 
     public void SetupDatabase(IServiceCollection Services, string ConnectionString)
@@ -56,15 +58,7 @@ public class FastJobMysqlDependincies : IDatabaseProviderDependencies
         finally
         {
             Console.WriteLine("Connecting To Database");
-
-            Services.AddScoped<IDbConnection>(serviceProvider =>{
-                    var connection = new MySqlConnection(ConnectionString);
-                    connection.Open();
-                    return connection;
-                }
-            );
         }
-
 
     }
 

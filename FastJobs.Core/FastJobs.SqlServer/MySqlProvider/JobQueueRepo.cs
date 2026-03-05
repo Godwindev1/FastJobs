@@ -2,13 +2,14 @@ using Dapper;
 using FastJobs;
 using System.Data;
 
-public class QueueRepository : IQueueRepository, IDisposable
+namespace FastJobs.SqlServer;
+internal sealed class QueueRepository : IQueueRepository, IDisposable
 {
     private readonly IDbConnection _connection;
 
-    public QueueRepository(IDbConnection connection)
+    public QueueRepository(DbConnectionFactory connectionFactory)
     {
-        _connection = connection;
+        _connection = connectionFactory.CreateConnection();
     }
 
     public async Task<long> EnqueueAsync(Queue jobEntry)

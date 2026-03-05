@@ -1,4 +1,5 @@
 using System.Data;
+using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs
@@ -8,7 +9,10 @@ namespace FastJobs
         private static void InitializeFastJobsTables(IServiceProvider provider)
         {
             using var scope = provider.CreateScope();
-            var connection = scope.ServiceProvider.GetRequiredService<IDbConnection>();
+            var factory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
+
+            var connection  = factory.CreateConnection();
+
             JobTableInitializer
             .EnsureCreatedAsync(connection)
             .GetAwaiter()

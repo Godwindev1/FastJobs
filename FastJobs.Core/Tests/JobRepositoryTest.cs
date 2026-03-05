@@ -1,6 +1,3 @@
-using System.Data;
-using System.Threading.Tasks;
-
 namespace FastJobs;
 
 public class JobRepoSitoryTest

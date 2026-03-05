@@ -1,15 +1,16 @@
 using System.Data;
 using Dapper;
-namespace FastJobs;
 
-public class StateHistoryRepository : IStateHistoryRepository, IDisposable
+
+namespace FastJobs.SqlServer;
+internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposable
 {
     
     private readonly IDbConnection _connection;
 
-    public StateHistoryRepository(IDbConnection connection)
+    internal  StateHistoryRepository(DbConnectionFactory connectionFactory)
     {
-        _connection = connection;
+        _connection = connectionFactory.CreateConnection();
     }
 
     public async Task<long> InsertAsync(State job, CancellationToken ct)

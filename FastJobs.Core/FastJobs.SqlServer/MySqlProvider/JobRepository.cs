@@ -4,15 +4,15 @@ using FastJobs;
 using Dapper;
 using System.Security.Cryptography;
 
-namespace FastJobs;
+namespace FastJobs.SqlServer;
 internal sealed class JobRepository : IJobRepository, IDisposable
 {
     private readonly IDbConnection _connection;
 
     //TODO Use Connection String Instead To Allow Multiple Threads Use 
-    public JobRepository(IDbConnection connection)
+    public JobRepository(DbConnectionFactory connectionFactory)
     {
-        _connection = connection;
+        _connection = connectionFactory.CreateConnection();
     }
 
 

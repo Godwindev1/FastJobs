@@ -11,20 +11,7 @@ public class ProcessingServer
     {
     }
 
-    private Queue FetchJpb()
-    {
-        return new Queue {  };
-    }
 
-    private void ScheduleJobInstance()
-    {
-        //Add Job instance To _scheduledJobs
-    }
-
-    public void ProcessLoop ()
-    {
-        
-    }
 
 
 }

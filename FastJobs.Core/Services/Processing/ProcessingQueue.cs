@@ -1,4 +1,6 @@
 
+using FastJobs.SqlServer;
+
 namespace FastJobs;
 
 public class ProcessQueue
@@ -20,6 +22,7 @@ public class ProcessQueue
     public async Task GetQueueItem(string QueueName)
     {
         var Entry  = await _queueRepo.Dequeue(QueueName);
+        LockQueueItem();
         //Lock Entry
         //Update Job State
         //Retrieve And Return The Job

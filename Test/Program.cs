@@ -10,12 +10,12 @@ string connectionString  = "Server=ppmpdb;Database=FastJobs;User=root;Password=r
 
 // 1 - Create the service collection
 var services = new ServiceCollection();
-services.FastJobs( Option =>  Option.ConnectionString = connectionString , new FastJobs.FastJobMysqlDependincies() );
+services.FastJobs( Option =>  Option.ConnectionString = connectionString , new FastJobs.SqlServer.FastJobMysqlDependincies() );
 
 var Provider = services.BuildServiceProvider();
 Provider.UseFastJobs();
 
-FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>());
+FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>(), Provider);
 await Test.RunTest();
 
 FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
