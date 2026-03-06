@@ -13,7 +13,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposa
         _connection = connectionFactory.CreateConnection();
     }
 
-    public async Task<long> InsertAsync(State job, CancellationToken ct)
+    public async Task<long> InsertAsync(State job)
     {
         const string sql = @"
         INSERT INTO State
@@ -27,7 +27,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposa
         return result;   
     }
 
-    public async Task InsertAsync(IEnumerable<State> states, CancellationToken ct)
+    public async Task InsertAsync(IEnumerable<State> states)
     {
         const string sql = @"
             INSERT INTO State
@@ -36,10 +36,10 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposa
             (@StateName, @Data, @Reason, @JobId, @CreatedAt);";
 
         await _connection.ExecuteAsync(
-            new CommandDefinition(sql, states, cancellationToken: ct)
+            new CommandDefinition(sql, states)
         );
     }
-    public async Task<State?> GetByIdAsync(int id, CancellationToken ct)
+    public async Task<State?> GetByIdAsync(int id)
     {
         string sql  = $@"
             SELECT * FROM State WHERE Id = {id}

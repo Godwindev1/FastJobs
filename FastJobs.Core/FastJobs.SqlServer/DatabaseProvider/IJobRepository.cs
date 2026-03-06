@@ -8,7 +8,7 @@ public interface IJobRepository
 
     Task<int> DeleteByIdAsync(long id);
 
-    Task<int> UpdateByIdAsync(long id, Job job);
+    Task<int> UpdateByIdAsync(Job job);
 
     /// <summary>
     /// Flexibility in Setting Updates

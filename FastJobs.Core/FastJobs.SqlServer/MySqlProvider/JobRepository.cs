@@ -63,7 +63,7 @@ internal sealed class JobRepository : IJobRepository, IDisposable
     /// <param name="id"></param>
     /// <param name="job"></param>
     /// <returns> returns affected rows</returns>
-    public async Task<int> UpdateByIdAsync(long id, Job job)
+    public async Task<int> UpdateByIdAsync(Job job)
     {
         const string sql = @"
         UPDATE Jobs
@@ -83,7 +83,7 @@ internal sealed class JobRepository : IJobRepository, IDisposable
 
         return await _connection.ExecuteAsync(sql, new
         {
-            Id = id,
+            Id = job.Id,
             job.TypeName,
             job.MethodName,
             job.MethodDeclaringTypeName,

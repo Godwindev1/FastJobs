@@ -15,13 +15,14 @@ public static  class ServiceCollectionExtensions
     {
         FastJobsOptions Options = new FastJobsOptions();
         optionsFactory.Invoke(Options); 
-
         services.AddSingleton(Options);
 
         Console.WriteLine("Adding FastJobs");
         //TODO: Use A options Or Descriptor For Parameters
         databaseProvider.SetupDatabase(services, Options.ConnectionString);
         databaseProvider.RegisterDependencies(services);
+
+        services.AddTransient<JobProcessor>();
 
         return services;
     }
