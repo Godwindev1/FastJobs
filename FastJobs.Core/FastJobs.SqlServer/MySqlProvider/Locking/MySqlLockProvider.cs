@@ -7,15 +7,17 @@ namespace FastJobs.SqlServer;
 
 internal class MySqlLockProvider  : LockProvider
 {
-    private readonly MySqlConnection dbConnection;
+    private readonly DbConnectionFactory dbConnectionFactory;
 
     public MySqlLockProvider(DbConnectionFactory factory)
     {
-        dbConnection = (MySqlConnection)factory.CreateConnection();        
+        dbConnectionFactory = factory;        
     }
 
     public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout)
     {
+        MySqlConnection dbConnection = (MySqlConnection)dbConnectionFactory.CreateConnection();
+
         if(dbConnection.State != ConnectionState.Open)
         {
             await dbConnection.OpenAsync();

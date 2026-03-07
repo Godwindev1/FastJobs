@@ -46,13 +46,14 @@ public class FastJobServer
 
     public static async Task EnqueueJob(Expression<Action> ActionExpression)
     {
-        FireAndForgetJobs fireAndForget = new FireAndForgetJobs(ActionExpression);
+        //FireAndForgetJobs fireAndForget = new FireAndForgetJobs(ActionExpression);
+
         var JobRepository = _serverInstance._serviceProvider.GetRequiredService<IJobRepository>();
         var stateHistoryRepository = _serverInstance._serviceProvider.GetRequiredService<IStateHistoryRepository>();
         var queueRepository = _serverInstance._serviceProvider.GetRequiredService<IQueueRepository>();
 
         //Job Storage
-        var Type = fireAndForget.GetType();
+        var Type = typeof(FireAndForgetJobs);
         MethodCallExpression MethodExpression;
 
         if(ActionExpression.Body.NodeType == ExpressionType.Call )
@@ -93,7 +94,7 @@ public class FastJobServer
             CreatedAt = DateTime.Now
         };
             
-        var StateID = await stateHistoryRepository.InsertAsync(State, CancellationToken.None);
+        var StateID = await stateHistoryRepository.InsertAsync(State);
         
         await JobRepository.UpdateByIdAsync(JobID, "stateID = @stateID, StateName = @StateName", new Job { stateID =  StateID, StateName = QueueStateTypes.Enqueued});
         

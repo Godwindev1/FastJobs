@@ -38,6 +38,9 @@ namespace FastJobs
         {
             FastJobsConsoleExtensions.InitializeFastJobsTables(provider);
             FastJobsConsoleExtensions.InitializeJobServerAbstraction(provider);
+
+            var FastJobServer =  provider.GetRequiredService<ProcessingServer> ();
+            FastJobServer.StartProcessingJobs();
         }
     }
 }

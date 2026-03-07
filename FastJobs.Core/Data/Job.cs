@@ -7,7 +7,7 @@ public sealed class Job
     public  string MethodName { get; set; }
 
     //For Fire And Forget Jobs
-    public string? MethodDeclaringTypeName {get; set; }
+    public string MethodDeclaringTypeName {get; set; }
 
     // Stored as JSON
     public  string ParameterTypeNamesJson { get; set; } 

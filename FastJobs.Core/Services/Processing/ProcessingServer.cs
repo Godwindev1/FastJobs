@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using FastJobs.SqlServer;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace FastJobs;
 
@@ -9,30 +10,49 @@ namespace FastJobs;
 internal class ProcessingServer
 {
     private ConcurrentQueue<Tuple<IBackGroundJob, SessionDatabaseLock>> _ScheduledJobs;   
-    private JobProcessor _jobProcessor; 
-    public ProcessingServer(JobProcessor jobProcessor)
+    private QueueProcessor _jobProcessor; 
+    private readonly IJobRepository _JobRepo;
+    public ProcessingServer(QueueProcessor jobProcessor, IJobRepository jobRepository)
     {
+        _JobRepo = jobRepository;
         _jobProcessor = jobProcessor;
         _ScheduledJobs = new ConcurrentQueue<Tuple<IBackGroundJob, SessionDatabaseLock>>();
     }
 
-    private void ScheduleJob( Tuple<Queue, SessionDatabaseLock> JobDetails)
+    private async Task ScheduleJob( Tuple<Queue, SessionDatabaseLock> JobDetails)
     {
         //Call JobReflection CLass And Store the BackgroundJob On Concurrent Queue Allong With its DBLock
+        var Job =   await _JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
+        _ScheduledJobs.Enqueue(
+             new Tuple<IBackGroundJob, SessionDatabaseLock>(
+                JobResolver.ResolveFireAndForgetJob(Job),
+                JobDetails.Item2
+            )
+        ); 
     }
 
-    public async void ProcessJobs()
+    public async void StartProcessingJobs()
     {
         Thread JobProcessingThread = new Thread (
             async () => {
                 while(true)
                 {
+                    if(await _jobProcessor.IsQueueEmpty(FastJobConstants.DefaultQueue))
+                    {
+                        Thread.Sleep(400);
+                        continue;
+                    }
                     //Default Queue is HardCoded Here Until Support For Multi Queue Is Implemented
-                    await _jobProcessor.DeQueueItem(FastJobConstants.DefaultQueue);      
+                    var result = await _jobProcessor.DeQueueItem(FastJobConstants.DefaultQueue);  
+                    
+                    if(result != null)
+                    await ScheduleJob(result);  
                 }
             }
         );
 
+        JobProcessingThread.Name = "FastJobs.ProcessingServer";
+        JobProcessingThread.IsBackground = true;
         JobProcessingThread.Start();
     }
 

@@ -3,16 +3,17 @@ using System.Linq.Expressions;
 using FastJobs;
 using Dapper;
 using System.Security.Cryptography;
+using MySqlConnector;
 
 namespace FastJobs.SqlServer;
-internal sealed class JobRepository : IJobRepository, IDisposable
+internal sealed class JobRepository : IJobRepository
 {
-    private readonly IDbConnection _connection;
+    private readonly DbConnectionFactory _connectionFactory;
 
     //TODO Use Connection String Instead To Allow Multiple Threads Use 
     public JobRepository(DbConnectionFactory connectionFactory)
     {
-        _connection = connectionFactory.CreateConnection();
+        _connectionFactory = connectionFactory;
     }
 
 
@@ -23,6 +24,8 @@ internal sealed class JobRepository : IJobRepository, IDisposable
     /// <returns>Returns Id of inserted Job</returns>
     public async Task<long> InsertAsync(Job job)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @"
         INSERT INTO Jobs
         (TypeName, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
@@ -42,6 +45,8 @@ internal sealed class JobRepository : IJobRepository, IDisposable
 
     public async Task<Job?> GetByIdAsync(long id)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = "SELECT * FROM Jobs WHERE Id = @Id";
 
         return await _connection.QuerySingleOrDefaultAsync<Job>(
@@ -50,6 +55,8 @@ internal sealed class JobRepository : IJobRepository, IDisposable
 
     public async Task<int> DeleteByIdAsync(long id)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         string sql  = $@"
             DELETE FROM Jobs WHERE Id = {id} 
         ";
@@ -65,6 +72,8 @@ internal sealed class JobRepository : IJobRepository, IDisposable
     /// <returns> returns affected rows</returns>
     public async Task<int> UpdateByIdAsync(Job job)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @"
         UPDATE Jobs
         SET 
@@ -107,6 +116,8 @@ internal sealed class JobRepository : IJobRepository, IDisposable
     /// <returns></returns>
     public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         string sql = $@"
         UPDATE Jobs
         SET 
@@ -115,11 +126,6 @@ internal sealed class JobRepository : IJobRepository, IDisposable
 
         return await _connection.ExecuteAsync(new CommandDefinition ( sql, job ));
 
-    }
-
-    public void Dispose()
-    {
-       _connection.Dispose(); 
     }
 
 }

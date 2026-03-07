@@ -1,19 +1,22 @@
 using Dapper;
 using FastJobs;
+using MySqlConnector;
 using System.Data;
 
 namespace FastJobs.SqlServer;
-internal sealed class QueueRepository : IQueueRepository, IDisposable
+internal sealed class QueueRepository : IQueueRepository
 {
-    private readonly IDbConnection _connection;
+    private readonly DbConnectionFactory _connectionFactory;
 
     public QueueRepository(DbConnectionFactory connectionFactory)
     {
-        _connection = connectionFactory.CreateConnection();
+        _connectionFactory = connectionFactory;
     }
 
     public async Task<long> EnqueueAsync(Queue jobEntry)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @"
         INSERT INTO Queue
         (QueueName, JobId, Priority, ScheduledAt)
@@ -33,6 +36,8 @@ internal sealed class QueueRepository : IQueueRepository, IDisposable
 
     public async Task<Queue?> GetQueueEntry(long id)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @" 
             SELECT * FROM Queue WHERE Id = @Id;
         ";  
@@ -42,6 +47,8 @@ internal sealed class QueueRepository : IQueueRepository, IDisposable
     }
     public async Task<bool> RemoveAsync(long id)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @"
         DELETE FROM Queue
         WHERE Id = @Id;";
@@ -52,6 +59,7 @@ internal sealed class QueueRepository : IQueueRepository, IDisposable
 
     public async Task<Queue?> Dequeue(string queueName)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         using var transaction = _connection.BeginTransaction();
 
@@ -60,11 +68,9 @@ internal sealed class QueueRepository : IQueueRepository, IDisposable
             string sql = @"
                 SELECT *
                 FROM Queue
-                WHERE ScheduledAt <= NOW()
-                AND QueueName = @QueueName
+                WHERE QueueName = @QueueName
                 ORDER BY Priority DESC, Id ASC
                 LIMIT 1
-                FOR UPDATE SKIP LOCKED;
             ";
 
             var job = await _connection.QueryFirstOrDefaultAsync<Queue>(
@@ -81,12 +87,6 @@ internal sealed class QueueRepository : IQueueRepository, IDisposable
             transaction.Rollback();
             throw;
         }
-    }
-
-
-    public void Dispose()
-    {
-       _connection.Dispose(); 
     }
 
 

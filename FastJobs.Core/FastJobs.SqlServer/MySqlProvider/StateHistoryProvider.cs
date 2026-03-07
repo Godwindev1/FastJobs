@@ -1,20 +1,23 @@
 using System.Data;
 using Dapper;
+using MySqlConnector;
 
 
 namespace FastJobs.SqlServer;
-internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposable
+internal sealed class StateHistoryRepository : IStateHistoryRepository
 {
     
-    private readonly IDbConnection _connection;
+    private readonly DbConnectionFactory _connectionFactory;
 
-    internal  StateHistoryRepository(DbConnectionFactory connectionFactory)
+    public StateHistoryRepository(DbConnectionFactory connectionFactory)
     {
-        _connection = connectionFactory.CreateConnection();
+        _connectionFactory = connectionFactory;
     }
 
     public async Task<long> InsertAsync(State job)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @"
         INSERT INTO State
         (StateName, data, Reason, JobId, CreatedAt)
@@ -29,6 +32,8 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposa
 
     public async Task InsertAsync(IEnumerable<State> states)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         const string sql = @"
             INSERT INTO State
             (StateName, Data, Reason, JobId, CreatedAt)
@@ -41,6 +46,8 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposa
     }
     public async Task<State?> GetByIdAsync(int id)
     {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
         string sql  = $@"
             SELECT * FROM State WHERE Id = {id}
         ";
@@ -48,8 +55,4 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository, IDisposa
         return await _connection.QuerySingleAsync(sql);
     }
 
-    public void Dispose()
-    {
-       _connection.Dispose(); 
-    }
 }

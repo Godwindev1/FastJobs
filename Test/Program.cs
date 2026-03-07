@@ -5,6 +5,7 @@ using FastJobs;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Xml;
 
 string connectionString  = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
@@ -15,11 +16,15 @@ services.FastJobs( Option =>  Option.ConnectionString = connectionString , new F
 var Provider = services.BuildServiceProvider();
 Provider.UseFastJobs();
 
-FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>(), Provider);
-await Test.RunTest();
+//FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>(), Provider);
+//await Test.RunTest();
 
-FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
- 
+//await FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
+
+while(true)
+{
+    
+}
 
 public static class JobsHelp
 {
