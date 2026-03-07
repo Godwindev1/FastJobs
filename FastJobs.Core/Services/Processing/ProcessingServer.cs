@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FastJobs.SqlServer;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
 
@@ -10,18 +11,20 @@ namespace FastJobs;
 internal class ProcessingServer
 {
     private ConcurrentQueue<Tuple<IBackGroundJob, SessionDatabaseLock>> _ScheduledJobs;   
-    private QueueProcessor _jobProcessor; 
-    private readonly IJobRepository _JobRepo;
-    public ProcessingServer(QueueProcessor jobProcessor, IJobRepository jobRepository)
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public ProcessingServer(IServiceScopeFactory serviceScopeFactory)
     {
-        _JobRepo = jobRepository;
-        _jobProcessor = jobProcessor;
+        _scopeFactory = serviceScopeFactory;
         _ScheduledJobs = new ConcurrentQueue<Tuple<IBackGroundJob, SessionDatabaseLock>>();
     }
 
     private async Task ScheduleJob( Tuple<Queue, SessionDatabaseLock> JobDetails)
     {
         //Call JobReflection CLass And Store the BackgroundJob On Concurrent Queue Allong With its DBLock
+        ScopeManager scopeManager = new ScopeManager(_scopeFactory);
+        IJobRepository _JobRepo = scopeManager.Resolve<IJobRepository>();
+
         var Job =   await _JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
         _ScheduledJobs.Enqueue(
              new Tuple<IBackGroundJob, SessionDatabaseLock>(
@@ -37,12 +40,17 @@ internal class ProcessingServer
             async () => {
                 while(true)
                 {
+                    ScopeManager scopeManager = new ScopeManager(_scopeFactory);
+                    QueueProcessor _jobProcessor = scopeManager.Resolve<QueueProcessor>();; 
+
+
                     if(await _jobProcessor.IsQueueEmpty(FastJobConstants.DefaultQueue))
                     {
                         Thread.Sleep(400);
                         continue;
                     }
-                    //Default Queue is HardCoded Here Until Support For Multi Queue Is Implemented
+
+                    //NB: Default Queue is HardCoded Here Until Support For Multi Queue Is Implemented
                     var result = await _jobProcessor.DeQueueItem(FastJobConstants.DefaultQueue);  
                     
                     if(result != null)

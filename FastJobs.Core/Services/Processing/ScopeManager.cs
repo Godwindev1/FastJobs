@@ -10,7 +10,7 @@ internal sealed class ScopeManager : IDisposable
 {
     private readonly IServiceScope _scope;
 
-    public IServiceProvider ServiceProvider => _scope.ServiceProvider;
+    private IServiceProvider ServiceProvider => _scope.ServiceProvider;
 
     internal ScopeManager(IServiceScopeFactory scopeFactory)
     {

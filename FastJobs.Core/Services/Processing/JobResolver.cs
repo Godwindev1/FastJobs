@@ -25,7 +25,7 @@ internal static class JobResolver
         string ParameterTypesJson = job.ParameterTypeNamesJson;
         string Arguments = job.ArgumentsJson;
 
-       /* Type declaringType = Type.GetType(DeclaringTypeName);
+        Type declaringType = Type.GetType(DeclaringTypeName);
         object instance = Activator.CreateInstance(declaringType);
         
         string[] typeNames = JsonConvert.DeserializeObject<string[]>(ParameterTypesJson);
@@ -38,9 +38,8 @@ internal static class JobResolver
         MethodInfo method = declaringType.GetMethod(MethodName, parameterTypes);
 
         //No Returning Of Results Yet
-        return  new FireAndForgetJobs(() => method.Invoke(instance, arguments)  ); */
+        return  new FireAndForgetJobs(() => method.Invoke(instance, arguments)  ); 
 
-        return new FireAndForgetJobs( () => Console.WriteLine("Error") );
     }
 
 

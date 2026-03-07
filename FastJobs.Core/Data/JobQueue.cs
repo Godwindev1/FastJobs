@@ -12,6 +12,8 @@ public class Queue
 
     public int Priority { get; set; }
 
+    public DateTime LockedUntil  {get; set; }
+
     // Scheduling
     public DateTime? ScheduledAt { get; set; }
 }

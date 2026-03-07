@@ -19,14 +19,14 @@ Provider.UseFastJobs();
 //FastJobs.FastJobRepoTests Test = new FastJobRepoTests(Provider.GetRequiredService<IJobRepository>(), Provider.GetRequiredService<IQueueRepository>(), Provider);
 //await Test.RunTest();
 
-//await FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
+await FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
 
 while(true)
 {
     
 }
 
-public static class JobsHelp
+public class JobsHelp
 {
     public static void Job()
     {

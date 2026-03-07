@@ -86,8 +86,63 @@ internal sealed class QueueRepository : IQueueRepository
         {
             transaction.Rollback();
             throw;
-        }
+        } 
+        
+        //Hardcoded Rubbish For Testing Currently  
+        //return await Dequeue(queueName, TimeSpan.FromMinutes(5));
     }
+
+
+   /*  public async Task<Queue?> Dequeue(string queueName, TimeSpan lockDuration)
+    {
+        using var connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        using var transaction = await connection.BeginTransactionAsync();
+
+        try
+        {
+            // 1. Select the first available item and lock it
+            var sql = @"
+                SELECT *
+                FROM Queue
+                WHERE QueueName = @QueueName
+                AND (LockedUntil IS NULL OR LockedUntil < NOW())
+                ORDER BY Priority DESC, Id ASC
+                LIMIT 1
+                FOR UPDATE
+            ";
+
+            var job = await connection.QueryFirstOrDefaultAsync<Queue>(
+                sql,
+                new { QueueName = queueName },
+                transaction: transaction
+            );
+
+            if (job != null)
+            {
+                // 2. Mark it as locked for a duration
+                var lockSql = @"
+                    UPDATE Queue
+                    SET LockedUntil = DATE_ADD(NOW(), INTERVAL @Seconds SECOND)
+                    WHERE Id = @Id
+                ";
+
+                await connection.ExecuteAsync(
+                    lockSql,
+                    new { Seconds = (int)lockDuration.TotalSeconds, Id = job.Id },
+                    transaction: transaction
+                );
+            }
+
+            await transaction.CommitAsync();
+            return job;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    } */
 
 
 }

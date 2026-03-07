@@ -70,7 +70,7 @@ public class FastJobServer
         {
             TypeName = Type.FullName,
             MethodName = MethodExpression.Method.Name,
-            MethodDeclaringTypeName = MethodExpression.Method.DeclaringType.FullName,
+            MethodDeclaringTypeName = MethodExpression.Method.DeclaringType.AssemblyQualifiedName,
             ParameterTypeNamesJson = JsonConvert.SerializeObject( MethodExpression.Arguments.Select(x => x.Type.FullName).ToList() ),
             ArgumentsJson = JsonConvert.SerializeObject( MethodExpression.Arguments.Select(x => ((ConstantExpression)x).Value) ),
             Queue = FastJobConstants.DefaultQueue,
@@ -82,7 +82,7 @@ public class FastJobServer
             CreatedAt = DateTime.Now,
             ExpiresAt = DateTime.Now
         };
-        
+
 
         var JobID = JobRepository.InsertAsync(job).GetAwaiter().GetResult();
         var State = new State

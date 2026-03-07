@@ -29,7 +29,17 @@ internal class MySqlLockProvider  : LockProvider
         cmd.Parameters.AddWithValue("@resource", LockResourceName);
         cmd.Parameters.AddWithValue("@timeout", (int)Timeout.TotalSeconds);
 
-        var result = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+        var scalarResult = await cmd.ExecuteScalarAsync();
+        int result = 0;
+
+        if (scalarResult == DBNull.Value || scalarResult == null)
+        {
+            result = 0; // treat as "lock not acquired"
+        }
+        else
+        {
+            result = Convert.ToInt32(scalarResult);
+        }
 
         if(result == 1)
         {
