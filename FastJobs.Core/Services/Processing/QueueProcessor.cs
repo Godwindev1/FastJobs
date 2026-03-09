@@ -56,7 +56,11 @@ internal class QueueProcessor
                 Reason = "Schedule Job For Processing",
                 data = "",
             });
-            
+
+            //Set Dequeed Item Visibility Hide To true;
+            Entry.IsScheduled = true;
+            await _queueRepo.Update(Entry);
+
             return new Tuple<Queue, SessionDatabaseLock>( Entry, CurrentWorkerHeldLock );
         
         }

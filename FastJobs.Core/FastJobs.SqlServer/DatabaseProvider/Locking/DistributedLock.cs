@@ -2,23 +2,8 @@ using System.Data;
 
 namespace FastJobs.SqlServer;
 
-// ============================================================
-// SESSION-SCOPED DATABASE LOCK
-// Lock survives transaction commits — must be manually released
-// ============================================================
-
 internal abstract class SessionDatabaseLock : IDisposable, IAsyncDisposable
 {
-
-    protected static readonly IDictionary<int, string> LockErrorMessages
-    = new Dictionary<int, string>
-    {
-        { -1, "The lock request timed out" },
-        { -2, "The lock request was canceled" },
-        { -3, "The lock request was chosen as a deadlock victim" },
-        { -999, "Indicates a parameter validation or other call error" }
-    };
-
     protected readonly IDbConnection _connection;
     protected readonly string _LockResourceName;
     protected bool _disposed;

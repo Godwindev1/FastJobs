@@ -5,6 +5,6 @@ public interface IQueueRepository
     Task<Queue?> GetQueueEntry(long id);
     Task<bool> RemoveAsync(long id);
     Task<Queue?> Dequeue(string  Queuename);
-
+    public Task<int> Update(Queue queueEntry);
 
 }

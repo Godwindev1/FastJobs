@@ -19,9 +19,9 @@ internal sealed class QueueRepository : IQueueRepository
 
         const string sql = @"
         INSERT INTO Queue
-        (QueueName, JobId, Priority, ScheduledAt)
+        (QueueName, JobId, Priority, ScheduledAt, IsScheduled)
         VALUES
-        (@QueueName, @JobId, @priority, @ScheduledAt);
+        (@QueueName, @JobId, @priority, @ScheduledAt, @IsScheduled);
 
         SELECT LAST_INSERT_ID()";
 
@@ -30,7 +30,8 @@ internal sealed class QueueRepository : IQueueRepository
             QueueName = jobEntry.QueueName,
             JobId = jobEntry.JobId,
             Priority = jobEntry.Priority,
-            ScheduledAt = jobEntry.ScheduledAt
+            ScheduledAt = jobEntry.ScheduledAt,
+            IsScheduled = jobEntry.IsScheduled
         });
     }
 
@@ -57,6 +58,32 @@ internal sealed class QueueRepository : IQueueRepository
         return rows > 0;
     }
 
+    public async Task<int> Update(Queue queueEntry)
+    {
+        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+        UPDATE Queue
+        SET 
+            QueueName = @QueueName,
+            IsScheduled = @IsScheduled,
+            ScheduledAt = @ScheduledAt, 
+            Priority = @Priority,
+            JobId = @JobId
+        WHERE Id = @Id;";
+
+        return await _connection.ExecuteAsync(sql, new
+        {
+            Id = queueEntry.Id,
+            queueEntry.QueueName,
+            queueEntry.IsScheduled,
+            queueEntry.ScheduledAt,
+            queueEntry.Priority,
+            queueEntry.JobId,
+        });
+
+    }
+
     public async Task<Queue?> Dequeue(string queueName)
     {
         MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
@@ -68,7 +95,8 @@ internal sealed class QueueRepository : IQueueRepository
             string sql = @"
                 SELECT *
                 FROM Queue
-                WHERE QueueName = @QueueName
+                WHERE QueueName = @QueueName 
+                AND IsScheduled = false 
                 ORDER BY Priority DESC, Id ASC
                 LIMIT 1
             ";
@@ -88,61 +116,9 @@ internal sealed class QueueRepository : IQueueRepository
             throw;
         } 
         
-        //Hardcoded Rubbish For Testing Currently  
-        //return await Dequeue(queueName, TimeSpan.FromMinutes(5));
     }
 
 
-   /*  public async Task<Queue?> Dequeue(string queueName, TimeSpan lockDuration)
-    {
-        using var connection = (MySqlConnection)_connectionFactory.CreateConnection();
-
-        using var transaction = await connection.BeginTransactionAsync();
-
-        try
-        {
-            // 1. Select the first available item and lock it
-            var sql = @"
-                SELECT *
-                FROM Queue
-                WHERE QueueName = @QueueName
-                AND (LockedUntil IS NULL OR LockedUntil < NOW())
-                ORDER BY Priority DESC, Id ASC
-                LIMIT 1
-                FOR UPDATE
-            ";
-
-            var job = await connection.QueryFirstOrDefaultAsync<Queue>(
-                sql,
-                new { QueueName = queueName },
-                transaction: transaction
-            );
-
-            if (job != null)
-            {
-                // 2. Mark it as locked for a duration
-                var lockSql = @"
-                    UPDATE Queue
-                    SET LockedUntil = DATE_ADD(NOW(), INTERVAL @Seconds SECOND)
-                    WHERE Id = @Id
-                ";
-
-                await connection.ExecuteAsync(
-                    lockSql,
-                    new { Seconds = (int)lockDuration.TotalSeconds, Id = job.Id },
-                    transaction: transaction
-                );
-            }
-
-            await transaction.CommitAsync();
-            return job;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
-    } */
-
+   
 
 }

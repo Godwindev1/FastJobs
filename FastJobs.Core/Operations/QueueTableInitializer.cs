@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS Queue
     ScheduledAt DATETIME(6) NOT NULL,
     JobId BIGINT NOT NULL,
     Priority INT NOT NULL DEFAULT 0,
+    IsScheduled BIT NOT NULL DEFAULT 0,
     
     CONSTRAINT FK_Queue_Jobs
     FOREIGN KEY (JobId)
@@ -20,8 +21,8 @@ CREATE TABLE IF NOT EXISTS Queue
 ) ENGINE=InnoDB;";
 
     private const string CreateIndexQueueSql = @"
-    CREATE INDEX IF NOT EXISTS IX_Queue_QueueName_Priority_ScheduledAt
-    ON Queue (QueueName, Priority DESC, ScheduledAt);";
+    CREATE INDEX IF NOT EXISTS IX_Queue_QueueName_Priority_Scheduled
+    ON Queue (QueueName, Priority DESC, IsScheduled);";
     private const string CreateIndexJobIDSql = @"
         CREATE INDEX IF NOT EXISTS IX_Queue_JobId
     ON Queue (JobId);";
