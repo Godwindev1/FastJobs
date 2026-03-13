@@ -29,6 +29,8 @@ public static class JobTableInitializer
 
         CreatedAt DATETIME(6) NOT NULL,
         ExpiresAt DATETIME(6) NULL,
+        LeaseExpiresAt DATETIME(6) NULL, 
+        LeaseOwner BIGINT NULL,
 
         StateId BIGINT NOT NULL
 

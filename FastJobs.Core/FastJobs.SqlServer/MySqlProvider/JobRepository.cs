@@ -29,10 +29,10 @@ internal sealed class JobRepository : IJobRepository
         const string sql = @"
         INSERT INTO Jobs
         (TypeName, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
-        Queue, StateName, RetryCount, MaxRetries, CreatedAt)
+        Queue, StateName, RetryCount, MaxRetries, CreatedAt, LeaseExpiresAt, LeaseOwner)
         VALUES
         (@TypeName, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
-        @Queue, @StateName, @RetryCount, @MaxRetries, @CreatedAt);
+        @Queue, @StateName, @RetryCount, @MaxRetries, @CreatedAt, @LeaseExpiresAt, @LeaseOwner);
 
         SELECT LAST_INSERT_ID();
         ";
@@ -87,7 +87,9 @@ internal sealed class JobRepository : IJobRepository
             StateName = @StateName,
             RetryCount = @RetryCount,
             MaxRetries = @MaxRetries,
-            CreatedAt = @CreatedAt
+            CreatedAt = @CreatedAt,
+            LeaseExpiresAt = @LeaseExpiresAt,
+            LeaseOwner = @LeaseOwner 
         WHERE Id = @Id;";
 
         return await _connection.ExecuteAsync(sql, new
@@ -103,7 +105,9 @@ internal sealed class JobRepository : IJobRepository
             job.StateName,
             job.RetryCount,
             job.MaxRetries,
-            job.CreatedAt
+            job.CreatedAt, 
+            job.LeaseExpiresAt,
+            job.LeaseOwner
         });
     }
 
