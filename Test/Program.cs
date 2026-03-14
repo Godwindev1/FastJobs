@@ -21,10 +21,7 @@ Provider.UseFastJobs();
 
 await FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
 
-while(true)
-{
-    
-}
+
 
 public class JobsHelp
 {

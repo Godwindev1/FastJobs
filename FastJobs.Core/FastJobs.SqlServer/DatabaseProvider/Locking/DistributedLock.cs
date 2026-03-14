@@ -2,7 +2,7 @@ using System.Data;
 
 namespace FastJobs.SqlServer;
 
-internal abstract class SessionDatabaseLock : IDisposable, IAsyncDisposable
+internal abstract class SessionDatabaseLock : IDisposable
 {
     protected readonly IDbConnection _connection;
     protected readonly string _LockResourceName;
@@ -22,24 +22,21 @@ internal abstract class SessionDatabaseLock : IDisposable, IAsyncDisposable
         if (_disposed) return;
         _disposed = true;
 
-        // Must explicitly release — session locks do NOT release on transaction end
-        ReleaseLock();
         _connection.Dispose();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_disposed) return;
-        _disposed = true;
-
-        await ReleaseLockAsync();
-        _connection.Dispose();
+        
     }
 
     public string GetResoureName()
     {
         return _LockResourceName;
     }
+
+    /// <summary>
+    /// Child Implementation Should Include a Call To Dispose() after Releasing
+    /// </summary>
     public abstract void ReleaseLock();
+    /// <summary>
+    /// Child Implementation Should Include a Call To Dispose() after Releasing
+    /// </summary>
     public abstract Task ReleaseLockAsync();
 }

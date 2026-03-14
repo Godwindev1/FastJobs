@@ -20,7 +20,8 @@ internal class MySqlSessionDBLock : SessionDatabaseLock
         Command.CommandText = "SELECT RELEASE_LOCK(@ResourceName)";
         Command.Parameters.AddWithValue("@ResourceName", this._LockResourceName);
         
-        var result = Convert.ToInt32(Command.ExecuteScalar());
+        Command.ExecuteScalar();
+        Dispose();
     }
     public override async Task ReleaseLockAsync()
     {
@@ -30,7 +31,7 @@ internal class MySqlSessionDBLock : SessionDatabaseLock
         Command.CommandText = "SELECT RELEASE_LOCK(@ResourceName)";
         Command.Parameters.AddWithValue("@ResourceName", this._LockResourceName);
         
-        var result = Convert.ToInt32(await Command.ExecuteScalarAsync());
-
+        await Command.ExecuteScalarAsync();
+        Dispose();
     }
 }
