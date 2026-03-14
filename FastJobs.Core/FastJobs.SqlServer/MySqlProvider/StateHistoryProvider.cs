@@ -16,7 +16,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<long> InsertAsync(State job)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         INSERT INTO State
@@ -32,7 +32,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task InsertAsync(IEnumerable<State> states)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             INSERT INTO State
@@ -46,7 +46,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
     }
     public async Task<State?> GetByIdAsync(int id)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         string sql  = $@"
             SELECT * FROM State WHERE Id = {id}

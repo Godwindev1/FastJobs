@@ -27,6 +27,7 @@ internal class QueueProcessor
       return  _locprovider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5));   
     }
 
+
     public async Task<bool> IsQueueEmpty(string QueueName)
     {
         var result = await _queueRepo.Dequeue(QueueName);
@@ -37,26 +38,29 @@ internal class QueueProcessor
 
         return false;
     }
-    public async Task<Tuple<Queue, SessionDatabaseLock>?> DeQueueItem(string QueueName)
+    public async Task<Tuple<Queue, SessionDatabaseLock>?> DequeueAsync(string QueueName)
     {
         Queue? Entry  = await _queueRepo.Dequeue(QueueName);
+
         if(Entry != null)
         {
-            //Does not Do A Visibilty Hide On the Dequeued Work Yet 
             SessionDatabaseLock CurrentWorkerHeldLock =  await LockQueueItem(Entry.Id.ToString(), Entry.JobId.ToString()) ; 
             var Job = await _JobRepository.GetByIdAsync(Entry.JobId);
             
-            Job.StateName = QueueStateTypes.Scheduled;
-            await _JobRepository.UpdateByIdAsync(Job);
-
-            await stateHistoryRepository.InsertAsync(new State { 
-                CreatedAt = DateTime.Now,
+            var StateId = await stateHistoryRepository.InsertAsync(new State { 
+                CreatedAt = DateTime.UtcNow,
                 StateName = QueueStateTypes.Scheduled,
                 JobID = Job.Id,
                 Reason = "Schedule Job For Processing",
                 data = "",
             });
 
+
+            Job.StateName = QueueStateTypes.Scheduled;
+            Job.stateID = StateId;
+            await _JobRepository.UpdateByIdAsync(Job);
+
+            
             //Set Dequeed Item Visibility Hide To true;
             Entry.IsScheduled = true;
             await _queueRepo.Update(Entry);
@@ -66,6 +70,89 @@ internal class QueueProcessor
         }
 
         return null;
+    }
+
+
+    public async Task CompleteJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock)
+    {
+        //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
+        var stateID = await stateHistoryRepository.InsertAsync(new State { 
+                CreatedAt = DateTime.Now,
+                StateName = QueueStateTypes.Completed,
+                JobID = JobQueueEntry.JobId,
+                Reason = "Job Has Been Completed",
+                data = "Completed",
+            });
+
+        var Job = await _JobRepository.GetByIdAsync(JobQueueEntry.JobId);
+        Job.stateID = stateID;
+        Job.StateName =  QueueStateTypes.Completed;
+        await _JobRepository.UpdateByIdAsync(Job);
+
+        await _queueRepo.RemoveAsync(JobQueueEntry.Id);
+        await QueueLock.ReleaseLockAsync();
+    }
+
+    private async Task FailJobAsync(Job job, string ExceptionMessage)
+    {
+        //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
+        var stateID = await stateHistoryRepository.InsertAsync(new State { 
+                CreatedAt = DateTime.UtcNow,
+                StateName = QueueStateTypes.Failed,
+                JobID = job.Id,
+                Reason = $"Job Has Failed As Many As {job.MaxRetries} Times",
+                data = ExceptionMessage,
+        });
+
+        job.stateID = stateID;
+        job.StateName =  QueueStateTypes.Failed;
+
+        await _JobRepository.UpdateByIdAsync(job);       
+    }
+
+    public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, string ExceptionMessage = "")
+    {  
+        try {
+            var Job = await _JobRepository.GetByIdAsync(JobQueueEntry.JobId);
+            if (Job == null)
+            {
+                await QueueLock.ReleaseLockAsync();
+                return;
+            }
+
+            if(Job.RetryCount > Job.MaxRetries)
+            {
+                await FailJobAsync(Job, ExceptionMessage);
+                await _queueRepo.RemoveAsync(JobQueueEntry.Id);   
+            }
+            else
+            {
+                //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
+                var stateID = await stateHistoryRepository.InsertAsync(new State { 
+                    CreatedAt = DateTime.UtcNow,
+                    StateName = QueueStateTypes.Enqueued,
+                    JobID = JobQueueEntry.JobId,
+                    Reason = "Retrying",
+                    data = ExceptionMessage,
+                });
+
+                Job.stateID = stateID;
+                Job.StateName =  QueueStateTypes.Enqueued;
+                Job.RetryCount += 1;
+                
+                await _JobRepository.UpdateByIdAsync(Job);
+
+                //make Job Visible again
+                JobQueueEntry.IsScheduled = false;
+                await _queueRepo.Update(JobQueueEntry);
+            }
+            
+        }
+        finally {
+        
+            await QueueLock.ReleaseLockAsync();
+        }
+       
     }
 
 }

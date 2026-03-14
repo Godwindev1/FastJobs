@@ -15,7 +15,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<long> EnqueueAsync(Queue jobEntry)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         INSERT INTO Queue
@@ -37,7 +37,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<Queue?> GetQueueEntry(long id)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @" 
             SELECT * FROM Queue WHERE Id = @Id;
@@ -48,7 +48,7 @@ internal sealed class QueueRepository : IQueueRepository
     }
     public async Task<bool> RemoveAsync(long id)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         DELETE FROM Queue
@@ -60,7 +60,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<int> Update(Queue queueEntry)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         UPDATE Queue
@@ -86,7 +86,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<Queue?> Dequeue(string queueName)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         using var transaction = _connection.BeginTransaction();
 

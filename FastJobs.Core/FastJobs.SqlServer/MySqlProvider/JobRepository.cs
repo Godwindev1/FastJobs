@@ -24,7 +24,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns>Returns Id of inserted Job</returns>
     public async Task<long> InsertAsync(Job job)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         INSERT INTO Jobs
@@ -45,7 +45,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<Job?> GetByIdAsync(long id)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Jobs WHERE Id = @Id";
 
@@ -55,7 +55,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> DeleteByIdAsync(long id)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         string sql  = $@"
             DELETE FROM Jobs WHERE Id = {id} 
@@ -72,7 +72,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns> returns affected rows</returns>
     public async Task<int> UpdateByIdAsync(Job job)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         UPDATE Jobs
@@ -120,7 +120,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns></returns>
     public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job)
     {
-        MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         string sql = $@"
         UPDATE Jobs

@@ -12,6 +12,7 @@ internal class ProcessingServer
 {
     private ConcurrentQueue<Tuple<IBackGroundJob, SessionDatabaseLock>> _ScheduledJobs;   
     private readonly IServiceScopeFactory _scopeFactory;
+    private WorkerManager? _workerManager;
 
     public ProcessingServer(IServiceScopeFactory serviceScopeFactory)
     {
@@ -34,35 +35,16 @@ internal class ProcessingServer
         ); 
     }
 
-    public async void StartProcessingJobs()
+
+    public void StartProcessingJobs(int workerCount = 4)
     {
-        Thread JobProcessingThread = new Thread (
-            async () => {
-                while(true)
-                {
-                   using ScopeManager scopeManager = new ScopeManager(_scopeFactory);
-                   QueueProcessor _jobProcessor = scopeManager.Resolve<QueueProcessor>();; 
+        _workerManager = new WorkerManager(workerCount, _scopeFactory);
 
-
-                    if(await _jobProcessor.IsQueueEmpty(FastJobConstants.DefaultQueue))
-                    {
-                        Thread.Sleep(400);
-                        continue;
-                    }
-
-                    //NB: Default Queue is HardCoded Here Until Support For Multi Queue Is Implemented
-                    var result = await _jobProcessor.DeQueueItem(FastJobConstants.DefaultQueue);  
-                    
-                    if(result != null)
-                    await ScheduleJob(result);  
-                }
-            }
-        );
-
-        JobProcessingThread.Name = "FastJobs.ProcessingServer";
-        JobProcessingThread.IsBackground = true;
-        JobProcessingThread.Start();
+        _workerManager.Start();
     }
 
-
+    public void StopProcessingJobs()
+    {
+        _workerManager?.Stop();
+    }
 }
