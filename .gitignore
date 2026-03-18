@@ -39,6 +39,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+ignore/
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
