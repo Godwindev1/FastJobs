@@ -106,7 +106,7 @@ public class FastJobServer
             Priority = 2,
             ScheduledAt = DateTime.Now
         });
-
+        
 
         
     }

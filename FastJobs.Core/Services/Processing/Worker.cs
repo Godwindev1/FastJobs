@@ -47,7 +47,7 @@ public class Worker
                 IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
                 Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
 
-                var ResolvedJob = JobResolver.ResolveFireAndForgetJob(job);
+                var ResolvedJob = JobResolver.ResolveJob(job, Scope);
                 
                 if (ResolvedJob == null)
                 {

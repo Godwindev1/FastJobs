@@ -29,6 +29,13 @@ public static  class ServiceCollectionExtensions
         return services;
     }
  
+    public static IServiceCollection AddJobService<TJob>(
+        this IServiceCollection services)
+        where TJob : class, IBackGroundJob
+    {
+        services.AddScoped<TJob>();
+        return services;
+    }
 
 }
 

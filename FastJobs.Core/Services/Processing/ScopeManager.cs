@@ -17,6 +17,11 @@ internal sealed class ScopeManager : IDisposable
         _scope = scopeFactory.CreateScope();
     }
 
+    internal object Resolve(Type type)
+    {
+        return ServiceProvider.GetRequiredService(type);
+    }
+
     public T Resolve<T>() where T : notnull
     {
         return ServiceProvider.GetRequiredService<T>();
