@@ -31,7 +31,7 @@ namespace FastJobs
 
         private static void InitializeJobServerAbstraction(IServiceProvider provider)
         {
-            FastJobServer.BuildInstance(provider);
+            FastJobServer.BuildInstance(provider.GetRequiredService<IServiceScopeFactory>());
         }
 
         public static void UseFastJobs(this IServiceProvider provider)

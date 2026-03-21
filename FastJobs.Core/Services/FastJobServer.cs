@@ -11,26 +11,26 @@ namespace FastJobs;
 public class FastJobServer
 {
     //Service Provider For Reolving FastJob Dependencies 
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _ScopeFactory;
     //Singlton Instance
     static private FastJobServer? _serverInstance = null;
 
-    private FastJobServer(IServiceProvider serviceProvider)
+    private FastJobServer(IServiceScopeFactory IserviceScopeFactory)
     {
-        _serviceProvider = serviceProvider;
+        _ScopeFactory = IserviceScopeFactory;
     }
 
     /// <summary>
     /// Create New Instance of FastJobServer 
     /// </summary>
     /// <param name="provider"></param>
-    static internal void BuildInstance(IServiceProvider provider)
+    static internal void BuildInstance(IServiceScopeFactory scopeFactory)
     {
-        _serverInstance = new FastJobServer(provider);
+        _serverInstance = new FastJobServer(scopeFactory);
     }
 
 
-    static private FastJobServer GetInstance(IServiceProvider provider)
+    static private FastJobServer GetInstance(IServiceScopeFactory scopeFactory)
     {
         if(_serverInstance != null)
         {
@@ -38,7 +38,7 @@ public class FastJobServer
         }
         else
         {
-            BuildInstance(provider);
+            BuildInstance(scopeFactory);
             return _serverInstance;   
         }
     }
@@ -49,9 +49,11 @@ public class FastJobServer
         
         //TODO: To IMPl This FUnction WIll Now Be Responsible For Registering JOBs To DI Container And Enqueuing Jobs To The Database
 
-        var JobRepository = _serverInstance._serviceProvider.GetRequiredService<IJobRepository>();
-        var stateHistoryRepository = _serverInstance._serviceProvider.GetRequiredService<IStateHistoryRepository>();
-        var queueRepository = _serverInstance._serviceProvider.GetRequiredService<IQueueRepository>();
+        using ScopeManager _scopeManager = new ScopeManager(_serverInstance._ScopeFactory);
+
+        var JobRepository = _scopeManager.Resolve<IJobRepository>();
+        var stateHistoryRepository = _scopeManager.Resolve<IStateHistoryRepository>();
+        var queueRepository = _scopeManager.Resolve<IQueueRepository>();
 
         //Job Storage
         var Type = typeof(FireAndForgetJobs);
@@ -109,5 +111,29 @@ public class FastJobServer
         
 
         
+    }
+
+
+    public static EnqueueOptions<TJob> EnqueueJob<TJob>() 
+        where TJob : class, IBackGroundJob
+    {
+        var job = new Job
+        {
+            TypeName = typeof(TJob).AssemblyQualifiedName,
+            Queue = FastJobConstants.DefaultQueue,
+            StateName = QueueStateTypes.Enqueued,
+            RetryCount = 0,
+            MaxRetries = 3,
+            Priority = 1,
+            CreatedAt = DateTime.UtcNow,
+            MethodName = string.Empty,
+            MethodDeclaringTypeName = string.Empty,
+            ParameterTypeNamesJson = string.Empty,
+            ArgumentsJson = string.Empty,
+            ExpiresAt = DateTime.UtcNow
+        };
+
+
+        return new EnqueueOptions<TJob>(job, _serverInstance._ScopeFactory);
     }
 }
