@@ -1,8 +1,3 @@
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
-using FastJobs.SqlServer;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
@@ -11,15 +6,17 @@ internal class ProcessingServer
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private WorkerManager? _workerManager;
+    private CancellationTokenSource _shutdownCts;
 
-    public ProcessingServer(IServiceScopeFactory serviceScopeFactory)
+    public ProcessingServer(IServiceScopeFactory serviceScopeFactory, CancellationTokenSource shutdownCts)
     {
         _scopeFactory = serviceScopeFactory;
+        _shutdownCts = shutdownCts;
     }
 
     public void StartProcessingJobs(int workerCount = 4)
     {
-        _workerManager = new WorkerManager(workerCount, _scopeFactory);
+        _workerManager = new WorkerManager(workerCount, _scopeFactory, _shutdownCts);
         _workerManager.Start();
     }
 

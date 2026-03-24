@@ -1,36 +1,36 @@
-﻿using System.Data;
-using System.Linq.Expressions;
-using System.Reflection;
-using FastJobs;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Xml;
+using Microsoft.Extensions.Hosting;
 
-string connectionString  = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
+string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
-// 1 - Create the service collection
-var services = new ServiceCollection();
-services.AddJobService<ConsoleTestJob>();
-services.FastJobs( Option =>  Option.ConnectionString = connectionString , new FastJobs.SqlServer.FastJobMysqlDependincies() );
+var builder = Host.CreateApplicationBuilder(args);
+builder.Services.AddJobService<ConsoleTestJob>();
+builder.Services.FastJobs(option => option.ConnectionString = connectionString, new FastJobs.SqlServer.FastJobMysqlDependincies());
 
-var Provider = services.BuildServiceProvider();
-Provider.UseFastJobs();
+var app = builder.Build();
 
-await FastJobs.FastJobServer.EnqueueJob<ConsoleTestJob>().WithDelay(TimeSpan.FromSeconds(10)).Start();
+app.Services.UseFastJobs();
+
+await app.StartAsync();
+
+await FastJobServer.EnqueueJob<ConsoleTestJob>()
+    .WithDelay(TimeSpan.FromSeconds(10))
+    .Start();
+
+await app.WaitForShutdownAsync();
 
 public class ConsoleTestJob : IBackGroundJob
 {
-    public Task ExecuteAsync(CancellationToken ck)
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        for(int i = 100; i > 0; i--)
+        for (int i = 100; i > 0; i--)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Console.WriteLine($"Counting Down: {i}");
-            Thread.Sleep(200);
+            await Task.Delay(200, cancellationToken);
         }
-        
-        Console.WriteLine("Completed Console Job");
-        return Task.CompletedTask;
-    }   
-}
 
+        Console.WriteLine("Completed Console Job");
+    }
+}

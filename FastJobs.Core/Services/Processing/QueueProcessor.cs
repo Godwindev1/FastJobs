@@ -22,15 +22,15 @@ internal class QueueProcessor
         stateHistoryRepository = stateRepo;
     }
 
-    private Task<SessionDatabaseLock?> LockQueueItem(string QueueEntryID, string JobID)
+    private Task<SessionDatabaseLock?> LockQueueItem(string QueueEntryID, string JobID, CancellationToken cancellationToken)
     {
-      return  _locprovider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5));   
+      return  _locprovider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5), cancellationToken);   
     }
 
 
-    public async Task<bool> IsQueueEmpty(string QueueName)
+    public async Task<bool> IsQueueEmpty(string QueueName, CancellationToken cancellationToken)
     {
-        var result = await _queueRepo.Dequeue(QueueName);
+        var result = await _queueRepo.Dequeue(QueueName, cancellationToken);
         if(result == null)
         {
             return true;
@@ -38,14 +38,14 @@ internal class QueueProcessor
 
         return false;
     }
-    public async Task<Tuple<Queue, SessionDatabaseLock>?> DequeueAsync(string QueueName)
+    public async Task<Tuple<Queue, SessionDatabaseLock>?> DequeueAsync(string QueueName, CancellationToken cancellationToken)
     {
-        Queue? Entry  = await _queueRepo.Dequeue(QueueName);
+        Queue? Entry  = await _queueRepo.Dequeue(QueueName, cancellationToken);
 
         if(Entry != null)
         {
-            SessionDatabaseLock CurrentWorkerHeldLock =  await LockQueueItem(Entry.Id.ToString(), Entry.JobId.ToString()) ; 
-            var Job = await _JobRepository.GetByIdAsync(Entry.JobId);
+            SessionDatabaseLock CurrentWorkerHeldLock =  await LockQueueItem(Entry.Id.ToString(), Entry.JobId.ToString(), cancellationToken) ; 
+            var Job = await _JobRepository.GetByIdAsync(Entry.JobId, cancellationToken);
             
             var StateId = await stateHistoryRepository.InsertAsync(new State { 
                 CreatedAt = DateTime.UtcNow,
@@ -53,17 +53,17 @@ internal class QueueProcessor
                 JobID = Job.Id,
                 Reason = "Schedule Job For Processing",
                 data = "",
-            });
+            }, cancellationToken);
 
 
             Job.StateName = QueueStateTypes.Scheduled;
             Job.stateID = StateId;
-            await _JobRepository.UpdateByIdAsync(Job);
+            await _JobRepository.UpdateByIdAsync(Job, cancellationToken);
 
             
             //Set Dequeed Item Visibility Hide To true;
             Entry.IsScheduled = true;
-            await _queueRepo.Update(Entry);
+            await _queueRepo.Update(Entry, cancellationToken);
 
             return new Tuple<Queue, SessionDatabaseLock>( Entry, CurrentWorkerHeldLock );
         
@@ -75,6 +75,7 @@ internal class QueueProcessor
 
     public async Task CompleteJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock)
     {
+        //NOTE: Intentionally no CancellationToken — finalisation operation must complete to avoid orphaned locks
         //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
         var stateID = await stateHistoryRepository.InsertAsync(new State { 
                 CreatedAt = DateTime.Now,
@@ -95,6 +96,7 @@ internal class QueueProcessor
 
     private async Task FailJobAsync(Job job, string ExceptionMessage)
     {
+        //NOTE: Intentionally no CancellationToken — compensating operation must complete
         //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
         var stateID = await stateHistoryRepository.InsertAsync(new State { 
                 CreatedAt = DateTime.UtcNow,
@@ -112,6 +114,7 @@ internal class QueueProcessor
 
     public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, string ExceptionMessage = "")
     {  
+        //NOTE: Intentionally no CancellationToken — compensating operation must complete to maintain job state consistency
         try {
             var Job = await _JobRepository.GetByIdAsync(JobQueueEntry.JobId);
             if (Job == null)

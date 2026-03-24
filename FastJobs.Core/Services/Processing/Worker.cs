@@ -34,7 +34,7 @@ public class Worker
         while (!_shutdownToken.IsCancellationRequested)
         {
             //wont always Use Default Queue
-            if(await _QueueProcessor.IsQueueEmpty(FastJobConstants.DefaultQueue))
+            if(await _QueueProcessor.IsQueueEmpty(FastJobConstants.DefaultQueue, _shutdownToken))
             {
                 await Task.Delay(500, _shutdownToken);
                 continue;
@@ -42,7 +42,7 @@ public class Worker
 
             using ( var Scope = new ScopeManager(serviceScopeFactory) )
             {
-                var JobDetails = await _QueueProcessor.DequeueAsync(FastJobConstants.DefaultQueue);
+                var JobDetails = await _QueueProcessor.DequeueAsync(FastJobConstants.DefaultQueue, _shutdownToken);
 
                 IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
                 Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);

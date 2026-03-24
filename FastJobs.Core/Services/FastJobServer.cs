@@ -44,7 +44,7 @@ public class FastJobServer
     }
 
 
-    public static async Task EnqueueJob(Expression<Action> ActionExpression)
+    public static async Task EnqueueJob(Expression<Action> ActionExpression, CancellationToken cancellationToken = default)
     {
         
         //TODO: To IMPl This FUnction WIll Now Be Responsible For Registering JOBs To DI Container And Enqueuing Jobs To The Database
@@ -87,7 +87,7 @@ public class FastJobServer
         };
 
 
-        var JobID = JobRepository.InsertAsync(job).GetAwaiter().GetResult();
+        var JobID = await JobRepository.InsertAsync(job, cancellationToken);
         var State = new State
         {
             JobID = JobID,
@@ -97,9 +97,9 @@ public class FastJobServer
             CreatedAt = DateTime.Now
         };
             
-        var StateID = await stateHistoryRepository.InsertAsync(State);
+        var StateID = await stateHistoryRepository.InsertAsync(State, cancellationToken);
         
-        await JobRepository.UpdateByIdAsync(JobID, "stateID = @stateID, StateName = @StateName", new Job { stateID =  StateID, StateName = QueueStateTypes.Enqueued});
+        await JobRepository.UpdateByIdAsync(JobID, "stateID = @stateID, StateName = @StateName", new Job { stateID =  StateID, StateName = QueueStateTypes.Enqueued}, cancellationToken);
         
         //enqueue
         await queueRepository.EnqueueAsync(new Queue { 
@@ -107,7 +107,7 @@ public class FastJobServer
             QueueName = FastJobConstants.DefaultQueue,
             Priority = 2,
             ScheduledAt = DateTime.Now
-        });
+        }, cancellationToken);
         
 
         

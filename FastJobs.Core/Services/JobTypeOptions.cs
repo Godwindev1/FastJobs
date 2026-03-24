@@ -24,7 +24,7 @@ namespace FastJobs {
         return this;
     }
 
-    public async Task Start()
+    public async Task Start(CancellationToken cancellationToken = default)
     {
         using var Scope = new ScopeManager(this._scopeFactory);
 
@@ -32,7 +32,7 @@ namespace FastJobs {
         var stateHistoryRepository = Scope.Resolve<IStateHistoryRepository>();
         var queueRepository        = Scope.Resolve<IQueueRepository>();
 
-        var jobId = await jobRepository.InsertAsync(_job);
+        var jobId = await jobRepository.InsertAsync(_job, cancellationToken);
 
         var state = new State
         {
@@ -43,10 +43,10 @@ namespace FastJobs {
             CreatedAt = DateTime.UtcNow
         };
 
-        var stateId = await stateHistoryRepository.InsertAsync(state);
+        var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);
 
         await jobRepository.UpdateByIdAsync(jobId, "stateID = @stateID, StateName = @StateName",
-            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued });
+            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued }, cancellationToken);
 
         await queueRepository.EnqueueAsync(new Queue
         {
@@ -54,7 +54,7 @@ namespace FastJobs {
             QueueName   = FastJobConstants.DefaultQueue,
             Priority    = _job.Priority,
             ScheduledAt = DateTime.UtcNow
-        });
+        }, cancellationToken);
     }
 }
 }
