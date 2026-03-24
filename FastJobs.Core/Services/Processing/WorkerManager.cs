@@ -6,11 +6,12 @@ namespace FastJobs;
 public class WorkerManager
 {
     private readonly List<Thread> _workers = new();
-    private readonly CancellationTokenSource _shutdownCts = new();
+    private readonly CancellationTokenSource _shutdownCts;
     private readonly IServiceScopeFactory _scopeFactory;
 
-    public WorkerManager(int workerCount, IServiceScopeFactory scopeFactory)
+    public WorkerManager(int workerCount, IServiceScopeFactory scopeFactory, CancellationTokenSource shutdownCts)
     {
+        _shutdownCts = shutdownCts;
         _scopeFactory = scopeFactory;
 
         for (int i = 0; i < workerCount; i++)

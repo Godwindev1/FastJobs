@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 namespace FastJobs;
+
+
 
 public static  class ServiceCollectionExtensions
 {
@@ -13,6 +17,8 @@ public static  class ServiceCollectionExtensions
     public static IServiceCollection FastJobs(
         this IServiceCollection services, Action<FastJobsOptions> optionsFactory, IDatabaseProviderDependencies databaseProvider)
     {
+        RegisterApplicationShutdownToken(services);
+
         FastJobsOptions Options = new FastJobsOptions();
         optionsFactory.Invoke(Options); 
         services.AddSingleton(Options);
@@ -35,6 +41,23 @@ public static  class ServiceCollectionExtensions
     {
         services.AddScoped<TJob>();
         return services;
+    }
+
+    private static void RegisterApplicationShutdownToken(IServiceCollection Services)
+    {
+
+        Services.AddSingleton(sp =>
+        {
+            var lifetime = sp.GetRequiredService<IHostApplicationLifetime>();
+            var cts = new CancellationTokenSource();
+
+            // Hook it to the app shutdown event
+            lifetime.ApplicationStopping.Register(() => cts.Cancel());
+            lifetime.ApplicationStopped.Register(() => cts.Dispose());
+            
+            return cts;
+        });
+        
     }
 
 }

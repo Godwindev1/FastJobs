@@ -14,13 +14,13 @@ internal class MySqlLockProvider  : LockProvider
         dbConnectionFactory = factory;        
     }
 
-    public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout)
+    public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout, CancellationToken cancellationToken)
     {
         MySqlConnection dbConnection = (MySqlConnection)dbConnectionFactory.CreateConnection();
 
         if(dbConnection.State != ConnectionState.Open)
         {
-            await dbConnection.OpenAsync();
+            await dbConnection.OpenAsync(cancellationToken);
         }
 
         using var cmd = dbConnection.CreateCommand();
@@ -29,7 +29,7 @@ internal class MySqlLockProvider  : LockProvider
         cmd.Parameters.AddWithValue("@resource", LockResourceName);
         cmd.Parameters.AddWithValue("@timeout", (int)Timeout.TotalSeconds);
 
-        var scalarResult = await cmd.ExecuteScalarAsync();
+        var scalarResult = await cmd.ExecuteScalarAsync(cancellationToken);
         int result = 0;
 
         if (scalarResult == DBNull.Value || scalarResult == null)

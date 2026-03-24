@@ -22,7 +22,7 @@ internal sealed class JobRepository : IJobRepository
     /// </summary>
     /// <param name="job"></param>
     /// <returns>Returns Id of inserted Job</returns>
-    public async Task<long> InsertAsync(Job job)
+    public async Task<long> InsertAsync(Job job, CancellationToken cancellationToken = default)
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -37,23 +37,23 @@ internal sealed class JobRepository : IJobRepository
         SELECT LAST_INSERT_ID();
         ";
 
-        var id = await _connection.ExecuteScalarAsync<long>(sql, job);
+        var id = await _connection.ExecuteScalarAsync<long>(new CommandDefinition (sql, job, cancellationToken: cancellationToken));
         return id;
 
     }
 
 
-    public async Task<Job?> GetByIdAsync(long id)
+    public async Task<Job?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Jobs WHERE Id = @Id";
 
         return await _connection.QuerySingleOrDefaultAsync<Job>(
-            new CommandDefinition(sql, new { Id = id }));
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
     }
 
-    public async Task<int> DeleteByIdAsync(long id)
+    public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -61,7 +61,7 @@ internal sealed class JobRepository : IJobRepository
             DELETE FROM Jobs WHERE Id = {id} 
         ";
 
-        return await _connection.ExecuteAsync(sql);
+        return await _connection.ExecuteAsync(new CommandDefinition (sql, cancellationToken: cancellationToken) );
     }
 
     /// <summary>
@@ -70,7 +70,7 @@ internal sealed class JobRepository : IJobRepository
     /// <param name="id"></param>
     /// <param name="job"></param>
     /// <returns> returns affected rows</returns>
-    public async Task<int> UpdateByIdAsync(Job job)
+    public async Task<int> UpdateByIdAsync(Job job, CancellationToken cancellationToken = default)
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -92,7 +92,7 @@ internal sealed class JobRepository : IJobRepository
             LeaseOwner = @LeaseOwner 
         WHERE Id = @Id;";
 
-        return await _connection.ExecuteAsync(sql, new
+        var command = new CommandDefinition(sql, new
         {
             Id = job.Id,
             job.TypeName,
@@ -108,7 +108,9 @@ internal sealed class JobRepository : IJobRepository
             job.CreatedAt, 
             job.LeaseExpiresAt,
             job.LeaseOwner
-        });
+        }, cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
     }
 
     /// <summary>
@@ -118,7 +120,7 @@ internal sealed class JobRepository : IJobRepository
     /// <param name="SqlValues"> Values formatted By @value <dapper format> </param>
     /// <param name="job"></param>
     /// <returns></returns>
-    public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job)
+    public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job, CancellationToken cancellationToken = default)
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -128,7 +130,7 @@ internal sealed class JobRepository : IJobRepository
           {SqlValues}
         WHERE Id = {id}";
 
-        return await _connection.ExecuteAsync(new CommandDefinition ( sql, job ));
+        return await _connection.ExecuteAsync(new CommandDefinition(sql, job, cancellationToken: cancellationToken));
 
     }
 

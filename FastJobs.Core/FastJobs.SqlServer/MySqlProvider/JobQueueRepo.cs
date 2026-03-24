@@ -13,7 +13,7 @@ internal sealed class QueueRepository : IQueueRepository
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<long> EnqueueAsync(Queue jobEntry)
+    public async Task<long> EnqueueAsync(Queue jobEntry, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -25,17 +25,19 @@ internal sealed class QueueRepository : IQueueRepository
 
         SELECT LAST_INSERT_ID()";
 
-        return await _connection.ExecuteScalarAsync<long>(sql, new
+        var command = new CommandDefinition(sql, new
         {
             QueueName = jobEntry.QueueName,
             JobId = jobEntry.JobId,
             Priority = jobEntry.Priority,
             ScheduledAt = jobEntry.ScheduledAt,
             IsScheduled = jobEntry.IsScheduled
-        });
+        }, cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteScalarAsync<long>(command);
     }
 
-    public async Task<Queue?> GetQueueEntry(long id)
+    public async Task<Queue?> GetQueueEntry(long id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -43,10 +45,11 @@ internal sealed class QueueRepository : IQueueRepository
             SELECT * FROM Queue WHERE Id = @Id;
         ";  
 
-        var value  = await _connection.QueryAsync<Queue>(sql, new { Id = id });
+        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        var value  = await _connection.QueryAsync<Queue>(command);
         return value.FirstOrDefault();
     }
-    public async Task<bool> RemoveAsync(long id)
+    public async Task<bool> RemoveAsync(long id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -54,11 +57,12 @@ internal sealed class QueueRepository : IQueueRepository
         DELETE FROM Queue
         WHERE Id = @Id;";
 
-        var rows = await _connection.ExecuteAsync(sql, new { Id = id });
+        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        var rows = await _connection.ExecuteAsync(command);
         return rows > 0;
     }
 
-    public async Task<int> Update(Queue queueEntry)
+    public async Task<int> Update(Queue queueEntry, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -72,7 +76,7 @@ internal sealed class QueueRepository : IQueueRepository
             JobId = @JobId
         WHERE Id = @Id;";
 
-        return await _connection.ExecuteAsync(sql, new
+        var command = new CommandDefinition(sql, new
         {
             Id = queueEntry.Id,
             queueEntry.QueueName,
@@ -80,11 +84,13 @@ internal sealed class QueueRepository : IQueueRepository
             queueEntry.ScheduledAt,
             queueEntry.Priority,
             queueEntry.JobId,
-        });
+        }, cancellationToken: cancellationToken);
+
+        return await _connection.ExecuteAsync(command);
 
     }
 
-    public async Task<Queue?> Dequeue(string queueName)
+    public async Task<Queue?> Dequeue(string queueName, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -101,10 +107,10 @@ internal sealed class QueueRepository : IQueueRepository
                 LIMIT 1
             ";
 
+            CommandDefinition command = new CommandDefinition(sql, new { QueueName = queueName }, transaction: transaction, cancellationToken: cancellationToken);
+
             var job = await _connection.QueryFirstOrDefaultAsync<Queue>(
-                sql,
-                new { QueueName = queueName },
-                transaction: transaction
+             command
             );
 
             transaction.Commit();

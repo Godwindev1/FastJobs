@@ -17,7 +17,6 @@ services.FastJobs( Option =>  Option.ConnectionString = connectionString , new F
 var Provider = services.BuildServiceProvider();
 Provider.UseFastJobs();
 
-//await FastJobs.FastJobServer.EnqueueJob(() => JobsHelp.Job());
 await FastJobs.FastJobServer.EnqueueJob<ConsoleTestJob>().WithDelay(TimeSpan.FromSeconds(10)).Start();
 
 public class ConsoleTestJob : IBackGroundJob

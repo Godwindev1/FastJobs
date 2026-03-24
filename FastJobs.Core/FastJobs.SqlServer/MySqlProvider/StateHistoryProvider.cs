@@ -14,7 +14,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<long> InsertAsync(State job)
+    public async Task<long> InsertAsync(State job, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -26,11 +26,11 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
         SELECT LAST_INSERT_ID()";
         
-        var result = await _connection.ExecuteScalarAsync<long>( new CommandDefinition (sql, job) );
+        var result = await _connection.ExecuteScalarAsync<long>(new CommandDefinition(sql, job, cancellationToken: cancellationToken));
         return result;   
     }
 
-    public async Task InsertAsync(IEnumerable<State> states)
+    public async Task InsertAsync(IEnumerable<State> states, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -41,10 +41,10 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
             (@StateName, @Data, @Reason, @JobId, @CreatedAt);";
 
         await _connection.ExecuteAsync(
-            new CommandDefinition(sql, states)
+            new CommandDefinition(sql, states, cancellationToken: cancellationToken)
         );
     }
-    public async Task<State?> GetByIdAsync(int id)
+    public async Task<State?> GetByIdAsync(int id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -52,7 +52,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
             SELECT * FROM State WHERE Id = {id}
         ";
 
-        return await _connection.QuerySingleAsync(sql);
+        return await _connection.QuerySingleAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
     }
 
 }

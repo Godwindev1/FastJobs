@@ -10,7 +10,7 @@ internal abstract class LockProvider
         { -999, "Indicates a parameter validation or other call error" }
     }; 
 
-    public abstract Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout);
+    public abstract Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout, CancellationToken cancellationToken = default);
     public void ReleaseLock(SessionDatabaseLock Lock)
     {
         Lock.ReleaseLock();
