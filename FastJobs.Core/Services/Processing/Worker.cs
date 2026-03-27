@@ -61,6 +61,9 @@ public class Worker
 
                 try
                 {
+                    StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
+                    await StateHelper.UpdateJobStateAsync(job.Id, QueueStateTypes.Processing, "Job is being processed", "", jobCts.Token);
+
                     await ResolvedJob.ExecuteAsync(jobCts.Token);
                     jobSucceeded = true; 
                 }

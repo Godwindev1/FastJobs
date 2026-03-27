@@ -19,4 +19,10 @@ public class State
     public required string data {get; set; }
 
     public required DateTime CreatedAt {get; set;}
+    
+    /// <summary>
+    /// Soft delete timestamp. NULL = active, non-NULL = soft deleted at this time.
+    /// Used for rollback of failed state transitions while preserving audit trail.
+    /// </summary>
+    public DateTime? DeletedAt {get; set;}
 }

@@ -16,6 +16,7 @@ public class StateHistoryTableInitialization
         data VARCHAR(500) NOT NULL,
         
         CreatedAt DATETIME(6) NOT NULL,
+        DeletedAt DATETIME(6) NULL, 
 
         JobId BIGINT NOT NULL,
         FOREIGN KEY (JobId) REFERENCES Jobs(Id)

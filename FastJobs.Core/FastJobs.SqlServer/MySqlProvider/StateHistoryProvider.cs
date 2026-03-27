@@ -49,10 +49,28 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         string sql  = $@"
-            SELECT * FROM State WHERE Id = {id}
+            SELECT * FROM State WHERE Id = {id} AND DeletedAt IS NULL
         ";
 
-        return await _connection.QuerySingleAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+        return await _connection.QuerySingleOrDefaultAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+    }
+
+
+    public async Task<int> SoftDeleteByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            UPDATE State
+            SET DeletedAt = @DeletedAt
+            WHERE Id = @Id AND DeletedAt IS NULL
+        ";
+
+        var result = await _connection.ExecuteAsync(
+            new CommandDefinition(sql, new { DeletedAt = DateTime.UtcNow, Id = id }, cancellationToken: cancellationToken)
+        );
+
+        return result;
     }
 
 }
