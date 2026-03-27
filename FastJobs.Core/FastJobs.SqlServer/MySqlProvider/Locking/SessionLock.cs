@@ -14,6 +14,9 @@ internal class MySqlSessionDBLock : SessionDatabaseLock
 
     public override void ReleaseLock()
     {
+        if (_lockReleased) return;
+        _lockReleased = true;
+
         MySqlConnection connection = (MySqlConnection)this._connection;
         var Command = connection.CreateCommand();
 
@@ -21,10 +24,12 @@ internal class MySqlSessionDBLock : SessionDatabaseLock
         Command.Parameters.AddWithValue("@ResourceName", this._LockResourceName);
         
         Command.ExecuteScalar();
-        Dispose();
     }
     public override async Task ReleaseLockAsync()
     {
+        if (_lockReleased) return;
+        _lockReleased = true;
+
         MySqlConnection connection = (MySqlConnection)this._connection;
         var Command = connection.CreateCommand();
 
@@ -32,6 +37,14 @@ internal class MySqlSessionDBLock : SessionDatabaseLock
         Command.Parameters.AddWithValue("@ResourceName", this._LockResourceName);
         
         await Command.ExecuteScalarAsync();
-        Dispose();
+    }
+
+    public override void Dispose()
+    {
+        if (!_lockReleased)
+        {
+            ReleaseLock();
+        }
+        base.Dispose();
     }
 }

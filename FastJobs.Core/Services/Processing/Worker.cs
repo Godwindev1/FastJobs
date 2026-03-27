@@ -57,23 +57,37 @@ public class Worker
 
                 var jobCts = CancellationTokenSource.CreateLinkedTokenSource(_shutdownToken);
 
+                bool jobSucceeded = false;
+
                 try
                 {
                     await ResolvedJob.ExecuteAsync(jobCts.Token);
-                    //When Job Completes release Lock And Update Job State
-                    await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2); 
+                    jobSucceeded = true; 
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (jobCts.IsCancellationRequested)
                 {
                     // expected during shutdown
-                    // Possible implementation of JobStates system Store Persist Progress of Processing Jobs 
                 }
                 catch (Exception ex)
                 {
-                    // log + requeue
                     Console.WriteLine(ex.Message);
                     await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, ex.Message);
                 }
+
+               
+                if (jobSucceeded)
+                {
+                    try
+                    {
+                        await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log but don't requeue — job work is done, only cleanup failed
+                        Console.WriteLine($"CompleteJob failed: {ex.Message}");
+                    }
+                }
+
             } 
         }
     }

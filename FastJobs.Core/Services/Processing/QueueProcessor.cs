@@ -92,6 +92,7 @@ internal class QueueProcessor
 
         await _queueRepo.RemoveAsync(JobQueueEntry.Id);
         await QueueLock.ReleaseLockAsync();
+        QueueLock.Dispose();
     }
 
     private async Task FailJobAsync(Job job, string ExceptionMessage)
@@ -120,6 +121,7 @@ internal class QueueProcessor
             if (Job == null)
             {
                 await QueueLock.ReleaseLockAsync();
+                QueueLock.Dispose();
                 return;
             }
 
@@ -154,6 +156,7 @@ internal class QueueProcessor
         finally {
         
             await QueueLock.ReleaseLockAsync();
+            QueueLock.Dispose();
         }
        
     }

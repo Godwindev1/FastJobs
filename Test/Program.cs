@@ -2,11 +2,14 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddJobService<ConsoleTestJob>();
 builder.Services.FastJobs(option => option.ConnectionString = connectionString, new FastJobs.SqlServer.FastJobMysqlDependincies());
+
+
 
 var app = builder.Build();
 
@@ -24,7 +27,7 @@ public class ConsoleTestJob : IBackGroundJob
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        for (int i = 100; i > 0; i--)
+        for (int i = 1000; i > 0; i--)
         {
             cancellationToken.ThrowIfCancellationRequested();
             Console.WriteLine($"Counting Down: {i}");

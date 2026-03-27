@@ -7,6 +7,7 @@ internal abstract class SessionDatabaseLock : IDisposable
     protected readonly IDbConnection _connection;
     protected readonly string _LockResourceName;
     protected bool _disposed;
+    protected bool _lockReleased;
 
     protected TimeSpan TTL  = TimeSpan.FromMinutes(1);
 
@@ -17,7 +18,7 @@ internal abstract class SessionDatabaseLock : IDisposable
         TTL = ttl;
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
@@ -32,11 +33,11 @@ internal abstract class SessionDatabaseLock : IDisposable
     }
 
     /// <summary>
-    /// Child Implementation Should Include a Call To Dispose() after Releasing
+    /// Child Implementation Should Release the Lock
     /// </summary>
     public abstract void ReleaseLock();
     /// <summary>
-    /// Child Implementation Should Include a Call To Dispose() after Releasing
+    /// Child Implementation Should Release the Lock
     /// </summary>
     public abstract Task ReleaseLockAsync();
 }

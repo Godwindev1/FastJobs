@@ -31,6 +31,7 @@ public class DBResourceLockingTest
     {
         if(lockReference != null)
         Testobject.ReleaseLock(lockReference);
+        lockReference?.Dispose();
 
         
         return true;

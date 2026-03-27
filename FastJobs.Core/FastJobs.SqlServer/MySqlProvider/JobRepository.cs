@@ -22,7 +22,7 @@ internal sealed class JobRepository : IJobRepository
     /// </summary>
     /// <param name="job"></param>
     /// <returns>Returns Id of inserted Job</returns>
-    public async Task<long> InsertAsync(Job job, CancellationToken cancellationToken = default)
+    public async Task<long> InsertAsync(Job job, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -39,11 +39,12 @@ internal sealed class JobRepository : IJobRepository
 
         var id = await _connection.ExecuteScalarAsync<long>(new CommandDefinition (sql, job, cancellationToken: cancellationToken));
         return id;
+        
 
     }
 
 
-    public async Task<Job?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<Job?> GetByIdAsync(long id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -53,7 +54,7 @@ internal sealed class JobRepository : IJobRepository
             new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
     }
 
-    public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -70,7 +71,7 @@ internal sealed class JobRepository : IJobRepository
     /// <param name="id"></param>
     /// <param name="job"></param>
     /// <returns> returns affected rows</returns>
-    public async Task<int> UpdateByIdAsync(Job job, CancellationToken cancellationToken = default)
+    public async Task<int> UpdateByIdAsync(Job job, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -120,7 +121,7 @@ internal sealed class JobRepository : IJobRepository
     /// <param name="SqlValues"> Values formatted By @value <dapper format> </param>
     /// <param name="job"></param>
     /// <returns></returns>
-    public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job, CancellationToken cancellationToken = default)
+    public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 

@@ -14,7 +14,7 @@ internal class ProcessingServer
         _shutdownCts = shutdownCts;
     }
 
-    public void StartProcessingJobs(int workerCount = 4)
+    public void StartProcessingJobs(int workerCount = 1)
     {
         _workerManager = new WorkerManager(workerCount, _scopeFactory, _shutdownCts);
         _workerManager.Start();
