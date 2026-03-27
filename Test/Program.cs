@@ -27,7 +27,7 @@ public class ConsoleTestJob : IBackGroundJob
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        for (int i = 1000; i > 0; i--)
+        for (int i = 10; i > 0; i--)
         {
             cancellationToken.ThrowIfCancellationRequested();
             Console.WriteLine($"Counting Down: {i}");

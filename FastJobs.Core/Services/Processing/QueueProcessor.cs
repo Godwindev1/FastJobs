@@ -13,6 +13,7 @@ internal class QueueProcessor
     private readonly IJobRepository _JobRepository;
     private readonly LockProvider _locprovider;
     private readonly IStateHistoryRepository stateHistoryRepository;
+    private readonly StateHelpers _stateHelpers;
 
     public QueueProcessor(IQueueRepository queueRepository, IJobRepository jobRepository, IStateHistoryRepository stateRepo, LockProvider lockProvider)
     {
@@ -20,6 +21,7 @@ internal class QueueProcessor
         _JobRepository = jobRepository;
         _locprovider = lockProvider;
         stateHistoryRepository = stateRepo;
+        _stateHelpers = new StateHelpers(jobRepository, stateRepo);
     }
 
     private Task<SessionDatabaseLock?> LockQueueItem(string QueueEntryID, string JobID, CancellationToken cancellationToken)
@@ -47,20 +49,14 @@ internal class QueueProcessor
             SessionDatabaseLock CurrentWorkerHeldLock =  await LockQueueItem(Entry.Id.ToString(), Entry.JobId.ToString(), cancellationToken) ; 
             var Job = await _JobRepository.GetByIdAsync(Entry.JobId, cancellationToken);
             
-            var StateId = await stateHistoryRepository.InsertAsync(new State { 
-                CreatedAt = DateTime.UtcNow,
-                StateName = QueueStateTypes.Scheduled,
-                JobID = Job.Id,
-                Reason = "Schedule Job For Processing",
-                data = "",
-            }, cancellationToken);
+            // Update job state with atomic state history creation and rollback support
+            await _stateHelpers.UpdateJobStateAsync(
+                Job.Id,
+                QueueStateTypes.Scheduled,
+                "Schedule Job For Processing",
+                data: "",
+                cancellationToken);
 
-
-            Job.StateName = QueueStateTypes.Scheduled;
-            Job.stateID = StateId;
-            await _JobRepository.UpdateByIdAsync(Job, cancellationToken);
-
-            
             //Set Dequeed Item Visibility Hide To true;
             Entry.IsScheduled = true;
             await _queueRepo.Update(Entry, cancellationToken);
@@ -76,41 +72,33 @@ internal class QueueProcessor
     public async Task CompleteJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock)
     {
         //NOTE: Intentionally no CancellationToken — finalisation operation must complete to avoid orphaned locks
-        //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
-        var stateID = await stateHistoryRepository.InsertAsync(new State { 
-                CreatedAt = DateTime.Now,
-                StateName = QueueStateTypes.Completed,
-                JobID = JobQueueEntry.JobId,
-                Reason = "Job Has Been Completed",
-                data = "Completed",
-            });
+        try
+        {
+            // Update job state with atomic state history creation and rollback support
+            await _stateHelpers.UpdateJobStateAsync(
+                JobQueueEntry.JobId,
+                QueueStateTypes.Completed,
+                "Job Has Been Completed",
+                data: "Completed");
 
-        var Job = await _JobRepository.GetByIdAsync(JobQueueEntry.JobId);
-        Job.stateID = stateID;
-        Job.StateName =  QueueStateTypes.Completed;
-        await _JobRepository.UpdateByIdAsync(Job);
-
-        await _queueRepo.RemoveAsync(JobQueueEntry.Id);
-        await QueueLock.ReleaseLockAsync();
-        QueueLock.Dispose();
+            await _queueRepo.RemoveAsync(JobQueueEntry.Id);
+        }
+        finally
+        {
+            await QueueLock.ReleaseLockAsync();
+            QueueLock.Dispose();
+        }
     }
 
     private async Task FailJobAsync(Job job, string ExceptionMessage)
     {
         //NOTE: Intentionally no CancellationToken — compensating operation must complete
-        //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
-        var stateID = await stateHistoryRepository.InsertAsync(new State { 
-                CreatedAt = DateTime.UtcNow,
-                StateName = QueueStateTypes.Failed,
-                JobID = job.Id,
-                Reason = $"Job Has Failed As Many As {job.MaxRetries} Times",
-                data = ExceptionMessage,
-        });
-
-        job.stateID = stateID;
-        job.StateName =  QueueStateTypes.Failed;
-
-        await _JobRepository.UpdateByIdAsync(job);       
+        // Update job state with atomic state history creation and rollback support
+        await _stateHelpers.UpdateJobStateAsync(
+            job.Id,
+            QueueStateTypes.Failed,
+            $"Job Has Failed As Many As {job.MaxRetries} Times",
+            data: ExceptionMessage);
     }
 
     public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, string ExceptionMessage = "")
@@ -132,19 +120,15 @@ internal class QueueProcessor
             }
             else
             {
-                //TODO: fix Possible Issues With Atomicity since StateID is Not Guranteed To Always Succeed 
-                var stateID = await stateHistoryRepository.InsertAsync(new State { 
-                    CreatedAt = DateTime.UtcNow,
-                    StateName = QueueStateTypes.Enqueued,
-                    JobID = JobQueueEntry.JobId,
-                    Reason = "Retrying",
-                    data = ExceptionMessage,
-                });
+                // Update job state with atomic state history creation and rollback support
+                await _stateHelpers.UpdateJobStateAsync(
+                    JobQueueEntry.JobId,
+                    QueueStateTypes.Enqueued,
+                    "Retrying",
+                    data: ExceptionMessage);
 
-                Job.stateID = stateID;
-                Job.StateName =  QueueStateTypes.Enqueued;
+                // Increment retry count separately
                 Job.RetryCount += 1;
-                
                 await _JobRepository.UpdateByIdAsync(Job);
 
                 //make Job Visible again
