@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
@@ -17,11 +18,11 @@ internal class ProcessingServer
     public void StartProcessingJobs(int workerCount = 1)
     {
         _workerManager = new WorkerManager(workerCount, _scopeFactory, _shutdownCts);
-        _workerManager.Start();
+        //_workerManager.Start(); //No longer Needed
     }
 
-    public void StopProcessingJobs()
+    public async Task StopProcessingJobs()
     {
-        _workerManager?.Stop();
+        await _workerManager?.StopAsync();
     }
 }

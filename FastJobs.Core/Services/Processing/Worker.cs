@@ -36,7 +36,7 @@ public class Worker
             //wont always Use Default Queue
             if(await _QueueProcessor.IsQueueEmpty(FastJobConstants.DefaultQueue, _shutdownToken))
             {
-                await Task.Delay(500, _shutdownToken);
+                await Task.Delay(200, _shutdownToken);
                 continue;
             }
 

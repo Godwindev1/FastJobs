@@ -1,11 +1,9 @@
+using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FastJobs;
-
-//PENDING MODIFICATIONS
 public class WorkerManager
 {
-    private readonly List<Thread> _workers = new();
+    private readonly List<Task> _workers = new();
     private readonly CancellationTokenSource _shutdownCts;
     private readonly IServiceScopeFactory _scopeFactory;
 
@@ -16,32 +14,39 @@ public class WorkerManager
 
         for (int i = 0; i < workerCount; i++)
         {
-            var worker = new Worker(i, _scopeFactory, _shutdownCts.Token);
+            var workerId = i;
+            var worker = new Worker(workerId, _scopeFactory, _shutdownCts.Token);
 
-            var thread = new Thread(() => { worker.Run().GetAwaiter().GetResult(); } )
-            {
-                IsBackground = false
-            };
+            var taskResult = Task.Factory.StartNew(
+                async (object? _) =>
+                {
+                    Thread.CurrentThread.Name = $"Worker-Thread-{workerId}"; 
+                    await worker.Run();
+                },
+                state:             null,
+                cancellationToken: _shutdownCts.Token,
+                creationOptions:   TaskCreationOptions.LongRunning,
+                scheduler:         TaskScheduler.Default
+            ).Unwrap(); 
 
-            _workers.Add(thread);
+            _workers.Add(taskResult);
         }
     }
 
-    public void Start()
-    {
-        foreach (var worker in _workers)
-        {
-            worker.Start();
-        }
-    }
+    // Workers already running 
+    public Task[] GetWorkerTasks() => _workers.ToArray();
 
-    public void Stop()
+    public async Task StopAsync()
     {
         _shutdownCts.Cancel();
 
-        foreach (var worker in _workers)
+        try
         {
-            worker.Join();
+            await Task.WhenAll(_workers); 
+        }
+        catch (OperationCanceledException) when (_shutdownCts.IsCancellationRequested)
+        {
+            // Expected on shutdown
         }
     }
 }

@@ -23,6 +23,7 @@ await FastJobServer.EnqueueJob<ConsoleTestJob>()
 
 await app.WaitForShutdownAsync();
 
+
 public class ConsoleTestJob : IBackGroundJob
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
