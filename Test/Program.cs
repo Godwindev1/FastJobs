@@ -25,7 +25,8 @@ for(int i = 0; i < 15; i++)
     .Start();*/
 
     await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
-    .WithDelay(TimeSpan.FromSeconds(10))
+    .SetPriority(i)
+    .SetMaxRetryCount(i < 10 ? 3 : 0) // First 10 jobs will retry up to 3 times, others won't retry
     .Start();
 }
 

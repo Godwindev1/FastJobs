@@ -13,14 +13,15 @@ namespace FastJobs {
         _scopeFactory = factory;
     }
 
-    /// <summary>
-    /// TODO:
-    /// Set Job Delay period before it gets executed
-    /// </summary>
-    public EnqueueOptions<TJob> WithDelay(TimeSpan delay)
+    public EnqueueOptions<TJob> SetPriority(int priority)
     {
-        //NB: This Below Field Does not Exist IN the Job class or DB yet 
-        //_job.ScheduledAt = DateTime.UtcNow.Add(delay);
+        _job.Priority = priority;
+        return this;
+    }
+
+    public EnqueueOptions<TJob>  SetMaxRetryCount(int retryCount)
+    {
+        _job.MaxRetries = retryCount;
         return this;
     }
 
