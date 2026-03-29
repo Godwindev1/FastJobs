@@ -32,6 +32,11 @@ public static  class ServiceCollectionExtensions
         services.AddTransient<QueueProcessor>();
         services.AddTransient<ProcessingServer>();
 
+        // Register expression-based job execution services
+        services.AddScoped<IJobContext, JobContext>();
+        services.AddScoped<ExpressionFireAndForgetJob>();
+        services.AddScoped<IExpressionResolver, DefaultExpressionResolver>();
+
         return services;
     }
  

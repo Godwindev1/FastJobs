@@ -56,8 +56,12 @@ public class Worker
                 }
 
                 var jobCts = CancellationTokenSource.CreateLinkedTokenSource(_shutdownToken);
-
                 bool jobSucceeded = false;
+
+                // Set the job context so jobs like ExpressionFireAndForgetJob can access the job metadata
+                // Since This is a ScopedService Resolved Within A Scope Inside the Worker Its Thread safe And Does not Interfare Other Workers Setting Contexts for use Asewell
+                var jobContext = Scope.Resolve<IJobContext>() as JobContext;
+                jobContext.SetJob( job );
 
                 try
                 {
@@ -89,6 +93,8 @@ public class Worker
                         // Log but don't requeue — job work is done, only cleanup failed
                         Console.WriteLine($"CompleteJob failed: {ex.Message}");
                     }
+
+                    jobContext.SetJob( null );
                 }
 
             } 

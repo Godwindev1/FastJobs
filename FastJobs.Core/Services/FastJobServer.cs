@@ -44,72 +44,63 @@ public class FastJobServer
     }
 
 
-    public static async Task EnqueueJob(Expression<Action> ActionExpression, CancellationToken cancellationToken = default)
+
+    public static EnqueueOptions<ExpressionFireAndForgetJob> EnqueueJob(Expression<Action> actionExpression)
     {
-        
-        //TODO: To IMPl This FUnction WIll Now Be Responsible For Registering JOBs To DI Container And Enqueuing Jobs To The Database
+        var expressionMetadata = ExtractExpressionMetadata(actionExpression);
 
-        using ScopeManager _scopeManager = new ScopeManager(_serverInstance._ScopeFactory);
-
-        var JobRepository = _scopeManager.Resolve<IJobRepository>();
-        var stateHistoryRepository = _scopeManager.Resolve<IStateHistoryRepository>();
-        var queueRepository = _scopeManager.Resolve<IQueueRepository>();
-
-        //Job Storage
-        var Type = typeof(FireAndForgetJobs);
-        MethodCallExpression MethodExpression;
-
-        if(ActionExpression.Body.NodeType == ExpressionType.Call )
+      
+        var job = new Job
         {
-            MethodExpression   = (MethodCallExpression)ActionExpression.Body;     
-        }
-        else
-        {
-            throw new Exception("Lambda Should Contain Only A Method Call ");
-        }
-
-        
-        Job job = new Job
-        {
-            TypeName = Type.FullName,
-            MethodName = MethodExpression.Method.Name,
-            MethodDeclaringTypeName = MethodExpression.Method.DeclaringType.AssemblyQualifiedName,
-            ParameterTypeNamesJson = JsonConvert.SerializeObject( MethodExpression.Arguments.Select(x => x.Type.FullName).ToList() ),
-            ArgumentsJson = JsonConvert.SerializeObject( MethodExpression.Arguments.Select(x => ((ConstantExpression)x).Value) ),
+            TypeName = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
+            MethodName = expressionMetadata.MethodName,
+            MethodDeclaringTypeName = expressionMetadata.MethodDeclaringTypeName,
+            ParameterTypeNamesJson = expressionMetadata.ParameterTypeNamesJson,
+            ArgumentsJson = expressionMetadata.ArgumentsJson,
             Queue = FastJobConstants.DefaultQueue,
             stateID = 0,
             StateName = QueueStateTypes.Enqueued,
             RetryCount = 0,
             MaxRetries = 3,
             Priority = 1,
-            CreatedAt = DateTime.Now,
-            ExpiresAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow
         };
 
+        return new EnqueueOptions<ExpressionFireAndForgetJob>(job, _serverInstance._ScopeFactory);
+    }
 
-        var JobID = await JobRepository.InsertAsync(job, cancellationToken);
-        var State = new State
+    private static ExpressionJobMetadata ExtractExpressionMetadata(Expression<Action> actionExpression)
+    {
+        if (actionExpression.Body.NodeType != ExpressionType.Call)
         {
-            JobID = JobID,
-            StateName = QueueStateTypes.Enqueued,
-            Reason = "Enqueued Job",
-            data = "Enqueued Job",
-            CreatedAt = DateTime.Now
-        };
-            
-        var StateID = await stateHistoryRepository.InsertAsync(State, cancellationToken);
-        
-        await JobRepository.UpdateByIdAsync(JobID, "stateID = @stateID, StateName = @StateName", new Job { stateID =  StateID, StateName = QueueStateTypes.Enqueued}, cancellationToken);
-        
-        //enqueue
-        await queueRepository.EnqueueAsync(new Queue { 
-            JobId = JobID,
-            QueueName = FastJobConstants.DefaultQueue,
-            Priority = 2,
-            ScheduledAt = DateTime.Now
-        }, cancellationToken);
-        
+            throw new ArgumentException("Lambda expression must contain only a method call.", nameof(actionExpression));
+        }
 
+        var methodCall = (MethodCallExpression)actionExpression.Body;
+
+        return new ExpressionJobMetadata
+        {
+            MethodName = methodCall.Method.Name,
+           
+            MethodDeclaringTypeName = methodCall.Method.DeclaringType?.AssemblyQualifiedName 
+                ?? throw new InvalidOperationException("Method declaring type could not be determined."),
+            
+            ParameterTypeNamesJson = JsonConvert.SerializeObject(
+                methodCall.Arguments.Select(x => x.Type.FullName).ToList()),
+            
+            ArgumentsJson = JsonConvert.SerializeObject(
+            methodCall.Arguments
+                .Select(arg =>
+                {
+                    if (arg is ConstantExpression c)
+                        return c.Value;
+
+                    // Compile and invoke anything else to get its runtime value
+                    return Expression.Lambda(arg).Compile().DynamicInvoke();
+                })
+                .ToList())
+            };
         
     }
 

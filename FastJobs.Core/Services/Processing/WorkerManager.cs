@@ -20,7 +20,8 @@ public class WorkerManager
             var taskResult = Task.Factory.StartNew(
                 async (object? _) =>
                 {
-                    Thread.CurrentThread.Name = $"Worker-Thread-{workerId}"; 
+                    Thread.CurrentThread.Name = $"Creating Worker-Thread-{workerId}"; 
+                    Console.WriteLine(Thread.CurrentThread.Name);
                     await worker.Run();
                 },
                 state:             null,
