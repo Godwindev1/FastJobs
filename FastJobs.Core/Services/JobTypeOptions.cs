@@ -13,9 +13,9 @@ namespace FastJobs {
         _scopeFactory = factory;
     }
 
-    public EnqueueOptions<TJob> SetPriority(int priority)
+    public EnqueueOptions<TJob> SetPriority(JobPriority priority)
     {
-        _job.Priority = priority;
+        _job.Priority = (int)priority;
         return this;
     }
 

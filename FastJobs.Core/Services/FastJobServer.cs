@@ -62,7 +62,7 @@ public class FastJobServer
             StateName = QueueStateTypes.Enqueued,
             RetryCount = 0,
             MaxRetries = 3,
-            Priority = 1,
+            Priority = JobPriority.Normal,
             CreatedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow
         };
@@ -106,6 +106,31 @@ public class FastJobServer
 
 
     public static EnqueueOptions<TJob> EnqueueJob<TJob>() 
+        where TJob : class, IBackGroundJob
+    {
+        var job = new Job
+        {
+            TypeName = typeof(TJob).AssemblyQualifiedName,
+            Queue = FastJobConstants.DefaultQueue,
+            StateName = QueueStateTypes.Enqueued,
+            RetryCount = 0,
+            MaxRetries = 3,
+            Priority = JobPriority.Normal,
+            CreatedAt = DateTime.UtcNow,
+            MethodName = string.Empty,
+            MethodDeclaringTypeName = string.Empty,
+            ParameterTypeNamesJson = string.Empty,
+            ArgumentsJson = string.Empty,
+            ExpiresAt = DateTime.UtcNow
+        };
+
+
+        return new EnqueueOptions<TJob>(job, _serverInstance._ScopeFactory);
+    }
+
+
+    //SCHEDULED JOBS 
+        public static EnqueueOptions<TJob> ScheduleJob<TJob>() 
         where TJob : class, IBackGroundJob
     {
         var job = new Job
