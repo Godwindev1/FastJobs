@@ -8,17 +8,11 @@ using Newtonsoft.Json;
 
 namespace FastJobs;
 
-public class FastJobServer
+public static class FastJobServer
 {
     //Service Provider For Reolving FastJob Dependencies 
-    private readonly IServiceScopeFactory _ScopeFactory;
-    //Singlton Instance
-    static private FastJobServer? _serverInstance = null;
-
-    private FastJobServer(IServiceScopeFactory IserviceScopeFactory)
-    {
-        _ScopeFactory = IserviceScopeFactory;
-    }
+    private static IServiceScopeFactory _ScopeFactory;
+    private static FastJobsOptions _options;
 
     /// <summary>
     /// Create New Instance of FastJobServer 
@@ -26,21 +20,8 @@ public class FastJobServer
     /// <param name="provider"></param>
     static internal void BuildInstance(IServiceScopeFactory scopeFactory)
     {
-        _serverInstance = new FastJobServer(scopeFactory);
-    }
-
-
-    static private FastJobServer GetInstance(IServiceScopeFactory scopeFactory)
-    {
-        if(_serverInstance != null)
-        {
-            return _serverInstance;
-        }
-        else
-        {
-            BuildInstance(scopeFactory);
-            return _serverInstance;   
-        }
+        _ScopeFactory = scopeFactory;
+        _options = scopeFactory.CreateScope().ServiceProvider.GetRequiredService<FastJobsOptions>();
     }
 
 
@@ -48,7 +29,6 @@ public class FastJobServer
     public static EnqueueOptions<ExpressionFireAndForgetJob> EnqueueJob(Expression<Action> actionExpression)
     {
         var expressionMetadata = ExtractExpressionMetadata(actionExpression);
-
       
         var job = new Job
         {
@@ -64,10 +44,10 @@ public class FastJobServer
             MaxRetries = 3,
             Priority = (int)JobPriority.Normal,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
+            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
         };
 
-        return new EnqueueOptions<ExpressionFireAndForgetJob>(job, _serverInstance._ScopeFactory);
+        return new EnqueueOptions<ExpressionFireAndForgetJob>(job, _ScopeFactory);
     }
 
     private static ExpressionJobMetadata ExtractExpressionMetadata(Expression<Action> actionExpression)
@@ -121,16 +101,16 @@ public class FastJobServer
             MethodDeclaringTypeName = string.Empty,
             ParameterTypeNamesJson = string.Empty,
             ArgumentsJson = string.Empty,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
+            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
         };
 
 
-        return new EnqueueOptions<TJob>(job, _serverInstance._ScopeFactory);
+        return new EnqueueOptions<TJob>(job, _ScopeFactory);
     }
 
 
     //SCHEDULED JOBS 
-    public static EnqueueOptions<TJob> ScheduleJob<TJob>() 
+    public static ScheduledJobOptions<TJob> ScheduleJob<TJob>() 
         where TJob : class, IBackGroundJob
     {
         var job = new Job
@@ -146,10 +126,10 @@ public class FastJobServer
             MethodDeclaringTypeName = string.Empty,
             ParameterTypeNamesJson = string.Empty,
             ArgumentsJson = string.Empty,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
+            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
         };
 
 
-        return new EnqueueOptions<TJob>(job, _serverInstance._ScopeFactory);
+        return new ScheduledJobOptions<TJob>(job, _ScopeFactory);
     }
 }
