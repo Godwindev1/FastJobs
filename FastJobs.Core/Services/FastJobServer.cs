@@ -62,9 +62,9 @@ public class FastJobServer
             StateName = QueueStateTypes.Enqueued,
             RetryCount = 0,
             MaxRetries = 3,
-            Priority = JobPriority.Normal,
+            Priority = (int)JobPriority.Normal,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 
         return new EnqueueOptions<ExpressionFireAndForgetJob>(job, _serverInstance._ScopeFactory);
@@ -115,13 +115,13 @@ public class FastJobServer
             StateName = QueueStateTypes.Enqueued,
             RetryCount = 0,
             MaxRetries = 3,
-            Priority = JobPriority.Normal,
+            Priority = (int)JobPriority.Normal,
             CreatedAt = DateTime.UtcNow,
             MethodName = string.Empty,
             MethodDeclaringTypeName = string.Empty,
             ParameterTypeNamesJson = string.Empty,
             ArgumentsJson = string.Empty,
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 
 
@@ -130,7 +130,7 @@ public class FastJobServer
 
 
     //SCHEDULED JOBS 
-        public static EnqueueOptions<TJob> ScheduleJob<TJob>() 
+    public static EnqueueOptions<TJob> ScheduleJob<TJob>() 
         where TJob : class, IBackGroundJob
     {
         var job = new Job
@@ -140,13 +140,13 @@ public class FastJobServer
             StateName = QueueStateTypes.Enqueued,
             RetryCount = 0,
             MaxRetries = 3,
-            Priority = 1,
+            Priority = (int)JobPriority.High,
             CreatedAt = DateTime.UtcNow,
             MethodName = string.Empty,
             MethodDeclaringTypeName = string.Empty,
             ParameterTypeNamesJson = string.Empty,
             ArgumentsJson = string.Empty,
-            ExpiresAt = DateTime.UtcNow
+            ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 
 

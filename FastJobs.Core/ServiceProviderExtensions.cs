@@ -23,6 +23,11 @@ namespace FastJobs
              .GetAwaiter()
              .GetResult();
 
+             ScheduledJobTableInitializer
+             .EnsureCreatedAsync(connection)
+             .GetAwaiter()
+             .GetResult();
+
              StateHistoryTableInitialization
              .EnsureCreatedAsync(connection)
              .GetAwaiter()

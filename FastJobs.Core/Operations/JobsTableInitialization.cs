@@ -10,6 +10,8 @@ public static class JobTableInitializer
     (
         Id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
+        JobType VARCHAR(50) NOT NULL,
+
         TypeName VARCHAR(500) NOT NULL,
         MethodName VARCHAR(200) NOT NULL,
 
@@ -44,13 +46,14 @@ private const string CreateIndexStateSql = @"
     CREATE INDEX IF NOT EXISTS IX_Jobs_StateName_StateID
     ON Jobs (StateName, StateID);";
 private const string CreateIndexExpiresSql = @"
-    CREATE INDEX IF NOT EXISTS IX_Jobs_ExpiresAt
-    ON Jobs (ExpiresAt);";
+    CREATE INDEX IF NOT EXISTS IX_Jobs_JobType
+    ON Jobs (JobType);";
     
     public static async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexQueueSql);
         await connection.ExecuteAsync(CreateIndexStateSql);
+        await connection.ExecuteAsync(CreateIndexExpiresSql);
     }
 }

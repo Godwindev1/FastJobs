@@ -25,6 +25,12 @@ namespace FastJobs {
         return this;
     }
 
+    public EnqueueOptions<TJob> SetExpiresAt(DateTime expiresAt)
+    {
+        _job.ExpiresAt = expiresAt;
+        return this;
+    }
+
     public async Task Start(CancellationToken cancellationToken = default)
     {
         using var Scope = new ScopeManager(this._scopeFactory);

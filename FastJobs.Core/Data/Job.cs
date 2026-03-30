@@ -3,6 +3,8 @@ namespace FastJobs;
 public sealed class Job
 {
     public long Id { get; set; }
+
+    public string JobType {get; set; } = JobTypes.Enqueued;
     public  string TypeName { get; set; } 
     public  string MethodName { get; set; }
 

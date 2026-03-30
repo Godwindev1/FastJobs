@@ -5,6 +5,15 @@ public static class FastJobConstants
     public static string DefaultQueue = "Default";
 }
 
+
+public static class JobTypes
+{
+    public static string Enqueued = "Enqueued";
+    public static string Scheduled = "Scheduled";
+    public static string Recurring = "Recurring";
+    public static string Batch = "Batch";
+}
+
 public enum JobPriority
 {
     Low = 3,

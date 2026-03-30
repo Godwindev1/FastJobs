@@ -9,12 +9,14 @@ public class FastJobRepoTests
 {
     JobRepoSitoryTest jobTest;
     QueueRepositoryTest QueueTest;
+    ScheduledJobRepositoryTest ScheduledJobTest;
     DBResourceLockingTest ResourceLockingTest;
 
-    public FastJobRepoTests(IJobRepository jobrepo, IQueueRepository queueRepository, IServiceProvider provider)
+    public FastJobRepoTests(IJobRepository jobrepo, IQueueRepository queueRepository, IScheduledJobRepository scheduledJobRepository, IServiceProvider provider)
     {
         jobTest = new JobRepoSitoryTest(jobrepo);
         QueueTest = new QueueRepositoryTest(queueRepository);
+        ScheduledJobTest = new ScheduledJobRepositoryTest(scheduledJobRepository);
         ResourceLockingTest = new DBResourceLockingTest(provider.GetRequiredService<LockProvider>());
     }
 
@@ -75,6 +77,32 @@ public class FastJobRepoTests
             Console.WriteLine($"Test Result for {result.Item2} = { result.Item1 }");
         }
         
+
+        //SCHEDULED JOB TEST
+        var scheduledJob = new ScheduledJobInfo
+        {
+            JobId = jobRes.Id,
+            ScheduledTo = DateTime.UtcNow.AddHours(2)
+        };
+
+        var InsertedScheduledJob = await ScheduledJobTest.InsertAsync(scheduledJob);
+        ScheduledJobTest.TestResults.Add(new Tuple<bool, string>(InsertedScheduledJob != null, nameof(ScheduledJobTest.InsertAsync)));
+        ScheduledJobTest.TestResults.Add(new Tuple<bool, string>(await ScheduledJobTest.GetByIdAsync(InsertedScheduledJob.Id), nameof(ScheduledJobTest.GetByIdAsync)));
+        
+        var updatedScheduledJob = new ScheduledJobInfo
+        {
+            Id = InsertedScheduledJob.Id,
+            JobId = jobRes.Id,
+            ScheduledTo = DateTime.UtcNow.AddHours(3)
+        };
+        ScheduledJobTest.TestResults.Add(new Tuple<bool, string>(await ScheduledJobTest.UpdateRecord(InsertedScheduledJob.Id, updatedScheduledJob), nameof(ScheduledJobTest.UpdateRecord)));
+        ScheduledJobTest.TestResults.Add(new Tuple<bool, string>(await ScheduledJobTest.GetReadyJobs(), nameof(ScheduledJobTest.GetReadyJobs)));
+        ScheduledJobTest.TestResults.Add(new Tuple<bool, string>(await ScheduledJobTest.DeleteRecord(InsertedScheduledJob.Id), nameof(ScheduledJobTest.DeleteRecord)));
+
+        foreach(var result in ScheduledJobTest.TestResults)
+        {
+            Console.WriteLine($"Test Result for {result.Item2} = { result.Item1 }");
+        }
 
         //RESOURCE LOCKING
         ResourceLockingTest.TestResults.Add(
