@@ -18,20 +18,19 @@ app.Services.UseFastJobs();
 
 await app.StartAsync();
 
-for(int i = 0; i < 15; i++)
+for(int i = 0; i < 3; i++)
 {
-    /*await FastJobServer.EnqueueJob<ComplexTestJob>()
-    .WithDelay(TimeSpan.FromSeconds(10))
-    .Start();*/
+   // await FastJobServer.EnqueueJob<ComplexTestJob>()
+   // .Start();
 
     await FastJobServer.ScheduleJob<ComplexTestJob>()
     .WaitDelay(TimeSpan.FromSeconds(10))
     .Start();
 
-    await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
-    .SetPriority(JobPriority.High) // High priority job
-    .SetMaxRetryCount(i < 10 ? 3 : 0) // First 10 jobs will retry up to 3 times, others won't retry
-    .Start();
+    //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
+    //.SetPriority(JobPriority.High) // High priority job
+    //.SetMaxRetryCount(i < 10 ? 3 : 0) // First 10 jobs will retry up to 3 times, others won't retry
+    //.Start();
 }
 
 await app.WaitForShutdownAsync();

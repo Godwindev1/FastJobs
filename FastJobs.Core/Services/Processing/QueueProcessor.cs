@@ -1,8 +1,17 @@
 
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using FastJobs.SqlServer;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FastJobs;
+
+public class QueueNames
+{
+    public const string Default = "Default";
+    public const string Critical = "Critical";
+    public const string LowPriority = "LowPriority";
+}
 
 /// <summary>
 /// QueueProcessor is Responsible for Rettrieving A Job From the DB queue And Locking The DB entry And Returning Lock and Entry 
@@ -29,6 +38,25 @@ internal class QueueProcessor
       return  _locprovider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5), cancellationToken);   
     }
 
+    public async Task EnqueueScheduledJob(ScheduledJobInfo jobInfo, CancellationToken Token)
+    {
+        var Job = await _JobRepository.GetByIdAsync(jobInfo.JobId);
+        
+        var Entry = new Queue {
+            JobId = Job.Id,
+            ScheduledAt = jobInfo.ScheduledTo,
+            IsScheduled = true,  
+        };
+
+        await EnqueueJob(Entry, Token, QueueNames.Critical);
+    }
+
+    private async Task EnqueueJob(Queue Entry,  CancellationToken cancellationToken, string queueName = QueueNames.Default)
+    {
+        Entry.QueueName = queueName;
+
+        await _queueRepo.EnqueueAsync(Entry, cancellationToken);
+    }
 
     public async Task<bool> IsQueueEmpty(string QueueName, CancellationToken cancellationToken)
     {
@@ -40,6 +68,40 @@ internal class QueueProcessor
 
         return false;
     }
+
+    public async Task<bool> AllQueuesEmpty(CancellationToken cancellationToken)
+    {
+       var List = await _queueRepo.GetAllQueueEntries(cancellationToken);
+
+       if(List.Count == 0)
+       {
+        return true;
+       }
+
+       return false;
+    }
+
+    public async Task<Tuple<Queue, SessionDatabaseLock>?> Dequeue(CancellationToken cancellationToken)
+    {
+        Queue<string> QueueNamesToCheck = new Queue<string>();
+        QueueNamesToCheck.Enqueue(QueueNames.Critical);
+        QueueNamesToCheck.Enqueue(QueueNames.Default);  
+        QueueNamesToCheck.Enqueue(QueueNames.LowPriority);
+
+        //Dequeue from each queue in order of priority until we find a job to process or exhaust all queues
+        while (QueueNamesToCheck.Count > 0)
+        {
+            var queueName = QueueNamesToCheck.Dequeue();
+            var result = await DequeueAsync(queueName, cancellationToken);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
     public async Task<Tuple<Queue, SessionDatabaseLock>?> DequeueAsync(string QueueName, CancellationToken cancellationToken)
     {
         Queue? Entry  = await _queueRepo.Dequeue(QueueName, cancellationToken);
