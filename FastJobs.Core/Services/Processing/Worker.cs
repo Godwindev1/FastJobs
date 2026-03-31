@@ -33,6 +33,7 @@ public class Worker
     {
         while (!_shutdownToken.IsCancellationRequested)
         {
+            //Race Condition Possible Between HERE
             //wont always Use Default Queue
             if(await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
             {
@@ -42,7 +43,9 @@ public class Worker
 
             using ( var Scope = new ScopeManager(serviceScopeFactory) )
             {
+                
                 var JobDetails = await _QueueProcessor.Dequeue(_shutdownToken);
+                //HERE
 
                 IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
                 Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);

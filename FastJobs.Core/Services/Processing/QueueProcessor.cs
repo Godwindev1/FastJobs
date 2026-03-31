@@ -71,14 +71,8 @@ internal class QueueProcessor
 
     public async Task<bool> AllQueuesEmpty(CancellationToken cancellationToken)
     {
-       var List = await _queueRepo.GetAllQueueEntries(cancellationToken);
-
-       if(List.Count == 0)
-       {
-        return true;
-       }
-
-       return false;
+       bool exists = await _queueRepo.ExistsAny(cancellationToken);
+       return !exists;
     }
 
     public async Task<Tuple<Queue, SessionDatabaseLock>?> Dequeue(CancellationToken cancellationToken)

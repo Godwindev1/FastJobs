@@ -64,6 +64,17 @@ internal sealed class QueueRepository : IQueueRepository
         return value.ToList();
       }
 
+    public async Task<bool> ExistsAny(CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT 1 FROM Queue LIMIT 1";
+
+        var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
+        var result = await _connection.QueryFirstOrDefaultAsync(command);
+        return result != null;
+    }
+
 
     public async Task<bool> RemoveAsync(long id, CancellationToken cancellationToken )
     {
