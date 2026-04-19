@@ -9,10 +9,10 @@ CREATE TABLE IF NOT EXISTS Queue
 (
     Id BIGINT AUTO_INCREMENT PRIMARY KEY,
     QueueName VARCHAR(500) NOT NULL,
-    ScheduledAt DATETIME(6) NOT NULL,
+    DequeuedAt DATETIME(6) NOT NULL,
     JobId BIGINT NOT NULL,
     Priority INT NOT NULL DEFAULT 0,
-    IsScheduled BIT NOT NULL DEFAULT 0,
+    isDequeued BIT NOT NULL DEFAULT 0,
     
     CONSTRAINT FK_Queue_Jobs
     FOREIGN KEY (JobId)
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS Queue
 
     private const string CreateIndexQueueSql = @"
     CREATE INDEX IF NOT EXISTS IX_Queue_QueueName_Priority_Scheduled
-    ON Queue (QueueName, Priority DESC, IsScheduled);";
+    ON Queue (QueueName, Priority DESC, isDequeued);";
     private const string CreateIndexJobIDSql = @"
         CREATE INDEX IF NOT EXISTS IX_Queue_JobId
     ON Queue (JobId);";

@@ -60,7 +60,7 @@ namespace FastJobs {
             JobId       = jobId,
             QueueName   = FastJobConstants.DefaultQueue,
             Priority    = _job.Priority,
-            ScheduledAt = DateTime.UtcNow
+            DequeuedAt = DateTime.UtcNow
         }, cancellationToken);
     }
 }

@@ -52,7 +52,7 @@ public class FastJobRepoTests
             QueueName = "Default",
             JobId = jobRes.Id,
             Priority = 1,
-            ScheduledAt = DateTime.Now
+            DequeuedAt = DateTime.Now
         };
 
         //insert

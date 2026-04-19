@@ -95,7 +95,7 @@ internal class QueueProcessor
                 cancellationToken);
 
             //Set Dequeed Item Visibility Hide To true;
-            Entry.IsScheduled = true;
+            Entry.isDequeued = true;
             await _queueRepo.Update(Entry, cancellationToken);
 
             return new Tuple<Queue, SessionDatabaseLock>( Entry, CurrentWorkerHeldLock );
@@ -169,7 +169,7 @@ internal class QueueProcessor
                 await _JobRepository.UpdateByIdAsync(Job);
 
                 //make Job Visible again
-                JobQueueEntry.IsScheduled = false;
+                JobQueueEntry.isDequeued = false;
                 await _queueRepo.Update(JobQueueEntry);
             }
             

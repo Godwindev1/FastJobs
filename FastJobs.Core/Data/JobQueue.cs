@@ -18,8 +18,8 @@ public class Queue
 
     
     [Required]
-    public bool IsScheduled { get; set; }
+    public bool isDequeued { get; set; }
 
     // Scheduling
-    public DateTime? ScheduledAt { get; set; }
+    public DateTime? DequeuedAt { get; set; }
 }

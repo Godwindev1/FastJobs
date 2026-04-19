@@ -120,8 +120,8 @@ public class Scheduler
         var entry = new Queue
         {
             JobId       = jobInfo.JobId,
-            ScheduledAt = jobInfo.ScheduledTo,
-            IsScheduled = true,
+            DequeuedAt = jobInfo.ScheduledTo,
+            isDequeued = false,
         };
 
         try {

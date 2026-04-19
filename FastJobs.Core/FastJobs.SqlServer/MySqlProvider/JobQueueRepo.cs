@@ -19,9 +19,9 @@ internal sealed class QueueRepository : IQueueRepository
 
         const string sql = @"
         INSERT INTO Queue
-        (QueueName, JobId, Priority, ScheduledAt, IsScheduled)
+        (QueueName, JobId, Priority, DequeuedAt, isDequeued)
         VALUES
-        (@QueueName, @JobId, @priority, @ScheduledAt, @IsScheduled);
+        (@QueueName, @JobId, @priority, @DequeuedAt, @isDequeued);
 
         SELECT LAST_INSERT_ID()";
 
@@ -30,8 +30,8 @@ internal sealed class QueueRepository : IQueueRepository
             QueueName = jobEntry.QueueName,
             JobId = jobEntry.JobId,
             Priority = jobEntry.Priority,
-            ScheduledAt = jobEntry.ScheduledAt,
-            IsScheduled = jobEntry.IsScheduled
+            DequeuedAt = jobEntry.DequeuedAt,
+            isDequeued = jobEntry.isDequeued
         }, cancellationToken: cancellationToken);
 
         return await _connection.ExecuteScalarAsync<long>(command);
@@ -97,8 +97,8 @@ internal sealed class QueueRepository : IQueueRepository
         UPDATE Queue
         SET 
             QueueName = @QueueName,
-            IsScheduled = @IsScheduled,
-            ScheduledAt = @ScheduledAt, 
+            isDequeued = @isDequeued,
+            DequeuedAt = @DequeuedAt, 
             Priority = @Priority,
             JobId = @JobId
         WHERE Id = @Id;";
@@ -107,8 +107,8 @@ internal sealed class QueueRepository : IQueueRepository
         {
             Id = queueEntry.Id,
             queueEntry.QueueName,
-            queueEntry.IsScheduled,
-            queueEntry.ScheduledAt,
+            queueEntry.isDequeued,
+            queueEntry.DequeuedAt,
             queueEntry.Priority,
             queueEntry.JobId,
         }, cancellationToken: cancellationToken);
@@ -129,7 +129,7 @@ internal sealed class QueueRepository : IQueueRepository
                 SELECT *
                 FROM Queue
                 WHERE QueueName = @_queuename 
-                AND IsScheduled = false 
+                AND isDequeued = false 
                 ORDER BY Priority DESC, Id ASC
                 LIMIT 1
             ";

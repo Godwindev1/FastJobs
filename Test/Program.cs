@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 
+
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -18,13 +19,13 @@ app.Services.UseFastJobs();
 
 await app.StartAsync();
 
-for(int i = 0; i < 3; i++)
+for(int i = 0; i < 1; i++)
 {
-   // await FastJobServer.EnqueueJob<ComplexTestJob>()
-   // .Start();
+    //await FastJobServer.EnqueueJob<ComplexTestJob>()
+    //.Start();
 
     await FastJobServer.ScheduleJob<ComplexTestJob>()
-    .WaitDelay(TimeSpan.FromSeconds(10))
+    .WaitDelay(TimeSpan.FromSeconds(45))
     .Start();
 
     //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
