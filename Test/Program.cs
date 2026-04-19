@@ -19,12 +19,12 @@ app.Services.UseFastJobs();
 
 await app.StartAsync();
 
-for(int i = 0; i < 1; i++)
+for(int i = 0; i < 3; i++)
 {
     //await FastJobServer.EnqueueJob<ComplexTestJob>()
     //.Start();
 
-    await FastJobServer.ScheduleJob<ComplexTestJob>()
+    await FastJobServer.ScheduleJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
     .WaitDelay(TimeSpan.FromSeconds(45))
     .Start();
 

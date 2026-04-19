@@ -10,14 +10,10 @@ namespace FastJobs;
 
 public static class FastJobServer
 {
-    //Service Provider For Reolving FastJob Dependencies 
     private static IServiceScopeFactory _ScopeFactory;
     private static FastJobsOptions _options;
 
-    /// <summary>
-    /// Create New Instance of FastJobServer 
-    /// </summary>
-    /// <param name="provider"></param>
+
     static internal void BuildInstance(IServiceScopeFactory scopeFactory)
     {
         _ScopeFactory = scopeFactory;
@@ -110,6 +106,32 @@ public static class FastJobServer
 
 
     //SCHEDULED JOBS 
+
+    public static ScheduledJobOptions<ExpressionFireAndForgetJob> ScheduleJob(Expression<Action> actionExpression)
+    {
+        var expressionMetadata = ExtractExpressionMetadata(actionExpression);
+      
+        var job = new Job
+        {
+            TypeName = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
+            MethodName = expressionMetadata.MethodName,
+            MethodDeclaringTypeName = expressionMetadata.MethodDeclaringTypeName,
+            ParameterTypeNamesJson = expressionMetadata.ParameterTypeNamesJson,
+            ArgumentsJson = expressionMetadata.ArgumentsJson,
+            Queue = FastJobConstants.DefaultQueue,
+            stateID = 0,
+            StateName = QueueStateTypes.Enqueued,
+            RetryCount = 0,
+            MaxRetries = 3,
+            Priority = (int)JobPriority.Normal,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+        };
+
+        return new ScheduledJobOptions<ExpressionFireAndForgetJob>(job, _ScopeFactory);
+    }
+
+
     public static ScheduledJobOptions<TJob> ScheduleJob<TJob>() 
         where TJob : class, IBackGroundJob
     {
