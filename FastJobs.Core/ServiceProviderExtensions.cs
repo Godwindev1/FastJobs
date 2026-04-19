@@ -46,6 +46,7 @@ namespace FastJobs
 
             var FastJobServer =  provider.GetRequiredService<ProcessingServer> ();
             FastJobServer.StartProcessingJobs();
+            FastJobServer.StartScheduler();
         }
     }
 }

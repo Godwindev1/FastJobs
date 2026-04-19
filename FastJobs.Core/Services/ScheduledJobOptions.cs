@@ -82,6 +82,7 @@ namespace FastJobs {
                 JobType = JobTypes.Scheduled
             }, cancellationToken);
 
+
         // Insert into ScheduledJobs table - will NOT be in active queue yet
         var scheduledJobInfo = new ScheduledJobInfo
         {

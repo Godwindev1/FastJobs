@@ -128,13 +128,13 @@ internal sealed class QueueRepository : IQueueRepository
             string sql = @"
                 SELECT *
                 FROM Queue
-                WHERE QueueName = @QueueName 
+                WHERE QueueName = @_queuename 
                 AND IsScheduled = false 
                 ORDER BY Priority DESC, Id ASC
                 LIMIT 1
             ";
 
-            CommandDefinition command = new CommandDefinition(sql, new { QueueName = queueName }, transaction: transaction, cancellationToken: cancellationToken);
+            CommandDefinition command = new CommandDefinition(sql, new { _queuename = queueName }, transaction: transaction, cancellationToken: cancellationToken);
 
             var job = await _connection.QueryFirstOrDefaultAsync<Queue>(
              command

@@ -16,6 +16,7 @@ public class Queue
 
     public int Priority { get; set; }
 
+    
     [Required]
     public bool IsScheduled { get; set; }
 

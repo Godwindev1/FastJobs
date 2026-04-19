@@ -38,25 +38,6 @@ internal class QueueProcessor
       return  _locprovider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5), cancellationToken);   
     }
 
-    public async Task EnqueueScheduledJob(ScheduledJobInfo jobInfo, CancellationToken Token)
-    {
-        var Job = await _JobRepository.GetByIdAsync(jobInfo.JobId);
-        
-        var Entry = new Queue {
-            JobId = Job.Id,
-            ScheduledAt = jobInfo.ScheduledTo,
-            IsScheduled = true,  
-        };
-
-        await EnqueueJob(Entry, Token, QueueNames.Critical);
-    }
-
-    private async Task EnqueueJob(Queue Entry,  CancellationToken cancellationToken, string queueName = QueueNames.Default)
-    {
-        Entry.QueueName = queueName;
-
-        await _queueRepo.EnqueueAsync(Entry, cancellationToken);
-    }
 
     public async Task<bool> IsQueueEmpty(string QueueName, CancellationToken cancellationToken)
     {
@@ -108,8 +89,8 @@ internal class QueueProcessor
             // Update job state with atomic state history creation and rollback support
             await _stateHelpers.UpdateJobStateAsync(
                 Job.Id,
-                QueueStateTypes.Scheduled,
-                "Schedule Job For Processing",
+                QueueStateTypes.Dequeued,
+                "Job Dequeued",
                 data: "",
                 cancellationToken);
 

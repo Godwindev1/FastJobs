@@ -127,4 +127,22 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
         return await connection.ExecuteAsync(command);
     }
+
+
+    public async Task<ScheduledJobInfo?> GetNextScheduledJob(CancellationToken ct)
+    {
+        using var connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT * FROM ScheduledJobs
+            WHERE ScheduledTo > @CurrentTime
+            ORDER BY ScheduledTo ASC
+            LIMIT 1;";
+
+        return await connection.QueryFirstOrDefaultAsync<ScheduledJobInfo>(
+            new CommandDefinition(sql, 
+                new { CurrentTime = DateTime.UtcNow }, 
+                cancellationToken: ct));
+
+    }
 }

@@ -19,4 +19,6 @@ public interface IScheduledJobRepository
     /// Removes multiple scheduled jobs by their IDs
     /// </summary>
     Task<int> DeleteMultipleAsync(IEnumerable<long> ids, CancellationToken cancellationToken = default);
+
+    Task<ScheduledJobInfo?> GetNextScheduledJob(CancellationToken cancellationToken = default);
 }
