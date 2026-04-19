@@ -44,9 +44,9 @@ namespace FastJobs
             FastJobsConsoleExtensions.InitializeFastJobsTables(provider);
             FastJobsConsoleExtensions.InitializeJobServerAbstraction(provider);
 
-            var FastJobServer =  provider.GetRequiredService<ProcessingServer> ();
-            FastJobServer.StartProcessingJobs();
-            FastJobServer.StartScheduler();
+            var ProcessingServer =  provider.GetRequiredService<ProcessingServer> ();
+            ProcessingServer.StartProcessingJobs();
+            ProcessingServer.StartScheduler();
         }
     }
 }

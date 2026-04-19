@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs {
@@ -57,6 +58,7 @@ namespace FastJobs {
         var jobRepository             = Scope.Resolve<IJobRepository>();
         var stateHistoryRepository    = Scope.Resolve<IStateHistoryRepository>();
         var scheduledJobRepository    = Scope.Resolve<IScheduledJobRepository>();
+        var ProcessingServer = Scope.Resolve<ProcessingServer>();
 
         // Insert the job
         var jobId = await jobRepository.InsertAsync(_job, cancellationToken);
@@ -91,6 +93,8 @@ namespace FastJobs {
         };
 
         var scheduledJobId = await scheduledJobRepository.InsertAsync(scheduledJobInfo, cancellationToken);
+
+        ProcessingServer.NotifyScheduledJobAdded();
     }
 }
 }

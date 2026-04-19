@@ -28,9 +28,8 @@ public static  class ServiceCollectionExtensions
         databaseProvider.SetupDatabase(services, Options.ConnectionString);
         databaseProvider.RegisterDependencies(services);
 
-        //scoped Or Singleton Seems To Cause Sql Connection Issues
-        services.AddTransient<QueueProcessor>();
-        services.AddTransient<ProcessingServer>();
+        services.AddScoped<QueueProcessor>();
+        services.AddSingleton<ProcessingServer>();
 
         // Register expression-based job execution services
         services.AddScoped<IJobContext, JobContext>();

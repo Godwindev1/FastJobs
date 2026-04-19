@@ -35,6 +35,11 @@ internal class ProcessingServer
         });
     }
 
+    public void NotifyScheduledJobAdded()
+    {
+        SchedulerProcess.NotifyJobAdded();
+    }
+
     public async Task StopProcessingJobs()
     {
         await _workerManager?.StopAsync();
