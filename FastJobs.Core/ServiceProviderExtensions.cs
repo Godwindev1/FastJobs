@@ -32,6 +32,11 @@ namespace FastJobs
              .EnsureCreatedAsync(connection)
              .GetAwaiter()
              .GetResult();
+
+             RecurringJobTableInitializer
+             .EnsureCreatedAsync(connection)
+             .GetAwaiter()
+             .GetResult();
         }
 
         private static void InitializeJobServerAbstraction(IServiceProvider provider)
