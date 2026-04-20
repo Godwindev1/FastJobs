@@ -19,9 +19,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
         const string sql = @"
         INSERT INTO RecurringJobs
-            (JobId, NextScheduledID, CronExpression, StartTime, Interval, NextScheduledTime, IsConcurrent)
+            (JobId, NextScheduledID, CronExpression, StartTime, IntervalVMs, NextScheduledTime, IsConcurrent)
         VALUES
-            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @Interval, @NextScheduledTime, @IsConcurrent);
+            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalVMs, @NextScheduledTime, @IsConcurrent);
 
         SELECT LAST_INSERT_ID();";
 
@@ -31,7 +31,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             recurringJob.NextScheduledID,
             recurringJob.CronExpression,
             recurringJob.StartTime,
-            Interval         = recurringJob.Interval.Ticks,   // TimeSpan → BIGINT
+            IntervalVMs         = recurringJob.IntervalVMs.Ticks,   // TimeSpan → BIGINT
             recurringJob.NextScheduledTime,
             recurringJob.IsConcurrent
         }, cancellationToken: cancellationToken);
@@ -75,7 +75,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             NextScheduledID   = @NextScheduledID,
             CronExpression    = @CronExpression,
             StartTime         = @StartTime,
-            Interval          = @Interval,
+            IntervalVMs          = @IntervalVMs,
             NextScheduledTime = @NextScheduledTime,
             IsConcurrent      = @IsConcurrent
         WHERE Id = @Id;";
@@ -87,7 +87,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             recurringJob.NextScheduledID,
             recurringJob.CronExpression,
             recurringJob.StartTime,
-            Interval         = recurringJob.Interval.Ticks,   // TimeSpan → BIGINT
+            IntervalVMs         = recurringJob.IntervalVMs.Ticks,   // TimeSpan → BIGINT
             recurringJob.NextScheduledTime,
             recurringJob.IsConcurrent
         }, cancellationToken: cancellationToken);
@@ -112,7 +112,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     /// <summary>
     /// Flat projection that Dapper can auto-map directly from the DB row.
-    /// Interval arrives as a raw long (ticks) which we then convert to TimeSpan.
+    /// IntervalVMs arrives as a raw long (ticks) which we then convert to TimeSpan.
     /// </summary>
     private sealed class RecurringJobRow
     {
@@ -121,7 +121,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         public long?    NextScheduledID   { get; init; }
         public string   CronExpression    { get; init; } = string.Empty;
         public DateTime StartTime         { get; init; }
-        public long     Interval          { get; init; }  // ticks
+        public long     IntervalVMs          { get; init; }  // ticks
         public DateTime NextScheduledTime { get; init; }
         public bool     IsConcurrent      { get; init; }
     }
@@ -133,7 +133,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         NextScheduledID   = row.NextScheduledID ?? 0,
         CronExpression    = row.CronExpression,
         StartTime         = row.StartTime,
-        Interval          = TimeSpan.FromTicks(row.Interval),  // BIGINT → TimeSpan
+        IntervalVMs          = TimeSpan.FromTicks(row.IntervalVMs),  // BIGINT → TimeSpan
         NextScheduledTime = row.NextScheduledTime,
         IsConcurrent      = row.IsConcurrent
     };

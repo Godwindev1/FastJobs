@@ -154,4 +154,59 @@ public static class FastJobServer
 
         return new ScheduledJobOptions<TJob>(job, _ScopeFactory);
     }
+
+
+    //RECURRING JOBS
+
+    public static RecurringJobOptions<ExpressionFireAndForgetJob> AddRecurringJob(Expression<Action> actionExpression)
+    {
+        var expressionMetadata = ExtractExpressionMetadata(actionExpression);
+      
+        var job = new Job
+        {
+            TypeName = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
+            MethodName = expressionMetadata.MethodName,
+            MethodDeclaringTypeName = expressionMetadata.MethodDeclaringTypeName,
+            ParameterTypeNamesJson = expressionMetadata.ParameterTypeNamesJson,
+            ArgumentsJson = expressionMetadata.ArgumentsJson,
+            Queue = FastJobConstants.DefaultQueue,
+            stateID = 0,
+            StateName = QueueStateTypes.Enqueued,
+            RetryCount = 0,
+            MaxRetries = 3,
+            Priority = (int)JobPriority.Normal,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+        };
+
+        return new RecurringJobOptions<ExpressionFireAndForgetJob>(job, _ScopeFactory);
+    }
+
+
+
+    public static RecurringJobOptions<TJob> AddRecurringJob<TJob>() 
+    where TJob : class, IBackGroundJob
+    {
+        var job = new Job
+        {
+            TypeName = typeof(TJob).AssemblyQualifiedName,
+            Queue = FastJobConstants.DefaultQueue,
+            StateName = QueueStateTypes.Enqueued,
+            RetryCount = 0,
+            MaxRetries = 3,
+            Priority = (int)JobPriority.High,
+            CreatedAt = DateTime.UtcNow,
+            MethodName = string.Empty,
+            MethodDeclaringTypeName = string.Empty,
+            ParameterTypeNamesJson = string.Empty,
+            ArgumentsJson = string.Empty,
+            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+        };
+
+
+        return new RecurringJobOptions<TJob>(job, _ScopeFactory);
+    }
+
+    
+
 }

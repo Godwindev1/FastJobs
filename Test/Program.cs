@@ -24,8 +24,15 @@ for(int i = 0; i < 3; i++)
     //await FastJobServer.EnqueueJob<ComplexTestJob>()
     //.Start();
 
-    await FastJobServer.ScheduleJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
-    .WaitDelay(TimeSpan.FromSeconds(45))
+    //await FastJobServer.ScheduleJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
+    //.WaitDelay(TimeSpan.FromSeconds(45))
+    //.Start();
+
+    await FastJobServer.AddRecurringJob(() =>  Console.WriteLine("Hello FastJobs") )
+    .WithInterval(TimeSpan.FromSeconds(15))
+    .WaitDelay(TimeSpan.FromSeconds(4))
+    .RunAt(DateTime.Now)
+    .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromDays(5)))
     .Start();
 
     //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
