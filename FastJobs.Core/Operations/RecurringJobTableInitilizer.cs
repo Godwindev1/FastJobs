@@ -17,6 +17,9 @@ public static class RecurringJobTableInitializer
         IntervalVMs         BIGINT NOT NULL,     
         NextScheduledTime DATETIME(6) NOT NULL,
         IsConcurrent     TINYINT(1) NOT NULL DEFAULT 1,
+        IsCron           TINYINT(1) NOT NULL DEFAULT 0,
+        ExecutingInstances INT NOT NULL DEFAULT 0,
+        ExecutedInstances  INT NOT NULL DEFAULT 0,
 
         CONSTRAINT FK_RecurringJobs_Jobs
             FOREIGN KEY (JobId)

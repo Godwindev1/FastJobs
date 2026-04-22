@@ -19,9 +19,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
         const string sql = @"
         INSERT INTO RecurringJobs
-            (JobId, NextScheduledID, CronExpression, StartTime, IntervalVMs, NextScheduledTime, IsConcurrent)
+            (JobId, NextScheduledID, CronExpression, StartTime, IntervalVMs, NextScheduledTime, IsConcurrent, isCron, ExecutingInstances, ExecutedInstances)
         VALUES
-            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalVMs, @NextScheduledTime, @IsConcurrent);
+            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalVMs, @NextScheduledTime, @IsConcurrent, @isCron, @ExecutingInstances, @ExecutedInstances);
 
         SELECT LAST_INSERT_ID();";
 
@@ -77,7 +77,10 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             StartTime         = @StartTime,
             IntervalVMs          = @IntervalVMs,
             NextScheduledTime = @NextScheduledTime,
-            IsConcurrent      = @IsConcurrent
+            IsConcurrent      = @IsConcurrent,
+            isCron            = @IsCron,
+            ExecutingInstances= @ExecutingInstances,
+            ExecutedInstances = @ExecutedInstances
         WHERE Id = @Id;";
 
         var command = new CommandDefinition(sql, new
@@ -89,7 +92,10 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             recurringJob.StartTime,
             IntervalVMs         = recurringJob.IntervalVMs.Ticks,   // TimeSpan → BIGINT
             recurringJob.NextScheduledTime,
-            recurringJob.IsConcurrent
+            recurringJob.IsConcurrent,
+            recurringJob.IsCron,
+            recurringJob.ExecutingInstances,
+            recurringJob.ExecutedInstances
         }, cancellationToken: cancellationToken);
 
         return await connection.ExecuteAsync(command);
@@ -124,6 +130,10 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         public long     IntervalVMs          { get; init; }  // ticks
         public DateTime NextScheduledTime { get; init; }
         public bool     IsConcurrent      { get; init; }
+        public int ExecutedInstances {get; set; } = 0;
+        public int ExecutingInstances {get; set; } = 0; 
+
+        public bool IsCron {get; set; } = false;
     }
 
     private static RecurringJob MapToDomain(RecurringJobRow row) => new()
@@ -135,6 +145,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         StartTime         = row.StartTime,
         IntervalVMs          = TimeSpan.FromTicks(row.IntervalVMs),  // BIGINT → TimeSpan
         NextScheduledTime = row.NextScheduledTime,
-        IsConcurrent      = row.IsConcurrent
+        IsConcurrent      = row.IsConcurrent,
+        IsCron = row.IsCron,
+        ExecutedInstances = row.ExecutedInstances,
+        ExecutingInstances = row.ExecutingInstances
     };
 }

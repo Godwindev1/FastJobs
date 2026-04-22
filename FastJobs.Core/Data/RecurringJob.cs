@@ -12,4 +12,9 @@ public class RecurringJob
      public DateTime NextScheduledTime {get; set;}
 
      public bool IsConcurrent {get; set;}= true;
+
+     public int ExecutedInstances {get; set; } = 0;
+     public int ExecutingInstances {get; set; } = 0; 
+
+     public bool IsCron {get; set; } = false;
 }

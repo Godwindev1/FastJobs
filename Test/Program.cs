@@ -29,7 +29,7 @@ for(int i = 0; i < 3; i++)
     //.Start();
 
     await FastJobServer.AddRecurringJob(() =>  Console.WriteLine("Hello FastJobs") )
-    .WithInterval(TimeSpan.FromSeconds(15))
+    .WithInterval(TimeSpan.FromSeconds(15), DateTime.Now)
     .WaitDelay(TimeSpan.FromSeconds(4))
     .RunAt(DateTime.Now)
     .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromDays(5)))

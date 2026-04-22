@@ -1,18 +1,21 @@
+using Cronos;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
 
+//TODO : Fix The issue And Confusion between StartTime, CronNextScheduled Time And interval NextScheduled Time  
 public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
 {
     private readonly Job _job;
     private readonly IServiceScopeFactory _scopeFactory;
 
     // Recurring-specific state
-    private DateTime  _startTime        = DateTime.UtcNow.AddHours(1);
+    private DateTime ? _startTime        = null;
     private TimeSpan  _IntervalVMs         = TimeSpan.FromHours(1);
     private string    _cronExpression   = string.Empty;
     private bool      _isConcurrent     = false;
 
+    private bool _isCronType = false;
     internal RecurringJobOptions(Job job, IServiceScopeFactory factory)
     {
         _job          = job;
@@ -28,7 +31,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         if (startTime <= DateTime.UtcNow)
             throw new ArgumentException("Start time must be in the future.", nameof(startTime));
 
-        _startTime = startTime;
+        _startTime = startTime.ToUniversalTime();
         return this;
     }
 
@@ -47,8 +50,14 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// <summary>
     /// Sets how often the job repeats after each successful execution.
     /// </summary>
-    public RecurringJobOptions<TJob> WithInterval(TimeSpan IntervalVMs)
+    public RecurringJobOptions<TJob> WithInterval(TimeSpan IntervalVMs, DateTime startTime)
     {
+        if (startTime <= DateTime.UtcNow)
+        throw new ArgumentException("Start time must be in the future.", nameof(startTime));
+
+        _startTime = startTime.ToUniversalTime();
+
+        _isCronType = false;
         if (IntervalVMs <= TimeSpan.Zero)
             throw new ArgumentException("Interval must be greater than zero.", nameof(IntervalVMs));
 
@@ -57,18 +66,21 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     }
 
     /// <summary>
-    /// Attaches a cron expression to the recurring job.
-    /// Cron-based scheduling is not yet active — this is reserved for future use.
+    /// Attaches an explicit cron expression (5-field standard or 6-field with seconds).
     /// </summary>
     public RecurringJobOptions<TJob> AddCronExpression(string cronExpression)
     {
+        _isCronType = true;
         if (string.IsNullOrWhiteSpace(cronExpression))
             throw new ArgumentException("Cron expression cannot be empty.", nameof(cronExpression));
 
-        // TODO: Validate via Cronos once integrated.
+        // Validate eagerly so the error surfaces at registration time, not at scheduling time.
+        ParseCron(cronExpression);
+
         _cronExpression = cronExpression;
         return this;
     }
+
 
     /// <summary>
     /// Sets the maximum number of times this job will be retried on failure.
@@ -113,6 +125,19 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// </summary>
     public async Task Start(CancellationToken cancellationToken = default)
     {
+        if(_isCronType && _startTime == null)
+        {
+            if (string.IsNullOrWhiteSpace(_cronExpression))
+                throw new InvalidOperationException(
+                    "No schedule defined. or AddCronExpression() before Start().");
+            // Let Cronos find the true first fire time from the seed.
+            _startTime = ComputeNextOccurrence(_cronExpression, DateTime.UtcNow)
+                ?? throw new InvalidOperationException(
+                    $"Cron expression '{_cronExpression}' produces no occurrences .");
+        }
+
+        
+
         using var scope = new ScopeManager(_scopeFactory);
 
         var jobRepository           = scope.Resolve<IJobRepository>();
@@ -149,13 +174,31 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
             JobId             = jobId,
             NextScheduledID   = 0,               // No scheduled run exists Atp the RecurringJobService will Be Responsible For Creating Those
             CronExpression    = _cronExpression,
-            StartTime         = _startTime,
+            StartTime         = _startTime ?? throw new ArgumentException("Start Time Was Not Set"),
             IntervalVMs          = _IntervalVMs,
-            NextScheduledTime = _startTime,       // First execution target
-            IsConcurrent      = _isConcurrent
+            NextScheduledTime = _startTime ?? throw new ArgumentException("Start Time Was Not Set"),       // First execution target
+            IsConcurrent      = _isConcurrent,
+            IsCron = _isCronType
         };
 
         await recurringJobRepository.InsertAsync(recurringJob, cancellationToken);
 
+    }
+
+     /// <summary>Parses a 5- or 6-field cron expression, throwing on invalid input.</summary>
+    private static CronExpression ParseCron(string expression)
+    {
+        var format = expression.Split(' ').Length == 6
+            ? CronFormat.IncludeSeconds
+            : CronFormat.Standard;
+
+        return CronExpression.Parse(expression, format);
+    }
+
+    /// <summary>Returns the first UTC occurrence of the cron on or after <paramref name="from"/>.</summary>
+    internal static DateTime? ComputeNextOccurrence(string cronExpression, DateTime from)
+    {
+        var parsed = ParseCron(cronExpression);
+        return parsed.GetNextOccurrence(from, TimeZoneInfo.Utc);
     }
 }
