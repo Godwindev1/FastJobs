@@ -97,10 +97,58 @@ public class Worker
                         Console.WriteLine($"CompleteJob failed: {ex.Message}");
                     }
 
+                    // Reschedule recurring jobs
+                    if (job.JobType == JobTypes.Recurring)
+                    {
+                        await RescheduleRecurringJobAsync(job.Id, Scope);
+                    }
+
                     jobContext.SetJob( null );
                 }
 
             } 
         }
+    }
+
+    private async Task RescheduleRecurringJobAsync(long jobId, ScopeManager scope)
+    {
+        var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
+        var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
+        var processingServer = scope.Resolve<ProcessingServer>();
+        var jobRepository = scope.Resolve<IJobRepository>();
+
+        var recurringJob = await recurringJobRepository.GetByIdAsync(jobId);
+        if (recurringJob == null) return;
+
+        // Fetch the job to check expiry from Jobs table
+        var job = await jobRepository.GetByIdAsync(recurringJob.JobId);
+        if (job == null) return;
+
+        // If the job has expired, do not reschedule
+        if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+            return; 
+
+        // Check concurrency if not concurrent
+        if (!recurringJob.IsConcurrent && recurringJob.ExecutingInstances > 0)
+            return; // Skip this cycle
+
+        // Compute next run
+        var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
+        if (nextRun == null) return; // No more occurrences
+
+        // Insert next scheduled job
+        var scheduledJob = new ScheduledJobInfo
+        {
+            JobId = jobId,
+            ScheduledTo = nextRun.Value
+        };
+        var scheduledId = await scheduledJobRepository.InsertAsync(scheduledJob);
+
+        // Update recurring job
+        recurringJob.NextScheduledID = scheduledId;
+        recurringJob.NextScheduledTime = nextRun.Value;
+        await recurringJobRepository.UpdateByIdAsync(recurringJob);
+
+        processingServer.NotifyScheduledJobAdded();
     }
 }

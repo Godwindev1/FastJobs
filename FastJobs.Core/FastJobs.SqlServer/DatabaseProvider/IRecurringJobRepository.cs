@@ -18,6 +18,21 @@ public interface IRecurringJobRepository
     Task<IEnumerable<RecurringJob>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves orphaned recurring jobs that need recovery sweep.
+    /// </summary>
+    Task<IEnumerable<RecurringJob>> GetOrphanedRecurringJobsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves recurring jobs that are due to run now or in the past.
+    /// </summary>
+    Task<IEnumerable<RecurringJob>> GetDueAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the next scheduled recurring job after now.
+    /// </summary>
+    Task<RecurringJob?> GetNextScheduledRecurringJob(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Replaces all mutable fields of an existing recurring job.
     /// </summary>
     Task<int> UpdateByIdAsync(RecurringJob recurringJob, CancellationToken cancellationToken = default);
