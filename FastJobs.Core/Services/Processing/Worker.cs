@@ -66,6 +66,20 @@ public class Worker
                 var jobContext = Scope.Resolve<IJobContext>() as JobContext;
                 jobContext.SetJob( job );
 
+                // Check if this is a recurring job and increment ExecutingInstances
+                IRecurringJobRepository? recurringRepo = null;
+                RecurringJob? recurringJob = null;
+                if (job.JobType == JobTypes.Recurring)
+                {
+                    recurringRepo = Scope.Resolve<IRecurringJobRepository>();
+                    recurringJob = await recurringRepo.GetByJob(job, jobCts.Token);
+                    if (recurringJob != null)
+                    {
+                        recurringJob.ExecutingInstances++;
+                        await recurringRepo.UpdateByIdAsync(recurringJob, jobCts.Token);
+                    }
+                }
+
                 try
                 {
                     StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
@@ -82,6 +96,19 @@ public class Worker
                 {
                     Console.WriteLine(ex.Message);
                     await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, ex.Message);
+                }
+                finally
+                {
+                    // Update recurring job execution counters
+                    if (recurringRepo != null && recurringJob != null)
+                    {
+                        recurringJob.ExecutingInstances--;
+                        if (jobSucceeded)
+                        {
+                            recurringJob.ExecutedInstances++;
+                        }
+                        await recurringRepo.UpdateByIdAsync(recurringJob, jobCts.Token);
+                    }
                 }
 
                
@@ -116,6 +143,7 @@ public class Worker
         var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
         var processingServer = scope.Resolve<ProcessingServer>();
         var jobRepository = scope.Resolve<IJobRepository>();
+        var stateHelper = new StateHelpers(jobRepository, scope.Resolve<IStateHistoryRepository>());
 
         var recurringJob = await recurringJobRepository.GetByIdAsync(jobId);
         if (recurringJob == null) return;
@@ -148,6 +176,8 @@ public class Worker
         recurringJob.NextScheduledID = scheduledId;
         recurringJob.NextScheduledTime = nextRun.Value;
         await recurringJobRepository.UpdateByIdAsync(recurringJob);
+
+        await stateHelper.UpdateJobStateAsync(jobId, QueueStateTypes.Scheduled, $"Recurring job rescheduled for {nextRun:O}", "", CancellationToken.None);
 
         processingServer.NotifyScheduledJobAdded();
     }

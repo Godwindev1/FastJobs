@@ -55,6 +55,20 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         return row is null ? null : MapToDomain(row);
     }
 
+    public async Task<RecurringJob?> GetByJob(Job job, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM RecurringJobs WHERE JobId = @JobId;";
+
+        var command = new CommandDefinition(sql, new { JobId = job.Id }, cancellationToken: cancellationToken);
+
+        // Dapper cannot auto-map BIGINT → TimeSpan, so we use a raw row and convert manually.
+        var row = await connection.QuerySingleOrDefaultAsync<RecurringJobRow>(command);
+        return row is null ? null : MapToDomain(row);
+    }
+
+
     public async Task<IEnumerable<RecurringJob>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();

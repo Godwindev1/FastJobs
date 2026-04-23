@@ -13,6 +13,11 @@ public interface IRecurringJobRepository
     Task<RecurringJob?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a recurring job by its primary key.
+    /// </summary>
+    Task<RecurringJob?> GetByJob(Job job, CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Retrieves all recurring jobs.
     /// </summary>
     Task<IEnumerable<RecurringJob>> GetAllAsync(CancellationToken cancellationToken = default);
@@ -41,4 +46,6 @@ public interface IRecurringJobRepository
     /// Deletes a recurring job by its primary key.
     /// </summary>
     Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default);
+
+    
 }

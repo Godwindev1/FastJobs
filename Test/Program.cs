@@ -28,12 +28,12 @@ for(int i = 0; i < 3; i++)
     //.WaitDelay(TimeSpan.FromSeconds(45))
     //.Start();
 
-    await FastJobServer.AddRecurringJob(() =>  Console.WriteLine("Hello FastJobs") )
-    .WithInterval(TimeSpan.FromSeconds(60), DateTime.Now)
-    .WaitDelay(TimeSpan.FromSeconds(4))
-    .RunAt(DateTime.Now)
-    .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
-    .Start();
+   // await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
+   // .AddCronExpression("*/1 * * * *") // Every minute
+   // .RunAt(DateTime.Now)
+   // .WaitDelay(TimeSpan.FromSeconds(4))
+   // .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+   // .Start();
 
     //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
     //.SetPriority(JobPriority.High) // High priority job
