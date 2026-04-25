@@ -1,4 +1,3 @@
-
 using FastJobs.SqlServer;
 
 namespace FastJobs;

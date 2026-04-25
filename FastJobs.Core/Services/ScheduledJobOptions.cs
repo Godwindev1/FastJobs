@@ -1,5 +1,3 @@
-
-using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using FastJobs.SqlServer;
 namespace FastJobs {

@@ -1,4 +1,5 @@
-﻿using FastJobs;
+﻿using System.Net.Sockets;
+using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -22,26 +23,29 @@ app.Services.UseFastJobs();
 
 await app.StartAsync();
 
-for(int i = 0; i < 3; i++)
+//bloating trial 
+while(true )
 {
-    //await FastJobServer.EnqueueJob<ComplexTestJob>()
-    //.Start();
+    await FastJobServer.EnqueueJob<ComplexTestJob>()
+    .Start();
 
     //await FastJobServer.ScheduleJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
     //.WaitDelay(TimeSpan.FromSeconds(45))
     //.Start();
 
-    await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
-    .AddCronExpression("*/1 * * * *") // Every minute
-    .RunAt(DateTime.Now)
-    .WaitDelay(TimeSpan.FromSeconds(4))
-    .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
-    .Start();
+    //await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
+    //.AddCronExpression("*/1 * * * *") // Every minute
+    //.RunAt(DateTime.Now)
+    //.WaitDelay(TimeSpan.FromSeconds(4))
+    //.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+    //.Start();
 
     //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
     //.SetPriority(JobPriority.High) // High priority job
     //.SetMaxRetryCount(i < 10 ? 3 : 0) // First 10 jobs will retry up to 3 times, others won't retry
     //.Start();
+
+    await Task.Delay(1000);
 }
 
 await app.WaitForShutdownAsync();

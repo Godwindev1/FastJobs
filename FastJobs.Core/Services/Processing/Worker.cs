@@ -67,6 +67,10 @@ public class Worker
                 IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
                 Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
 
+                // If the job has expired by the time we got it, skip processing
+                if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+                    return; 
+
                 var ResolvedJob = JobResolver.ResolveJob(job, Scope);
                 
                 if (ResolvedJob == null)
