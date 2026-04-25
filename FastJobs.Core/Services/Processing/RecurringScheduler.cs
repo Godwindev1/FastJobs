@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Cronos;
+
 
 namespace FastJobs;
 using FastJobs.SqlServer;
@@ -11,7 +8,6 @@ internal class RecurringScheduler
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
     private readonly TimeSpan _idleWait;
-    private readonly TimeSpan _maxSleep;
     private readonly Action _notifyScheduledJobAdded;
 
     public RecurringScheduler(IServiceScopeFactory scopeFactory, Action notifyScheduledJobAdded)
@@ -22,7 +18,6 @@ internal class RecurringScheduler
         using var scope = new ScopeManager(scopeFactory);
         var options = scope.Resolve<FastJobsOptions>();
         _idleWait = options.IdleWaitPeriod;
-        _maxSleep = options.MaxSleep;
     }
 
     public void NotifyJobAdded()
@@ -38,7 +33,7 @@ internal class RecurringScheduler
             try
             {
                 await RunRecoverySweepAsync(ct);
-                await Task.Delay(TimeSpan.FromSeconds(60), ct); // Run every 60 seconds
+                await Task.Delay(_idleWait, ct); 
             }
             catch (OperationCanceledException)
             {

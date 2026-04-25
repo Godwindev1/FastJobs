@@ -34,9 +34,6 @@ public sealed class Job
     public int Priority { get; set; }
 
 
-    public long LeaseOwner {get; set; }
-    public DateTime LeaseExpiresAt {get; set; }
-
     public DateTime CreatedAt { get; set; }
     public DateTime? ExpiresAt {get; set; }
 }

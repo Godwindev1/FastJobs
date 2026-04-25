@@ -1,14 +1,12 @@
-using System.Reflection.Metadata;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
-using FastJobs.SqlServer;
 //PENDING MODIFICATIONS
 public class Worker
 {
     private readonly int _workerId;
-    
+    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly CancellationToken _shutdownToken;
     private readonly IServiceScopeFactory serviceScopeFactory; 
 
@@ -33,19 +31,38 @@ public class Worker
     {
         while (!_shutdownToken.IsCancellationRequested)
         {
-            //Race Condition Possible Between HERE
-            //wont always Use Default Queue
-            if(await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
+            Tuple<Queue, SessionDatabaseLock>? JobDetails = null;
+            if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
             {
                 await Task.Delay(200, _shutdownToken);
                 continue;
             }
 
+            // WHen work is likely,  lock and re-check
+            await _semaphore.WaitAsync(_shutdownToken);
+            try
+            {
+                // Must re-check — another worker may have dequeued
+                // the last job between our outer check and acquiring the lock
+                if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
+                {
+                    continue;
+                }
+
+                JobDetails = await _QueueProcessor.Dequeue(_shutdownToken);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+
             using ( var Scope = new ScopeManager(serviceScopeFactory) )
             {
                 
-                var JobDetails = await _QueueProcessor.Dequeue(_shutdownToken);
-                //HERE
+                if (JobDetails == null)
+                {
+                    continue;
+                }
 
                 IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
                 Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);

@@ -1,4 +1,3 @@
-using System.Data;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 

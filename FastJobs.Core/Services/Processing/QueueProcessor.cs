@@ -1,8 +1,5 @@
 
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using FastJobs.SqlServer;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FastJobs;
 public class QueueNames
@@ -19,22 +16,20 @@ internal class QueueProcessor
 {
     private readonly IQueueRepository _queueRepo;
     private readonly IJobRepository _JobRepository;
-    private readonly LockProvider _locprovider;
-    private readonly IStateHistoryRepository stateHistoryRepository;
+    private readonly LockProvider _lockProvider;
     private readonly StateHelpers _stateHelpers;
 
     public QueueProcessor(IQueueRepository queueRepository, IJobRepository jobRepository, IStateHistoryRepository stateRepo, LockProvider lockProvider)
     {
         _queueRepo = queueRepository;
         _JobRepository = jobRepository;
-        _locprovider = lockProvider;
-        stateHistoryRepository = stateRepo;
+        _lockProvider = lockProvider;
         _stateHelpers = new StateHelpers(jobRepository, stateRepo);
     }
 
     private Task<SessionDatabaseLock?> LockQueueItem(string QueueEntryID, string JobID, CancellationToken cancellationToken)
     {
-      return  _locprovider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5), cancellationToken);   
+      return  _lockProvider.AcquireLock($"FastJobs.{QueueEntryID}.{JobID}", TimeSpan.FromMinutes(5), cancellationToken);   
     }
 
 

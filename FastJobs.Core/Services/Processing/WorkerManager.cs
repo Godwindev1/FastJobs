@@ -21,7 +21,6 @@ public class WorkerManager
                 async (object? _) =>
                 {
                     Thread.CurrentThread.Name = $"Creating Worker-Thread-{workerId}"; 
-                    //Console.WriteLine(Thread.CurrentThread.Name);
                     await worker.Run();
                 },
                 state:             null,
