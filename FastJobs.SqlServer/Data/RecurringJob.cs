@@ -20,9 +20,6 @@ public class RecurringJob
 
      public bool IsCron {get; set; } = false;
 
-     /// <summary>
-     /// Computes the next scheduled run time from the given base time.
-     /// </summary>
      public DateTime? ComputeNextRun(DateTime from)
      {
          if (IsCron && !string.IsNullOrWhiteSpace(CronExpression))

@@ -1,6 +1,7 @@
+
 namespace FastJobs.SqlServer;
 
-//InternalsVisibleTo("FastJobs.core")] 
+
 internal abstract class LockProvider 
 {
     

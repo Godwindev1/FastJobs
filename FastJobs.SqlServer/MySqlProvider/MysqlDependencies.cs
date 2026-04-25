@@ -7,10 +7,19 @@ using Dapper;
 
 namespace FastJobs.SqlServer;
 
-public class FastJobMysqlDependincies : IDatabaseProviderDependencies
+public class FastJobMysqlDependencies : IDatabaseProviderDependencies
 {
+    private readonly FastJobsSqlStorageOptions _options;
+
+    public FastJobMysqlDependencies(Action<FastJobsSqlStorageOptions> configure)
+    {
+        _options = new FastJobsSqlStorageOptions();
+        configure(_options);
+    }
+
     public void RegisterDependencies(IServiceCollection services)
     {
+        services.AddSingleton(_options); // MySqlDbConnectionFactory injects this
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IQueueRepository, QueueRepository>();
         services.AddScoped<IScheduledJobRepository, ScheduledJobRepository>();
@@ -20,8 +29,9 @@ public class FastJobMysqlDependincies : IDatabaseProviderDependencies
         services.AddScoped<LockProvider, MySqlLockProvider>();
     }
 
-    public void SetupDatabase(IServiceCollection Services, string ConnectionString)
+    public void SetupDatabase()  // no parameter needed anymore
     {
+        var ConnectionString = _options.ConnectionString;
         DbConnectionStringBuilder stringBuilder = new DbConnectionStringBuilder
         {
             ConnectionString = ConnectionString
@@ -63,7 +73,4 @@ public class FastJobMysqlDependincies : IDatabaseProviderDependencies
         }
 
     }
-
-    
-
 }

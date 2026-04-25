@@ -1,4 +1,4 @@
-namespace FastJobs;
+namespace FastJobs.SqlServer;
 
 public interface IScheduledJobRepository
 {

@@ -5,7 +5,6 @@ using FastJobs.SqlServer;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FastJobs;
-
 public class QueueNames
 {
     public const string Default = "Default";

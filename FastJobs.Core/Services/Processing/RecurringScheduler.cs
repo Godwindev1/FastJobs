@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Cronos;
 
 namespace FastJobs;
-
+using FastJobs.SqlServer;
 internal class RecurringScheduler
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -85,45 +85,5 @@ internal class RecurringScheduler
         }
     }
 
-    private async Task ScheduleRecurringRunAsync(
-        RecurringJob recurringJob,
-        IScheduledJobRepository scheduledRepo,
-        IRecurringJobRepository recurringRepo,
-        CancellationToken ct)
-    {
-        var scheduledJobInfo = new ScheduledJobInfo
-        {
-            JobId = recurringJob.JobId,
-            ScheduledTo = recurringJob.NextScheduledTime
-        };
-
-        var scheduledId = await scheduledRepo.InsertAsync(scheduledJobInfo, ct);
-        recurringJob.NextScheduledID = scheduledId;
-        recurringJob.NextScheduledTime = recurringJob.ComputeNextRun(recurringJob.NextScheduledTime)
-            ?? throw new InvalidOperationException("No next occurrence available.");
-
-        await recurringRepo.UpdateByIdAsync(recurringJob, ct);
-    }
-
-    private TimeSpan ComputeDelay(RecurringJob? nextRecurring)
-    {
-        if (nextRecurring is null)
-            return _idleWait;
-
-        var timeUntilNext = nextRecurring.NextScheduledTime - DateTime.UtcNow;
-        if (timeUntilNext <= TimeSpan.Zero)
-            return TimeSpan.Zero;
-
-        return timeUntilNext < _maxSleep ? timeUntilNext : _maxSleep;
-    }
-
-    private async Task WaitAsync(TimeSpan delay, CancellationToken ct)
-    {
-        if (delay <= TimeSpan.Zero)
-            return;
-
-        await _signal.WaitAsync(delay, ct);
-        while (_signal.CurrentCount > 0)
-            _signal.Wait(0);
-    }
+  
 }

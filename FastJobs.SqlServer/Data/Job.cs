@@ -1,4 +1,14 @@
-namespace FastJobs;
+namespace FastJobs.SqlServer;
+
+//THIS IS REPEATED IN CORE PROJECT AS WELL, ANY CHANGES HERE SHOULD BE REFLECTED IN THE CORE PROJECT TILL A UNIFIED MODEL IS DECIDED UPON.
+public static class JobTypes
+{
+    public static string Enqueued = "Enqueued";
+    public static string Scheduled = "Scheduled";
+    public static string Recurring = "Recurring";
+    public static string Batch = "Batch";
+}
+
 
 public sealed class Job
 {

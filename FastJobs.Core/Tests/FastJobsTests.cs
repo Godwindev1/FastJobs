@@ -4,7 +4,6 @@ using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
-
 public class FastJobRepoTests
 {
     JobRepoSitoryTest jobTest;

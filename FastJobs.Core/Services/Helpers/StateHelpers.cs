@@ -1,6 +1,6 @@
 
 namespace FastJobs;
-
+using FastJobs.SqlServer;
 /// <summary>
 /// Provides decoupled helper functions for managing job state transitions and state history.
 /// Handles atomicity of state changes by ensuring StateHistory entries and Job updates are coordinated.

@@ -2,7 +2,7 @@ using System.Data;
 using System.Threading.Tasks;
 
 namespace FastJobs;
-
+using FastJobs.SqlServer;
 internal class ScheduledJobRepositoryTest
 {
     private IScheduledJobRepository TestObject;

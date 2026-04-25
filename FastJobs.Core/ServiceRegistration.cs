@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 namespace FastJobs;
 
-
+using FastJobs.SqlServer;
 
 public static  class ServiceCollectionExtensions
 {
@@ -25,7 +25,7 @@ public static  class ServiceCollectionExtensions
 
         Console.WriteLine("Adding FastJobs");
         //TODO: Use A options Or Descriptor For Parameters
-        databaseProvider.SetupDatabase(services, Options.ConnectionString);
+        databaseProvider.SetupDatabase();
         databaseProvider.RegisterDependencies(services);
 
         services.AddScoped<QueueProcessor>();

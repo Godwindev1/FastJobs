@@ -9,7 +9,10 @@ string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=ro
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddJobService<ComplexTestJob>();
-builder.Services.FastJobs(option => { option.ConnectionString = connectionString; option.WorkerCount = 4; }, new FastJobs.SqlServer.FastJobMysqlDependincies());
+builder.Services.FastJobs(
+    option => {  option.WorkerCount = 4; },
+     new FastJobs.SqlServer.FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
+);
 
 
 
@@ -28,12 +31,12 @@ for(int i = 0; i < 3; i++)
     //.WaitDelay(TimeSpan.FromSeconds(45))
     //.Start();
 
-   // await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
-   // .AddCronExpression("*/1 * * * *") // Every minute
-   // .RunAt(DateTime.Now)
-   // .WaitDelay(TimeSpan.FromSeconds(4))
-   // .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
-   // .Start();
+    await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
+    .AddCronExpression("*/1 * * * *") // Every minute
+    .RunAt(DateTime.Now)
+    .WaitDelay(TimeSpan.FromSeconds(4))
+    .SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+    .Start();
 
     //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
     //.SetPriority(JobPriority.High) // High priority job

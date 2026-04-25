@@ -1,11 +1,12 @@
 namespace FastJobs;
 
+
 public static class FastJobConstants
 {
     public static string DefaultQueue = "Default";
 }
 
-
+//REPEATED IN FASTJOBS.SQLSERVER
 public static class JobTypes
 {
     public static string Enqueued = "Enqueued";

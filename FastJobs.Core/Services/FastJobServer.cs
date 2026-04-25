@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft;
 using Newtonsoft.Json;
+using FastJobs.SqlServer;
 
 namespace FastJobs;
 

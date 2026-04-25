@@ -1,5 +1,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
+using FastJobs.SqlServer;
 
 namespace FastJobs {
   public class EnqueueOptions<TJob> where TJob : class, IBackGroundJob

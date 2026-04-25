@@ -2,7 +2,7 @@ using Cronos;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
-
+using FastJobs.SqlServer;
 //TODO : Fix The issue And Confusion between StartTime, CronNextScheduled Time And interval NextScheduled Time  
 public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
 {

@@ -1,5 +1,5 @@
 
-namespace FastJobs;
+namespace FastJobs.SqlServer;
 public interface IStateHistoryRepository
 {
     Task<long> InsertAsync(State job, CancellationToken cancellationToken = default);

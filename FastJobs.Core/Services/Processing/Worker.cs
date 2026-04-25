@@ -3,7 +3,7 @@ using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
-
+using FastJobs.SqlServer;
 //PENDING MODIFICATIONS
 public class Worker
 {

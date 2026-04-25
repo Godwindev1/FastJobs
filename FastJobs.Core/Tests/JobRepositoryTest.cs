@@ -1,5 +1,5 @@
 namespace FastJobs;
-
+using FastJobs.SqlServer;
 public class JobRepoSitoryTest
 {
     internal IJobRepository Testobject;

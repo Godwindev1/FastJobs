@@ -1,6 +1,6 @@
 using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
-
+using FastJobs.SqlServer;
 
 public class Scheduler
 {

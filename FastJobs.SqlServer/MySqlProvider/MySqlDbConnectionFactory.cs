@@ -8,7 +8,7 @@ namespace FastJobs.SqlServer;
 
 internal class MySqlDbConnectionFactory : DbConnectionFactory
 {
-    public MySqlDbConnectionFactory(FastJobsOptions jobsOptions)
+    public MySqlDbConnectionFactory(FastJobsSqlStorageOptions jobsOptions)
         :base(jobsOptions)
     {
     }

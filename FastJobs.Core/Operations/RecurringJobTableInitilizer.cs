@@ -1,7 +1,7 @@
 using System.Data;
 using Dapper;
 
-namespace FastJobs.SqlServer;
+
 
 public static class RecurringJobTableInitializer
 {

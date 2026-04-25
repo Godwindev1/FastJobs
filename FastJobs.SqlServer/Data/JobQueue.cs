@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using FastJobs;
+namespace FastJobs.SqlServer;
 
 public class Queue
 {

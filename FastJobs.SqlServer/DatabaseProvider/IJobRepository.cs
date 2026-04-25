@@ -1,5 +1,4 @@
-
-namespace FastJobs;
+namespace FastJobs.SqlServer;
 public interface IJobRepository
 {
     Task<long> InsertAsync(Job job, CancellationToken cancellationToken = default);

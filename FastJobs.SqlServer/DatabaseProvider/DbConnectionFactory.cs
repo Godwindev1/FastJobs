@@ -10,9 +10,9 @@ namespace FastJobs.SqlServer;
 /// </summary>
 internal abstract class DbConnectionFactory
 {
-    protected FastJobsOptions _jobsOptions;
+    protected FastJobsSqlStorageOptions _jobsOptions;
 
-    public DbConnectionFactory(FastJobsOptions jobsOptions)
+    public DbConnectionFactory(FastJobsSqlStorageOptions jobsOptions)
     {
         _jobsOptions = jobsOptions;
     }

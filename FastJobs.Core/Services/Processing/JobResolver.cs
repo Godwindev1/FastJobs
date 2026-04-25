@@ -1,4 +1,5 @@
 namespace FastJobs;
+using FastJobs.SqlServer;
 
 /// <summary>
 /// Resolves IBackgroundJob implementation types using Dependency Injection.
