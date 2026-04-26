@@ -1,4 +1,4 @@
-namespace FastJobs.Dashboard.Models.Workers;
+namespace FastJobs.Dashboard.Models;
 
 public sealed class WorkerOverviewModel
 {
@@ -6,12 +6,7 @@ public sealed class WorkerOverviewModel
     public int ActiveWorkers                { get; init; }
     public int SleepingWorkers              { get; init; }
     public int DeadWorkers                  { get; init; }
-    public int TotalAcquiredLocks           { get; init; }
     public int TotalActiveJobs              { get; init; }
-    public double AvgEnqueueLatencyMs       { get; init; }
-    public double AvgProcessingLatencyMs    { get; init; }
     public DateTime GeneratedAt             { get; init; } = DateTime.UtcNow;
-
-    public IReadOnlyList<WorkerModel> Workers { get; init; }
-        = Array.Empty<WorkerModel>();
+    public IReadOnlyList<WorkerModel> Workers { get; init; } = Array.Empty<WorkerModel>();
 }

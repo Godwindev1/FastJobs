@@ -10,9 +10,13 @@ public static class FastjobsDashboardExtensions
         return services;
     }
 
-    public static IEndpointConventionBuilder MapFastjobsDashboard(this IEndpointRouteBuilder endpoints, string path = "/fastjobs")
+    public static void MapFastjobsDashboard(this IEndpointRouteBuilder endpoints, string path = "/fastjobs")
     {
-        // This maps the dashboard to a specific route
-        return endpoints.MapBlazorHub().MapFallbackToPage($"{path}/{{*all}}", "/_Host");
+        // 1. Map the Blazor Hub
+        endpoints.MapBlazorHub();
+
+        // 2. Map the fallback page using the endpoints builder directly
+        // This uses the extension method that expects IEndpointRouteBuilder
+        endpoints.MapFallbackToPage($"{path}/{{*all}}", "/_Host");
     }
 }

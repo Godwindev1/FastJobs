@@ -1,6 +1,6 @@
 using FastJobs.Dashboard.Models.Enums;
 
-namespace FastJobs.Dashboard.Models.Recurring;
+namespace FastJobs.Dashboard.Models;
 
 public sealed class RecurringJobModel
 {
@@ -9,26 +9,18 @@ public sealed class RecurringJobModel
     public string TypeName                  { get; init; } = string.Empty;
     public string MethodName                { get; init; } = string.Empty;
     public string QueueName                 { get; init; } = string.Empty;
-
     public ScheduleType ScheduleType        { get; init; }
     public string? CronExpression           { get; init; }
     public string? CronDescription          { get; init; }
     public TimeSpan? Interval               { get; init; }
     public string TimeZoneId                { get; init; } = "UTC";
-
     public RecurringJobStatus Status        { get; init; }
     public DateTime? NextRunAt              { get; init; }
     public DateTime? LastRunAt              { get; init; }
     public JobState? LastRunState           { get; init; }
     public string? LastRunJobId             { get; init; }
-
-    public int TotalRunCount                { get; init; }
-    public int SucceededCount               { get; init; }
-    public int FailedCount                  { get; init; }
-    public double SuccessRate               { get; init; }
-    public TimeSpan? AverageExecutionTime   { get; init; }
-    public TimeSpan? LongestExecutionTime   { get; init; }
+    public int SucceededCount                { get; init; }
+    public int FailedCount                   { get; init; }
 
     public DateTime RegisteredAt            { get; init; }
-    public DateTime? LastModifiedAt         { get; init; }
 }

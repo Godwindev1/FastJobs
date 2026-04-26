@@ -1,4 +1,4 @@
-namespace FastJobs.Dashboard.Models.Overview;
+namespace FastJobs.Dashboard.Models;
 
 public sealed class ThroughputBucketModel
 {

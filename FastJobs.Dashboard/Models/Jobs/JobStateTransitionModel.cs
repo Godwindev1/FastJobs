@@ -1,6 +1,6 @@
 using FastJobs.Dashboard.Models.Enums;
 
-namespace FastJobs.Dashboard.Models.Jobs;
+namespace FastJobs.Dashboard.Models;
 
 public sealed class JobStateTransitionModel
 {

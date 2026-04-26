@@ -1,4 +1,4 @@
-namespace FastJobs.Dashboard.Models.Scheduled;
+namespace FastJobs.Dashboard.Models;
 
 public sealed class ScheduledJobModel
 {
@@ -10,6 +10,4 @@ public sealed class ScheduledJobModel
     public DateTime EnqueueAt           { get; init; }
     public TimeSpan TimeUntilEnqueue    => EnqueueAt - DateTime.UtcNow;
     public DateTime CreatedAt           { get; init; }
-    public bool IsRecurringTrigger      { get; init; }
-    public string? RecurringJobId       { get; init; }
 }

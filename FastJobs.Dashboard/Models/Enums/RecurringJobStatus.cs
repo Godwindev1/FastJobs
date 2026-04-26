@@ -4,5 +4,4 @@ public enum RecurringJobStatus
 {
     Active,
     Disabled,
-    Paused
 }

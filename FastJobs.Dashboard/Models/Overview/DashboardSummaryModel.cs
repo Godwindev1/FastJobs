@@ -1,6 +1,6 @@
-using FastJobs.Dashboard.Models.Jobs;
+using FastJobs.Dashboard.Models;
 
-namespace FastJobs.Dashboard.Models.Overview;
+namespace FastJobs.Dashboard.Models;
 
 public sealed class DashboardSummaryModel
 {
@@ -12,23 +12,14 @@ public sealed class DashboardSummaryModel
     public int RetryingCount           { get; init; }
     public int CancelledCount          { get; init; }
     public int TotalJobs               { get; init; }
-
     public int ActiveWorkers           { get; init; }
     public int SleepingWorkers         { get; init; }
     public int DeadWorkers             { get; init; }
     public int TotalServers            { get; init; }
-
     public int SucceededLastHour       { get; init; }
     public int FailedLastHour          { get; init; }
     public double ThroughputPerMinute  { get; init; }
-
-    public IReadOnlyList<ThroughputBucketModel> HourlyTrend { get; init; }
-        = Array.Empty<ThroughputBucketModel>();
-
-    public IReadOnlyList<JobSummaryModel> RecentFailures { get; init; }
-        = Array.Empty<JobSummaryModel>();
-
-    public int JobRetentionDays        { get; init; }
+    public IReadOnlyList<ThroughputBucketModel> HourlyTrend { get; init; } = Array.Empty<ThroughputBucketModel>();
     public int DefaultMaxRetries       { get; init; }
     public DateTime GeneratedAt        { get; init; } = DateTime.UtcNow;
 }
