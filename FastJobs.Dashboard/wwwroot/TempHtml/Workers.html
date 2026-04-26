@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FastJobs — Workers</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode:'class',
+  theme:{extend:{
+    colors:{
+      bg:'#111111',surface:'#191919',border:'#272727',muted:'#3a3a3a',
+      dim:'#737373',text:'#e8e8e8',subtext:'#a0a0a0',
+      accent:'#10b981','accent-dim':'rgba(16,185,129,0.12)',
+      warn:'#f59e0b','warn-dim':'rgba(245,158,11,0.12)',
+      danger:'#ef4444','danger-dim':'rgba(239,68,68,0.12)',
+      info:'#60a5fa','info-dim':'rgba(96,165,250,0.12)',
+    },
+    fontFamily:{sans:['IBM Plex Sans','sans-serif'],mono:['IBM Plex Mono','monospace']}
+  }}
+}
+</script>
+<style>
+  *{box-sizing:border-box}
+  body{background:#111111;color:#e8e8e8;font-family:'IBM Plex Sans',sans-serif}
+  .ms{font-family:'Material Symbols Outlined';font-size:18px;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20;line-height:1;display:inline-block}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:#191919}
+  ::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:2px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;font-size:13px;color:#737373;cursor:pointer;transition:all 0.12s;border-left:2px solid transparent}
+  .nav-item:hover{background:#1f1f1f;color:#e8e8e8}
+  .nav-item.active{background:#1f1f1f;color:#10b981;border-left-color:#10b981}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .dot.green{background:#10b981}
+  .dot.amber{background:#f59e0b}
+  .dot.red{background:#ef4444}
+  .dot.gray{background:#737373}
+  .dot.pulse{animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+  .pill-green{background:rgba(16,185,129,0.12);color:#10b981}
+  .pill-amber{background:rgba(245,158,11,0.12);color:#f59e0b}
+  .pill-red{background:rgba(239,68,68,0.12);color:#ef4444}
+  .pill-gray{background:rgba(115,115,115,0.12);color:#a0a0a0}
+</style>
+</head>
+<body class="flex min-h-screen">
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-surface border-r border-border flex flex-col z-30">
+  <div class="px-5 py-5 border-b border-border">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 bg-accent rounded flex items-center justify-center">
+        <span class="ms text-[#001a0e]" style="font-size:16px">bolt</span>
+      </div>
+      <div>
+        <div class="text-[14px] font-semibold text-text leading-none">FastJobs</div>
+        <div class="text-[10px] text-dim font-mono mt-0.5">v2.4.0</div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 py-2">
+    <a href="Dashboard.html" class="nav-item"><span class="ms">dashboard</span>Overview</a>
+    <a href="Jobs.html"      class="nav-item"><span class="ms">list_alt</span>Jobs</a>
+    <a href="Workers.html"   class="nav-item active"><span class="ms">engineering</span>Workers</a>
+    <a href="Recurring.html" class="nav-item"><span class="ms">autorenew</span>Recurring</a>
+    <a href="Scheduled.html" class="nav-item"><span class="ms">schedule</span>Scheduled</a>
+  </nav>
+  <div class="border-t border-border py-2">
+    <a class="nav-item"><span class="ms">settings</span>Settings</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="ml-[220px] flex flex-col min-h-screen w-full">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+      <span class="text-[13px] font-medium text-text">Workers</span>
+      <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">WorkerOverviewModel · WorkerModel</span>
+    </div>
+    <div class="flex items-center gap-2 text-[11px] text-dim font-mono">
+      <span class="dot green pulse"></span>
+      <span>Heartbeat: 30s</span>
+    </div>
+  </header>
+
+  <div class="p-6 space-y-5 max-w-[1360px] w-full">
+
+    <!-- WorkerOverviewModel summary -->
+    <div class="grid grid-cols-5 gap-2">
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Total</div>
+        <div class="text-[22px] font-mono font-semibold text-text">128</div>
+        <div class="text-[11px] text-dim">workers</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Active</div>
+        <div class="flex items-center gap-2">
+          <div class="text-[22px] font-mono font-semibold text-accent">94</div>
+          <span class="dot green pulse"></span>
+        </div>
+        <div class="text-[11px] text-dim">processing jobs</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Sleeping</div>
+        <div class="text-[22px] font-mono font-semibold text-dim">32</div>
+        <div class="text-[11px] text-dim">idle / waiting</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Dead</div>
+        <div class="text-[22px] font-mono font-semibold text-danger">2</div>
+        <div class="text-[11px] text-dim">no heartbeat</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Active Jobs</div>
+        <div class="text-[22px] font-mono font-semibold text-info">94</div>
+        <div class="text-[11px] text-dim">TotalActiveJobs</div>
+      </div>
+    </div>
+
+    <!-- Worker table — WorkerModel fields -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+      <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+        <div class="text-[13px] font-semibold text-text">Worker Instances</div>
+        <div class="flex items-center gap-2">
+          <select style="background:#111;border:1px solid #272727;color:#a0a0a0;font-size:11px;padding:3px 8px;border-radius:4px">
+            <option>All States</option><option>Active</option><option>Sleeping</option><option>Dead</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Worker</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Server</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queues</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Current Job</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Run Time</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Heartbeat</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Jobs Done</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Success %</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border" id="wrkTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Metrics cards — WorkerMetricsModel -->
+    <div>
+      <div class="text-[11px] text-dim font-mono uppercase tracking-widest mb-3">Worker Metrics (WorkerMetricsModel)</div>
+      <div class="grid grid-cols-3 gap-3" id="metricsGrid"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const workers = [
+  {id:'wkr-01',name:'worker-prod-01',server:'srv-alpha', state:'Active',   queues:['default','critical'],jobId:'job_2f9a1',jobName:'ProcessPaymentReceipt',started:'14:32:01',heartbeat:'2s ago', done:1204,succ:1198,fail:6,avgMs:820},
+  {id:'wkr-02',name:'worker-prod-02',server:'srv-alpha', state:'Active',   queues:['default'],           jobId:'job_9f2k0',jobName:'ResizeUserAvatar',       started:'14:33:12',heartbeat:'1s ago', done:983, succ:980, fail:3,avgMs:340},
+  {id:'wkr-03',name:'worker-prod-03',server:'srv-beta',  state:'Active',   queues:['critical'],          jobId:'job_7a1x2',jobName:'SendWelcomeEmail',        started:'14:30:58',heartbeat:'4s ago', done:2341,succ:2339,fail:2,avgMs:210},
+  {id:'wkr-04',name:'worker-prod-04',server:'srv-beta',  state:'Sleeping', queues:['analytics'],         jobId:null,       jobName:null,                      started:null,      heartbeat:'8s ago', done:512, succ:501, fail:11,avgMs:4200},
+  {id:'wkr-05',name:'worker-prod-05',server:'srv-gamma', state:'Sleeping', queues:['low-priority'],      jobId:null,       jobName:null,                      started:null,      heartbeat:'12s ago',done:301, succ:298, fail:3,avgMs:1100},
+  {id:'wkr-06',name:'worker-prod-06',server:'srv-gamma', state:'Dead',     queues:['default','critical'],jobId:null,       jobName:null,                      started:null,      heartbeat:'5m ago', done:88,  succ:82,  fail:6,avgMs:0},
+];
+
+const stateClasses = {Active:'pill-green',Sleeping:'pill-amber',Dead:'pill-red'};
+const dotClass = {Active:'green pulse',Sleeping:'amber',Dead:'red'};
+
+const tbody = document.getElementById('wrkTable');
+workers.forEach(w=>{
+  const sr = w.done === 0 ? 0 : Math.round(w.succ/w.done*100);
+  const runTime = w.started ? `${Math.floor(Math.random()*120)+1}s` : '—';
+  const jobCell = w.jobId
+    ? `<span class="text-[12px] text-text">${w.jobName}</span><span class="block font-mono text-[10px] text-dim">#${w.jobId}</span>`
+    : `<span class="text-[11px] text-dim">—</span>`;
+  const queueBadges = w.queues.map(q=>`<span class="font-mono text-[10px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded mr-1">${q}</span>`).join('');
+  const tr = document.createElement('tr');
+  tr.className = 'hover:bg-[#1f1f1f] transition-colors';
+  tr.innerHTML = `
+    <td class="px-5 py-3">
+      <div class="text-[13px] text-text font-medium">${w.name}</div>
+      <div class="font-mono text-[10px] text-dim">${w.id}</div>
+    </td>
+    <td class="px-5 py-3 font-mono text-[12px] text-subtext">${w.server}</td>
+    <td class="px-5 py-3"><span class="pill ${stateClasses[w.state]}"><span class="dot ${dotClass[w.state]}" style="margin-right:4px"></span>${w.state}</span></td>
+    <td class="px-5 py-3">${queueBadges}</td>
+    <td class="px-5 py-3">${jobCell}</td>
+    <td class="px-5 py-3 font-mono text-[12px] text-subtext">${runTime}</td>
+    <td class="px-5 py-3 font-mono text-[12px] ${w.state==='Dead'?'text-danger':'text-dim'}">${w.heartbeat}</td>
+    <td class="px-5 py-3 font-mono text-[12px] text-subtext">${w.done.toLocaleString()}</td>
+    <td class="px-5 py-3">
+      <div class="flex items-center gap-2">
+        <div class="h-1 w-14 bg-muted rounded-full overflow-hidden">
+          <div class="h-full rounded-full ${sr>=95?'bg-accent':sr>=80?'bg-warn':'bg-danger'}" style="width:${sr}%"></div>
+        </div>
+        <span class="font-mono text-[11px] ${sr>=95?'text-accent':sr>=80?'text-warn':'text-danger'}">${sr}%</span>
+      </div>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// WorkerMetricsModel cards
+const metricsGrid = document.getElementById('metricsGrid');
+workers.slice(0,3).forEach(w=>{
+  const sr = w.done===0?0:Math.round(w.succ/w.done*100);
+  const card = document.createElement('div');
+  card.className = 'bg-surface border border-border rounded p-4 space-y-3';
+  card.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="text-[13px] font-semibold text-text">${w.name}</span>
+      <span class="pill ${stateClasses[w.state]}">${w.state}</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3 text-center">
+      <div>
+        <div class="text-[11px] text-dim font-mono mb-0.5">Processed</div>
+        <div class="text-[18px] font-mono font-semibold text-text">${w.done.toLocaleString()}</div>
+      </div>
+      <div>
+        <div class="text-[11px] text-dim font-mono mb-0.5">Failed</div>
+        <div class="text-[18px] font-mono font-semibold ${w.fail>5?'text-danger':'text-subtext'}">${w.fail}</div>
+      </div>
+      <div>
+        <div class="text-[11px] text-dim font-mono mb-0.5">Avg Latency</div>
+        <div class="text-[18px] font-mono font-semibold text-text">${w.avgMs}ms</div>
+      </div>
+    </div>
+    <div>
+      <div class="flex justify-between text-[10px] text-dim mb-1"><span>Success Rate</span><span class="${sr>=95?'text-accent':sr>=80?'text-warn':'text-danger'}">${sr}%</span></div>
+      <div class="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div class="h-full rounded-full ${sr>=95?'bg-accent':sr>=80?'bg-warn':'bg-danger'}" style="width:${sr}%"></div>
+      </div>
+    </div>
+  `;
+  metricsGrid.appendChild(card);
+});
+</script>
+</body>
+</html>

@@ -1,22 +1,48 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Fastjobs.Dashboard.Pages;
 
 public static class FastjobsDashboardExtensions
 {
-    public static IServiceCollection AddFastjobsDashboard(this IServiceCollection services)
+    internal const string InternalPath = "/fastjobs";
+
+    public static IServiceCollection AddFastjobsDashboard(
+        this IServiceCollection services)
     {
-        // Register any required services for the dashboard logic here
+        services.AddRazorComponents()
+                .AddInteractiveServerComponents();
         return services;
     }
 
-    public static void MapFastjobsDashboard(this IEndpointRouteBuilder endpoints, string path = "/fastjobs")
+    /// <summary>
+    // Middleware To rewrites the path Before routing happens
+    /// <summary>
+    public static IApplicationBuilder UseFastjobsDashboard(
+        this IApplicationBuilder app,
+        string path = "/fastjobs")
     {
-        // 1. Map the Blazor Hub
-        endpoints.MapBlazorHub();
+        path = "/" + path.Trim('/');
 
-        // 2. Map the fallback page using the endpoints builder directly
-        // This uses the extension method that expects IEndpointRouteBuilder
-        endpoints.MapFallbackToPage($"{path}/{{*all}}", "/_Host");
+        app.Use(async (context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments(path, out var remaining))
+            {
+                //Rewrite to Internal Path Regardlesss of Setpath
+                context.Request.Path = InternalPath + remaining;
+            }
+            await next();
+        });
+
+        return app;
+    }
+
+    // Endpoint registration  uses internal path
+    public static IEndpointRouteBuilder MapFastjobsDashboard(
+        this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapRazorComponents<DashboardRoot>()
+                 .AddInteractiveServerRenderMode();
+        return endpoints;
     }
 }

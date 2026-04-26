@@ -1,0 +1,314 @@
+@page "/fastjobs/dashboard"
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+
+<PageTitle>FastJobs — Overview</PageTitle>
+
+<!-- Top bar -->
+<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+        <span class="text-[13px] font-medium text-text">Overview</span>
+        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">DashboardSummaryModel</span>
+    </div>
+    <div class="flex items-center gap-2 text-[11px] text-dim font-mono">
+        <span class="dot green pulse"></span>
+        <span id="genAt">@GeneratedAt</span>
+    </div>
+</header>
+
+<div class="p-6 space-y-5 max-w-[1360px] w-full">
+    <!-- Job State Summary -->
+    <section>
+        <div class="text-[11px] uppercase tracking-widest text-dim font-mono mb-3">Job States</div>
+        <div class="grid grid-cols-4 lg:grid-cols-8 gap-2">
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Enqueued</span>
+                <span class="text-[22px] font-mono font-semibold text-text leading-none">@DashboardData.EnqueuedCount</span>
+                <div class="flex items-center gap-1"><span class="ms text-warn" style="font-size:13px">pending</span><span class="text-[10px] text-dim">queued</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Scheduled</span>
+                <span class="text-[22px] font-mono font-semibold text-text leading-none">@DashboardData.ScheduledCount</span>
+                <div class="flex items-center gap-1"><span class="ms text-info" style="font-size:13px">event</span><span class="text-[10px] text-dim">future</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Processing</span>
+                <span class="text-[22px] font-mono font-semibold text-info leading-none">@DashboardData.ProcessingCount</span>
+                <div class="flex items-center gap-1"><span class="dot green pulse"></span><span class="text-[10px] text-dim">running</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Succeeded</span>
+                <span class="text-[22px] font-mono font-semibold text-accent leading-none">@DashboardData.SucceededCount</span>
+                <div class="flex items-center gap-1"><span class="ms text-accent" style="font-size:13px">check_circle</span><span class="text-[10px] text-dim">done</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Failed</span>
+                <span class="text-[22px] font-mono font-semibold text-danger leading-none">@DashboardData.FailedCount</span>
+                <div class="flex items-center gap-1"><span class="ms text-danger" style="font-size:13px">error</span><span class="text-[10px] text-dim">errored</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Retrying</span>
+                <span class="text-[22px] font-mono font-semibold text-warn leading-none">@DashboardData.RetryingCount</span>
+                <div class="flex items-center gap-1"><span class="ms text-warn" style="font-size:13px">refresh</span><span class="text-[10px] text-dim">retry</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Cancelled</span>
+                <span class="text-[22px] font-mono font-semibold text-dim leading-none">@DashboardData.CancelledCount</span>
+                <div class="flex items-center gap-1"><span class="ms text-dim" style="font-size:13px">cancel</span><span class="text-[10px] text-dim">stopped</span></div>
+            </div>
+            <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5 border-l-2 border-l-accent">
+                <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Total</span>
+                <span class="text-[22px] font-mono font-semibold text-text leading-none">@DashboardData.TotalJobs</span>
+                <div class="flex items-center gap-1"><span class="ms text-accent" style="font-size:13px">layers</span><span class="text-[10px] text-dim">all time</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Middle Row: Throughput + Workers + Servers -->
+    <div class="grid grid-cols-12 gap-5">
+        <!-- Hourly Trend -->
+        <div class="col-span-12 lg:col-span-7 bg-surface border border-border rounded p-5">
+            <div class="flex items-start justify-between mb-4">
+                <div>
+                    <div class="text-[13px] font-semibold text-text">Hourly Throughput Trend</div>
+                    <div class="text-[11px] text-dim font-mono mt-0.5">ThroughputBucketModel · last 12 hrs</div>
+                </div>
+                <div class="flex items-center gap-4 text-[11px] text-dim">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-accent inline-block"></span>Succeeded</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-danger inline-block"></span>Failed</span>
+                    <div class="border-l border-border pl-4 flex flex-col items-end">
+                        <span class="text-[18px] font-mono font-semibold text-text leading-none">@DashboardData.ThroughputPerMinute.ToString("F1")</span>
+                        <span class="text-[10px] text-dim">jobs/min</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Chart canvas -->
+            <div class="relative h-36 flex items-end gap-[3px] px-1" id="chart">
+                @foreach (var bucket in DashboardData.HourlyTrend)
+                {
+                    var maxS = DashboardData.HourlyTrend.Max(b => b.SucceededCount);
+                    var fh = maxS == 0 ? 0 : Math.Max(2, (int)Math.Round((double)bucket.FailedCount / maxS * 132));
+                    var sh = maxS == 0 ? 0 : (int)Math.Round((double)bucket.SucceededCount / maxS * 132);
+                    <div class="flex-1 flex flex-col items-center justify-end gap-[2px]">
+                        <div style="height:@fh.ToString()px;width:100%;background:rgba(239,68,68,0.55);border-radius:2px 2px 0 0"></div>
+                        <div style="height:@sh.ToString()px;width:100%;background:rgba(16,185,129,0.65);border-radius:2px 2px 0 0"></div>
+                    </div>
+                }
+            </div>
+            <div class="flex justify-between text-[10px] text-dim font-mono mt-1.5 px-1">
+                <span>12h ago</span><span>6h ago</span><span>now</span>
+            </div>
+        </div>
+
+        <!-- Worker Cluster -->
+        <div class="col-span-12 lg:col-span-2 bg-surface border border-border rounded p-5 flex flex-col">
+            <div class="text-[11px] uppercase tracking-widest text-dim font-mono mb-4">Workers</div>
+            <div class="space-y-3 flex-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Total</span>
+                    <span class="font-mono text-[13px] text-text">@WorkerData.TotalWorkers</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Active</span>
+                    <span class="font-mono text-[13px] text-accent font-semibold">@WorkerData.ActiveWorkers</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Sleeping</span>
+                    <span class="font-mono text-[13px] text-dim">@WorkerData.SleepingWorkers</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Dead</span>
+                    <span class="font-mono text-[13px] text-danger">@WorkerData.DeadWorkers</span>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="text-[10px] text-dim mb-1.5">Utilisation</div>
+                <div class="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div class="h-full bg-accent rounded-full" style="width:@UtilizationPercent%"></div>
+                </div>
+                <div class="text-[10px] text-dim mt-1 text-right">@UtilizationPercent%</div>
+            </div>
+        </div>
+
+        <!-- Servers + Last-hour KPIs -->
+        <div class="col-span-12 lg:col-span-3 bg-surface border border-border rounded p-5 flex flex-col">
+            <div class="text-[11px] uppercase tracking-widest text-dim font-mono mb-4">System · Last Hour</div>
+            <div class="space-y-3 flex-1">
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Servers</span>
+                    <span class="font-mono text-[13px] text-text">@DashboardData.TotalServers</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Succeeded/hr</span>
+                    <span class="font-mono text-[13px] text-accent">@DashboardData.SucceededLastHour</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Failed/hr</span>
+                    <span class="font-mono text-[13px] text-danger">@DashboardData.FailedLastHour</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[12px] text-subtext">Max Retries</span>
+                    <span class="font-mono text-[13px] text-text">@DashboardData.DefaultMaxRetries</span>
+                </div>
+            </div>
+            <div class="mt-4 bg-accent-dim border border-accent/20 rounded p-3">
+                <div class="text-[10px] text-dim mb-1">Success rate (1h)</div>
+                <div class="text-[22px] font-mono font-semibold text-accent leading-none">@SuccessRate.ToString("F1")%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Feed -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+        <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+            <div class="text-[13px] font-semibold text-text">Recent Execution Log</div>
+            <div class="flex items-center gap-2 text-[11px] text-dim">
+                <span class="dot green pulse"></span>
+                <span class="font-mono">live</span>
+            </div>
+        </div>
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b border-border">
+                    <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job ID</th>
+                    <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
+                    <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+                    <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
+                    <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Duration</th>
+                    <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium text-right">Started</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+                @foreach (var job in RecentJobs)
+                {
+                    <tr class="hover:bg-[#1f1f1f] transition-colors">
+                        <td class="px-5 py-3 font-mono text-[12px] text-dim">#@job.Id</td>
+                        <td class="px-5 py-3 text-[13px] text-text">@job.JobName</td>
+                        <td class="px-5 py-3"><span class="text-[11px] text-subtext bg-muted/40 px-2 py-0.5 rounded font-mono">@job.QueueName</span></td>
+                        <td class="px-5 py-3"><span class="text-[11px] font-semibold px-2 py-0.5 rounded @GetStateStyle(job.State)">@job.State</span></td>
+                        <td class="px-5 py-3 font-mono text-[12px] text-subtext">@FormatDuration(job.Duration)</td>
+                        <td class="px-5 py-3 font-mono text-[12px] text-dim text-right">@job.StartedAt?.ToString("HH:mm:ss")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private DashboardSummaryModel DashboardData { get; set; } = new();
+    private WorkerOverviewModel WorkerData { get; set; } = new();
+    private List<JobDetailModel> RecentJobs { get; set; } = new();
+    private string GeneratedAt => $"Generated {DateTime.Now.ToString("just now")}";
+    private int UtilizationPercent => WorkerData.TotalWorkers == 0 ? 0 : (int)Math.Round((double)WorkerData.ActiveWorkers / WorkerData.TotalWorkers * 100);
+    private double SuccessRate => DashboardData.SucceededLastHour + DashboardData.FailedLastHour == 0 ? 0 : (double)DashboardData.SucceededLastHour / (DashboardData.SucceededLastHour + DashboardData.FailedLastHour) * 100;
+
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+        _timer = new System.Timers.Timer(5000); // Update every 5 seconds
+        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            LoadData();
+            StateHasChanged();
+        });
+        _timer.Start();
+    }
+
+    private void LoadData()
+    {
+        // Generate dummy data
+        var random = new Random();
+        DashboardData = new DashboardSummaryModel
+        {
+            EnqueuedCount = random.Next(2000, 3000),
+            ScheduledCount = random.Next(200, 500),
+            ProcessingCount = random.Next(100, 200),
+            SucceededCount = random.Next(40000, 50000),
+            FailedCount = random.Next(500, 1000),
+            RetryingCount = random.Next(10, 50),
+            CancelledCount = random.Next(50, 100),
+            TotalJobs = 46590,
+            ActiveWorkers = random.Next(80, 120),
+            SleepingWorkers = random.Next(20, 40),
+            DeadWorkers = random.Next(0, 5),
+            TotalServers = 4,
+            SucceededLastHour = random.Next(1300, 1500),
+            FailedLastHour = random.Next(10, 30),
+            ThroughputPerMinute = Math.Round(random.NextDouble() * 5 + 20, 1),
+            HourlyTrend = GenerateHourlyTrend(),
+            DefaultMaxRetries = 3
+        };
+
+        WorkerData = new WorkerOverviewModel
+        {
+            TotalWorkers = 128,
+            ActiveWorkers = DashboardData.ActiveWorkers,
+            SleepingWorkers = DashboardData.SleepingWorkers,
+            DeadWorkers = DashboardData.DeadWorkers,
+            TotalActiveJobs = DashboardData.ActiveWorkers
+        };
+
+        RecentJobs = GenerateRecentJobs();
+    }
+
+    private List<ThroughputBucketModel> GenerateHourlyTrend()
+    {
+        var random = new Random();
+        var trend = new List<ThroughputBucketModel>();
+        for (int i = 11; i >= 0; i--)
+        {
+            trend.Add(new ThroughputBucketModel
+            {
+                HourStart = DateTime.UtcNow.AddHours(-i),
+                SucceededCount = random.Next(800, 1500),
+                FailedCount = random.Next(5, 25),
+                EnqueuedCount = random.Next(50, 200)
+            });
+        }
+        return trend;
+    }
+
+    private List<JobDetailModel> GenerateRecentJobs()
+    {
+        var random = new Random();
+        var jobs = new List<JobDetailModel>();
+        var jobNames = new[] { "ProcessPaymentReceipt", "GenerateAnalyticsReport", "SyncCrmContacts", "ResizeUserAvatar", "SendWelcomeEmail", "ExportLedgerPdf" };
+        var queues = new[] { "default", "analytics", "low-priority", "critical" };
+        var states = new[] { JobState.Succeeded, JobState.Failed, JobState.Processing, JobState.Retrying };
+
+        for (int i = 0; i < 6; i++)
+        {
+            var state = states[random.Next(states.Length)];
+            jobs.Add(new JobDetailModel
+            {
+                Id = $"job_{random.Next(100000, 999999)}",
+                JobName = jobNames[random.Next(jobNames.Length)],
+                QueueName = queues[random.Next(queues.Length)],
+                State = state,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-random.Next(1, 60)),
+                StartedAt = state == JobState.Processing || state == JobState.Succeeded || state == JobState.Failed ? DateTime.UtcNow.AddSeconds(-random.Next(1, 300)) : null,
+                Duration = state == JobState.Succeeded || state == JobState.Failed ? TimeSpan.FromSeconds(random.Next(1, 300)) : null
+            });
+        }
+        return jobs;
+    }
+
+    private string GetStateStyle(JobState state) => state switch
+    {
+        JobState.Succeeded => "bg-[rgba(16,185,129,0.12)] text-[#10b981]",
+        JobState.Failed => "bg-[rgba(239,68,68,0.12)] text-[#ef4444]",
+        JobState.Processing => "bg-[rgba(96,165,250,0.12)] text-[#60a5fa]",
+        JobState.Retrying => "bg-[rgba(245,158,11,0.12)] text-[#f59e0b]",
+        _ => "bg-[rgba(115,115,115,0.12)] text-[#a0a0a0]"
+    };
+
+    private string FormatDuration(TimeSpan? duration) => duration.HasValue ? $"{duration.Value.TotalSeconds:F1}s" : "—";
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

@@ -4,8 +4,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FastJobs.Core\FastJobs.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />

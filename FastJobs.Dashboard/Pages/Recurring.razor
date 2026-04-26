@@ -1,0 +1,349 @@
+@page "/fastjobs/recurring"
+@implements IDisposable
+<PageTitle>FastJobs — Recurring</PageTitle>
+
+<!-- Top bar -->
+<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+        <span class="text-[13px] font-medium text-text">Recurring Jobs</span>
+        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">RecurringJobModel</span>
+    </div>
+    <button class="flex items-center gap-1.5 text-[12px] text-[#001a0e] bg-accent hover:bg-[#0da871] px-3 py-1.5 rounded transition-colors font-semibold">
+        <span class="ms" style="font-size:16px;color:#001a0e">add</span>New Recurring
+    </button>
+</header>
+
+<div class="p-6 space-y-5 max-w-[1360px] w-full">
+    <!-- Summary stats -->
+    <div class="grid grid-cols-4 gap-2">
+        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+            <div>
+                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Active</div>
+                <div class="text-[22px] font-mono font-semibold text-accent">@RecurringJobs.Count(r => r.Status == RecurringJobStatus.Active)</div>
+            </div>
+            <span class="ms text-accent opacity-50" style="font-size:28px">autorenew</span>
+        </div>
+        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+            <div>
+                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Disabled</div>
+                <div class="text-[22px] font-mono font-semibold text-warn">@RecurringJobs.Count(r => r.Status == RecurringJobStatus.Disabled)</div>
+            </div>
+            <span class="ms text-warn opacity-50" style="font-size:28px">pause_circle</span>
+        </div>
+        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+            <div>
+                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Cron</div>
+                <div class="text-[22px] font-mono font-semibold text-text">@RecurringJobs.Count(r => r.ScheduleType == ScheduleType.Cron)</div>
+            </div>
+            <span class="ms text-dim opacity-50" style="font-size:28px">terminal</span>
+        </div>
+        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+            <div>
+                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Interval</div>
+                <div class="text-[22px] font-mono font-semibold text-text">@RecurringJobs.Count(r => r.ScheduleType == ScheduleType.Interval)</div>
+            </div>
+            <span class="ms text-dim opacity-50" style="font-size:28px">timer</span>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="flex items-center gap-3">
+        <select @bind="SelectedStatusFilter">
+            <option value="">All Statuses</option>
+            <option>Active</option>
+            <option>Disabled</option>
+            <option>Deleted</option>
+        </select>
+        <select @bind="SelectedTypeFilter">
+            <option value="">All Types</option>
+            <option>Cron</option>
+            <option>Interval</option>
+        </select>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-border">
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">ID / Name</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Schedule</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Status</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Next Run</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Last Run</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Last State</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">✓ Runs</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">✗ Fails</th>
+                        <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    @foreach (var job in FilteredRecurringJobs)
+                    {
+                        <tr class="hover:bg-[#1f1f1f] transition-colors group">
+                            <td class="px-5 py-3">
+                                <div class="text-[13px] text-text font-medium">@job.DisplayName</div>
+                                <div class="font-mono text-[10px] text-dim">@job.Id</div>
+                            </td>
+                            <td class="px-5 py-3">
+                                @if (job.ScheduleType == ScheduleType.Cron)
+                                {
+                                    <span class="cron">@job.CronExpression</span>
+                                    <span class="block text-[10px] text-dim mt-0.5">@job.CronDescription</span>
+                                }
+                                else
+                                {
+                                    <span class="cron">@job.Interval?.ToString(@"hh\:mm\:ss")</span>
+                                    <span class="block text-[10px] text-dim mt-0.5">Every @job.Interval?.ToString(@"hh\:mm\:ss")</span>
+                                }
+                            </td>
+                            <td class="px-5 py-3"><span class="font-mono text-[11px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded">@job.QueueName</span></td>
+                            <td class="px-5 py-3"><span class="pill @GetStatusPillClass(job.Status)">@job.Status</span></td>
+                            <td class="px-5 py-3 font-mono text-[11px] text-subtext">@(job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
+                            <td class="px-5 py-3"><span class="pill @GetLastStatePillClass(job.LastRunState)">@(job.LastRunState?.ToString() ?? "—")</span></td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-accent">@job.SucceededCount.ToString("N0")</td>
+                            <td class="px-5 py-3 font-mono text-[12px] @(job.FailedCount > 0 ? "text-danger" : "text-dim")">@job.FailedCount</td>
+                            <td class="px-5 py-3 text-right">
+                                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    @if (job.Status == RecurringJobStatus.Active)
+                                    {
+                                        <button class="ms text-dim hover:text-warn p-1" title="Pause">pause</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="ms text-dim hover:text-accent p-1" title="Resume">play_arrow</button>
+                                    }
+                                    <button class="ms text-dim hover:text-info p-1" title="Trigger now">bolt</button>
+                                    <button class="ms text-dim hover:text-danger p-1" title="Delete">delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<RecurringJobModel> RecurringJobs { get; set; } = new();
+    private List<RecurringJobModel> FilteredRecurringJobs { get; set; } = new();
+    private string SelectedStatusFilter { get; set; } = "";
+    private string SelectedTypeFilter { get; set; } = "";
+
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+        _timer = new System.Timers.Timer(15000); // Update every 15 seconds
+        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            LoadData();
+            StateHasChanged();
+        });
+        _timer.Start();
+    }
+
+    private void LoadData()
+    {
+        RecurringJobs = GenerateRecurringJobs();
+        ApplyFilters();
+    }
+
+    private List<RecurringJobModel> GenerateRecurringJobs()
+    {
+        var random = new Random();
+        var jobs = new List<RecurringJobModel>();
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "daily-invoice-export",
+            DisplayName = "Daily Invoice Export",
+            TypeName = "InvoiceService",
+            MethodName = "ExportAsync",
+            QueueName = "default",
+            ScheduleType = ScheduleType.Cron,
+            CronExpression = "0 2 * * *",
+            CronDescription = "Every day at 02:00",
+            Status = RecurringJobStatus.Active,
+            NextRunAt = DateTime.UtcNow.Date.AddDays(1).AddHours(2),
+            LastRunAt = DateTime.UtcNow.Date.AddHours(2),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 364,
+            FailedCount = 0,
+            RegisteredAt = DateTime.UtcNow.AddDays(-365)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "hourly-cache-warm",
+            DisplayName = "Hourly Cache Warm",
+            TypeName = "CacheService",
+            MethodName = "WarmCacheAsync",
+            QueueName = "critical",
+            ScheduleType = ScheduleType.Cron,
+            CronExpression = "0 * * * *",
+            CronDescription = "Every hour",
+            Status = RecurringJobStatus.Active,
+            NextRunAt = DateTime.UtcNow.AddHours(1).AddMinutes(-DateTime.UtcNow.Minute),
+            LastRunAt = DateTime.UtcNow.AddHours(-1).AddMinutes(-DateTime.UtcNow.Minute),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 720,
+            FailedCount = 2,
+            RegisteredAt = DateTime.UtcNow.AddDays(-30)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "sync-crm-contacts",
+            DisplayName = "Sync CRM Contacts",
+            TypeName = "CrmService",
+            MethodName = "SyncAsync",
+            QueueName = "default",
+            ScheduleType = ScheduleType.Interval,
+            Interval = TimeSpan.FromMinutes(15),
+            Status = RecurringJobStatus.Active,
+            NextRunAt = DateTime.UtcNow.AddMinutes(15 - (DateTime.UtcNow.Minute % 15)).AddSeconds(-DateTime.UtcNow.Second),
+            LastRunAt = DateTime.UtcNow.AddMinutes(-15 + (DateTime.UtcNow.Minute % 15)).AddSeconds(-DateTime.UtcNow.Second),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 4320,
+            FailedCount = 5,
+            RegisteredAt = DateTime.UtcNow.AddDays(-180)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "analytics-rollup",
+            DisplayName = "Analytics Rollup",
+            TypeName = "AnalyticsService",
+            MethodName = "RollupAsync",
+            QueueName = "analytics",
+            ScheduleType = ScheduleType.Cron,
+            CronExpression = "0 0 * * *",
+            CronDescription = "Midnight daily",
+            Status = RecurringJobStatus.Active,
+            NextRunAt = DateTime.UtcNow.Date.AddDays(1),
+            LastRunAt = DateTime.UtcNow.Date,
+            LastRunState = JobState.Failed,
+            SucceededCount = 29,
+            FailedCount = 3,
+            RegisteredAt = DateTime.UtcNow.AddDays(-30)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "email-digest-weekly",
+            DisplayName = "Weekly Email Digest",
+            TypeName = "MailService",
+            MethodName = "SendDigestAsync",
+            QueueName = "default",
+            ScheduleType = ScheduleType.Cron,
+            CronExpression = "0 8 * * 1",
+            CronDescription = "Mondays at 08:00",
+            Status = RecurringJobStatus.Disabled,
+            NextRunAt = null,
+            LastRunAt = DateTime.UtcNow.AddDays(-7),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 52,
+            FailedCount = 0,
+            RegisteredAt = DateTime.UtcNow.AddDays(-365)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "cleanup-orphaned-files",
+            DisplayName = "Cleanup Orphaned Files",
+            TypeName = "StorageService",
+            MethodName = "CleanupAsync",
+            QueueName = "low-priority",
+            ScheduleType = ScheduleType.Interval,
+            Interval = TimeSpan.FromHours(6),
+            Status = RecurringJobStatus.Active,
+            NextRunAt = DateTime.UtcNow.AddHours(6 - (DateTime.UtcNow.Hour % 6)).AddMinutes(-DateTime.UtcNow.Minute).AddSeconds(-DateTime.UtcNow.Second),
+            LastRunAt = DateTime.UtcNow.AddHours(-6 + (DateTime.UtcNow.Hour % 6)).AddMinutes(-DateTime.UtcNow.Minute).AddSeconds(-DateTime.UtcNow.Second),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 180,
+            FailedCount = 1,
+            RegisteredAt = DateTime.UtcNow.AddDays(-60)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "heartbeat-check",
+            DisplayName = "External Heartbeat Check",
+            TypeName = "HealthService",
+            MethodName = "CheckHeartbeatAsync",
+            QueueName = "critical",
+            ScheduleType = ScheduleType.Interval,
+            Interval = TimeSpan.FromMinutes(1),
+            Status = RecurringJobStatus.Active,
+            NextRunAt = DateTime.UtcNow.AddMinutes(1).AddSeconds(-DateTime.UtcNow.Second),
+            LastRunAt = DateTime.UtcNow.AddMinutes(-1).AddSeconds(-DateTime.UtcNow.Second),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 21600,
+            FailedCount = 4,
+            RegisteredAt = DateTime.UtcNow.AddDays(-15)
+        });
+
+        jobs.Add(new RecurringJobModel
+        {
+            Id = "backup-user-db",
+            DisplayName = "Backup User Database",
+            TypeName = "BackupService",
+            MethodName = "BackupAsync",
+            QueueName = "default",
+            ScheduleType = ScheduleType.Cron,
+            CronExpression = "0 3 * * *",
+            CronDescription = "Every day at 03:00",
+            Status = RecurringJobStatus.Disabled,
+            NextRunAt = null,
+            LastRunAt = DateTime.UtcNow.AddDays(-1).AddHours(3),
+            LastRunState = JobState.Succeeded,
+            SucceededCount = 180,
+            FailedCount = 0,
+            RegisteredAt = DateTime.UtcNow.AddDays(-180)
+        });
+
+        return jobs;
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = RecurringJobs.AsQueryable();
+
+        if (!string.IsNullOrEmpty(SelectedStatusFilter) && Enum.TryParse<RecurringJobStatus>(SelectedStatusFilter, out var status))
+        {
+            filtered = filtered.Where(r => r.Status == status);
+        }
+
+        if (!string.IsNullOrEmpty(SelectedTypeFilter) && Enum.TryParse<ScheduleType>(SelectedTypeFilter, out var type))
+        {
+            filtered = filtered.Where(r => r.ScheduleType == type);
+        }
+
+        FilteredRecurringJobs = filtered.ToList();
+    }
+
+    private string GetStatusPillClass(RecurringJobStatus status) => status switch
+    {
+        RecurringJobStatus.Active => "pill-green",
+        RecurringJobStatus.Disabled => "pill-amber",
+        _ => "pill-gray"
+    };
+
+    private string GetLastStatePillClass(JobState? state) => state switch
+    {
+        JobState.Succeeded => "pill-green",
+        JobState.Failed => "pill-red",
+        _ => "pill-gray"
+    };
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

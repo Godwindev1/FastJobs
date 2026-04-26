@@ -1,0 +1,301 @@
+@page "/fastjobs/jobs"
+@implements IDisposable
+<PageTitle>FastJobs — Jobs</PageTitle>
+
+<!-- Top bar -->
+<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+        <span class="text-[13px] font-medium text-text">Jobs</span>
+        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">JobDetailModel · PagedResult</span>
+    </div>
+    <!-- Search -->
+    <div class="flex items-center gap-3">
+        <div class="relative">
+            <span class="ms absolute left-2.5 top-1/2 -translate-y-1/2 text-dim" style="font-size:15px">search</span>
+            <input type="text" placeholder="Search jobs, IDs…" class="pl-8 pr-3 py-1.5 w-60 text-[12px]" @bind="SearchQuery" @bind:event="oninput"/>
+        </div>
+    </div>
+</header>
+
+<div class="p-6 space-y-4 max-w-[1360px] w-full">
+    <!-- Stats row -->
+    <div class="grid grid-cols-7 gap-2">
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Enqueued</div>
+            <div class="text-[20px] font-mono font-semibold text-text">@JobStats.Enqueued</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Scheduled</div>
+            <div class="text-[20px] font-mono font-semibold text-info">@JobStats.Scheduled</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Processing</div>
+            <div class="flex items-center gap-2"><div class="text-[20px] font-mono font-semibold text-info">@JobStats.Processing</div><span class="dot green pulse"></span></div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Succeeded</div>
+            <div class="text-[20px] font-mono font-semibold text-accent">@JobStats.Succeeded</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Failed</div>
+            <div class="text-[20px] font-mono font-semibold text-danger">@JobStats.Failed</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Retrying</div>
+            <div class="text-[20px] font-mono font-semibold text-warn">@JobStats.Retrying</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Cancelled</div>
+            <div class="text-[20px] font-mono font-semibold text-dim">@JobStats.Cancelled</div>
+        </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="bg-surface border border-border rounded flex flex-wrap items-center gap-3 px-4 py-2.5">
+        <span class="text-[11px] text-dim font-mono uppercase tracking-widest mr-1">Filter</span>
+        <div class="h-3.5 w-px bg-border"></div>
+        <div class="flex items-center gap-2">
+            <span class="text-[11px] text-dim">Queue</span>
+            <select @bind="SelectedQueue">
+                <option value="">All Queues</option>
+                <option>default</option>
+                <option>critical</option>
+                <option>analytics</option>
+                <option>low-priority</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[11px] text-dim">State</span>
+            <select @bind="SelectedState">
+                <option value="">All States</option>
+                <option>Enqueued</option>
+                <option>Scheduled</option>
+                <option>Processing</option>
+                <option>Succeeded</option>
+                <option>Failed</option>
+                <option>Retrying</option>
+                <option>Deleted</option>
+                <option>Deleted</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[11px] text-dim">Sort</span>
+            <select @bind="SortBy">
+                <option>CreatedAt ↓</option>
+                <option>CreatedAt ↑</option>
+                <option>Duration ↓</option>
+                <option>AttemptCount ↓</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+            <button class="text-[11px] text-dim hover:text-text px-2 py-1" @onclick="ClearFilters">Clear</button>
+            <button class="text-[11px] text-text bg-muted hover:bg-[#444] px-3 py-1 rounded transition-colors" @onclick="ApplyFilters">Apply</button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-border">
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium whitespace-nowrap">ID</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Created</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Started</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Duration</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Attempts</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Worker</th>
+                        <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    @foreach (var job in FilteredJobs)
+                    {
+                        <tr class="hover:bg-[#1f1f1f] transition-colors group">
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim whitespace-nowrap">#@job.Id</td>
+                            <td class="px-5 py-3 text-[13px] text-text font-medium">@job.JobName</td>
+                            <td class="px-5 py-3"><span class="text-[11px] font-mono text-subtext bg-muted/30 px-2 py-0.5 rounded">@job.QueueName</span></td>
+                            <td class="px-5 py-3"><span class="pill @GetStatePillClass(job.State)">@if (job.State == JobState.Processing) {<span class="dot green pulse" style="margin-right:5px"></span>} @job.State</span></td>
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@(job.StartedAt?.ToString("HH:mm:ss") ?? "—")</td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@FormatDuration(job.Duration)</td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@job.AttemptCount</td>
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@(job.WorkerName ?? "—")</td>
+                            <td class="px-5 py-3 text-right">
+                                <button class="ms text-dim hover:text-accent opacity-0 group-hover:opacity-100 transition-all">more_vert</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="px-5 py-3 border-t border-border flex items-center justify-between">
+            <span class="text-[11px] text-dim font-mono">Showing 1–@FilteredJobs.Count of <strong class="text-text">@AllJobs.Count</strong></span>
+            <div class="flex items-center gap-1.5">
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors" disabled>‹ Prev</button>
+                <button class="px-2.5 py-1.5 rounded bg-accent text-[#001a0e] text-[11px] font-semibold">1</button>
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">2</button>
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">3</button>
+                <span class="text-dim text-[11px] px-1">…</span>
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">@TotalPages</button>
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">Next ›</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<JobDetailModel> AllJobs { get; set; } = new();
+    private List<JobDetailModel> FilteredJobs { get; set; } = new();
+    private JobStatsModel JobStats { get; set; } = new();
+
+    private string SearchQuery { get; set; } = "";
+    private string SelectedQueue { get; set; } = "";
+    private string SelectedState { get; set; } = "";
+    private string SortBy { get; set; } = "CreatedAt ↓";
+    private int TotalPages => (int)Math.Ceiling(AllJobs.Count / 25.0);
+
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+        _timer = new System.Timers.Timer(10000); // Update every 10 seconds
+        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            LoadData();
+            StateHasChanged();
+        });
+        _timer.Start();
+    }
+
+    private void LoadData()
+    {
+        AllJobs = GenerateJobs();
+        JobStats = CalculateStats(AllJobs);
+        ApplyFilters();
+    }
+
+    private List<JobDetailModel> GenerateJobs()
+    {
+        var random = new Random();
+        var jobs = new List<JobDetailModel>();
+        var jobNames = new[] { "ProcessPaymentReceipt", "GenerateAnalyticsReport", "SyncCrmContacts", "ResizeUserAvatar", "SendWelcomeEmail", "ExportLedgerPdf", "BackfillUserScores", "ArchiveOldSessions" };
+        var queues = new[] { "default", "analytics", "low-priority", "critical" };
+        var states = Enum.GetValues<JobState>();
+        var workers = new[] { "wkr-01", "wkr-02", "wkr-03", "wkr-04", "wkr-05", null };
+
+        for (int i = 0; i < 25; i++)
+        {
+            var state = states[random.Next(states.Length)];
+            var createdAt = DateTime.UtcNow.AddMinutes(-random.Next(1, 1440)); // Last 24 hours
+            var startedAt = state == JobState.Processing || state == JobState.Succeeded || state == JobState.Failed || state == JobState.Retrying ? (DateTime?)createdAt.AddSeconds(random.Next(1, 3600)) : null;
+            var duration = startedAt.HasValue && (state == JobState.Succeeded || state == JobState.Failed) ? (TimeSpan?)TimeSpan.FromSeconds(random.Next(1, 300)) : null;
+
+            jobs.Add(new JobDetailModel
+            {
+                Id = $"job_{random.Next(100000, 999999)}",
+                JobName = jobNames[random.Next(jobNames.Length)],
+                QueueName = queues[random.Next(queues.Length)],
+                State = state,
+                CreatedAt = createdAt,
+                StartedAt = startedAt,
+                Duration = duration,
+                AttemptCount = random.Next(1, 4),
+                WorkerName = state == JobState.Processing ? workers[random.Next(workers.Length - 1)] : null,
+                TypeName = "SomeService",
+                MethodName = "SomeMethod"
+            });
+        }
+        return jobs;
+    }
+
+    private JobStatsModel CalculateStats(List<JobDetailModel> jobs)
+    {
+        return new JobStatsModel
+        {
+            Enqueued = jobs.Count(j => j.State == JobState.Enqueued),
+            Scheduled = jobs.Count(j => j.State == JobState.Scheduled),
+            Processing = jobs.Count(j => j.State == JobState.Processing),
+            Succeeded = jobs.Count(j => j.State == JobState.Succeeded),
+            Failed = jobs.Count(j => j.State == JobState.Failed),
+            Retrying = jobs.Count(j => j.State == JobState.Retrying),
+            Cancelled = jobs.Count(j => j.State == JobState.Deleted)
+        };
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = AllJobs.AsQueryable();
+
+        if (!string.IsNullOrEmpty(SearchQuery))
+        {
+            filtered = filtered.Where(j => j.Id.Contains(SearchQuery) || j.JobName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrEmpty(SelectedQueue))
+        {
+            filtered = filtered.Where(j => j.QueueName == SelectedQueue);
+        }
+
+        if (!string.IsNullOrEmpty(SelectedState) && Enum.TryParse<JobState>(SelectedState, out var state))
+        {
+            filtered = filtered.Where(j => j.State == state);
+        }
+
+        // Simple sorting
+        filtered = SortBy switch
+        {
+            "CreatedAt ↓" => filtered.OrderByDescending(j => j.CreatedAt),
+            "CreatedAt ↑" => filtered.OrderBy(j => j.CreatedAt),
+            "Duration ↓" => filtered.OrderByDescending(j => j.Duration),
+            "AttemptCount ↓" => filtered.OrderByDescending(j => j.AttemptCount),
+            _ => filtered.OrderByDescending(j => j.CreatedAt)
+        };
+
+        FilteredJobs = filtered.ToList();
+    }
+
+    private void ClearFilters()
+    {
+        SearchQuery = "";
+        SelectedQueue = "";
+        SelectedState = "";
+        SortBy = "CreatedAt ↓";
+        ApplyFilters();
+    }
+
+    private string GetStatePillClass(JobState state) => state switch
+    {
+        JobState.Succeeded => "pill-green",
+        JobState.Failed => "pill-red",
+        JobState.Processing => "pill-blue",
+        JobState.Retrying => "pill-amber",
+        JobState.Enqueued => "pill-gray",
+        JobState.Scheduled => "pill-blue",
+        JobState.Deleted => "pill-gray",
+        _ => "pill-gray"
+    };
+
+    private string FormatDuration(TimeSpan? duration) => duration.HasValue ? $"{duration.Value.TotalSeconds:F1}s" : "—";
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+
+    private class JobStatsModel
+    {
+        public int Enqueued { get; set; }
+        public int Scheduled { get; set; }
+        public int Processing { get; set; }
+        public int Succeeded { get; set; }
+        public int Failed { get; set; }
+        public int Retrying { get; set; }
+        public int Cancelled { get; set; }
+    }
+}

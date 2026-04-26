@@ -1,0 +1,27 @@
+@using Microsoft.AspNetCore.Components.Routing
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <base href="/" />
+    <link href="~/css/site.css" rel="stylesheet" />
+    <HeadOutlet />
+</head>
+<body>
+    <Router AppAssembly="@typeof(DashboardRoot).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <p>Page not found.</p>
+        </NotFound>
+    </Router>
+
+    @* Suppress RZ9992 - this component is intentionally the document root shell *@
+    #pragma warning disable RZ9992
+        <script src="_framework/blazor.web.js"></script>
+    #pragma warning restore RZ9992
+</body>
+</html>

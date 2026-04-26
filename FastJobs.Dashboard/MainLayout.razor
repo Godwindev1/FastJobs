@@ -1,0 +1,47 @@
+@inherits LayoutComponentBase
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet"/>
+<link href="css/site.css" rel="stylesheet"/>
+
+<div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="fixed left-0 top-0 h-full w-[220px] bg-surface border-r border-border flex flex-col z-30">
+        <div class="px-5 py-5 border-b border-border">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-accent rounded flex items-center justify-center">
+                    <span class="ms text-[#001a0e]" style="font-size:16px">bolt</span>
+                </div>
+                <div>
+                    <div class="text-[14px] font-semibold text-text leading-none">FastJobs</div>
+                    <div class="text-[10px] text-dim font-mono mt-0.5">v2.4.0</div>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 py-2">
+            <a href="/" class="nav-item @GetNavClass("/")"><span class="ms">dashboard</span>Overview</a>
+            <a href="/jobs" class="nav-item @GetNavClass("/jobs")"><span class="ms">list_alt</span>Jobs</a>
+            <a href="/workers" class="nav-item @GetNavClass("/workers")"><span class="ms">engineering</span>Workers</a>
+            <a href="/recurring" class="nav-item @GetNavClass("/recurring")"><span class="ms">autorenew</span>Recurring</a>
+            <a href="/scheduled" class="nav-item @GetNavClass("/scheduled")"><span class="ms">schedule</span>Scheduled</a>
+        </nav>
+        <div class="border-t border-border py-2">
+            <a class="nav-item"><span class="ms">settings</span>Settings</a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="ml-[220px] flex flex-col min-h-screen w-full">
+        @Body
+    </main>
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private string GetNavClass(string href)
+    {
+        var currentPage = Navigation.ToBaseRelativePath(Navigation.Uri);
+        return currentPage == href.TrimStart('/') ? "active" : "";
+    }
+}

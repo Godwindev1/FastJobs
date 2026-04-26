@@ -1,0 +1,287 @@
+@page "/fastjobs/workers"
+@implements IDisposable
+
+<PageTitle>FastJobs — Workers</PageTitle>
+
+<!-- Top bar -->
+<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+        <span class="text-[13px] font-medium text-text">Workers</span>
+        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">WorkerOverviewModel · WorkerModel</span>
+    </div>
+    <div class="flex items-center gap-2 text-[11px] text-dim font-mono">
+        <span class="dot green pulse"></span>
+        <span>Heartbeat: @(DateTime.Now.Second % 60)s</span>
+    </div>
+</header>
+
+<div class="p-6 space-y-5 max-w-[1360px] w-full">
+    <!-- WorkerOverviewModel summary -->
+    <div class="grid grid-cols-5 gap-2">
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Total</div>
+            <div class="text-[22px] font-mono font-semibold text-text">@WorkerOverview.TotalWorkers</div>
+            <div class="text-[11px] text-dim">workers</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Active</div>
+            <div class="flex items-center gap-2">
+                <div class="text-[22px] font-mono font-semibold text-accent">@WorkerOverview.ActiveWorkers</div>
+                <span class="dot green pulse"></span>
+            </div>
+            <div class="text-[11px] text-dim">processing jobs</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Sleeping</div>
+            <div class="text-[22px] font-mono font-semibold text-dim">@WorkerOverview.SleepingWorkers</div>
+            <div class="text-[11px] text-dim">idle / waiting</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Dead</div>
+            <div class="text-[22px] font-mono font-semibold text-danger">@WorkerOverview.DeadWorkers</div>
+            <div class="text-[11px] text-dim">no heartbeat</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Active Jobs</div>
+            <div class="text-[22px] font-mono font-semibold text-info">@WorkerOverview.TotalActiveJobs</div>
+            <div class="text-[11px] text-dim">TotalActiveJobs</div>
+        </div>
+    </div>
+
+    <!-- Worker table -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+        <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+            <div class="text-[13px] font-semibold text-text">Worker Instances</div>
+            <div class="flex items-center gap-2">
+                <select @bind="SelectedStateFilter">
+                    <option value="">All States</option>
+                    <option>Active</option>
+                    <option>Sleeping</option>
+                    <option>Dead</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-border">
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Worker</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Server</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queues</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Current Job</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Run Time</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Heartbeat</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Jobs Done</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Success %</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    @foreach (var worker in FilteredWorkers)
+                    {
+                        <tr class="hover:bg-[#1f1f1f] transition-colors">
+                            <td class="px-5 py-3">
+                                <div class="text-[13px] text-text font-medium">@worker.WorkerName</div>
+                                <div class="font-mono text-[10px] text-dim">@worker.WorkerId</div>
+                            </td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@worker.ServerName</td>
+                            <td class="px-5 py-3"><span class="pill @GetStatePillClass(worker.State)">@if (worker.State == WorkerState.Active) {<span class="dot green pulse" style="margin-right:4px"></span>} @worker.State</span></td>
+                            <td class="px-5 py-3">
+                                @foreach (var queue in GetWorkerQueues(worker))
+                                {
+                                    <span class="font-mono text-[10px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded mr-1">@queue</span>
+                                }
+                            </td>
+                            <td class="px-5 py-3">
+                                @if (worker.CurrentJobId != null)
+                                {
+                                    <div class="text-[12px] text-text">@worker.CurrentJobName</div>
+                                    <div class="font-mono text-[10px] text-dim">#@worker.CurrentJobId</div>
+                                }
+                                else
+                                {
+                                    <span class="text-[11px] text-dim">—</span>
+                                }
+                            </td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@FormatRunTime(worker.CurrentJobRunTime)</td>
+                            <td class="px-5 py-3 font-mono text-[12px] @(worker.State == WorkerState.Dead ? "text-danger" : "text-dim")">@FormatHeartbeat(worker.HeartbeatAge)</td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@worker.Metrics.JobsProcessed.ToString("N0")</td>
+                            <td class="px-5 py-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="h-1 w-14 bg-muted rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
+                                    </div>
+                                    <span class="font-mono text-[11px] @GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Metrics cards -->
+    <div>
+        <div class="text-[11px] text-dim font-mono uppercase tracking-widest mb-3">Worker Metrics (WorkerMetricsModel)</div>
+        <div class="grid grid-cols-3 gap-3">
+            @foreach (var worker in WorkerOverview.Workers.Take(3))
+            {
+                <div class="bg-surface border border-border rounded p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[13px] font-semibold text-text">@worker.WorkerName</span>
+                        <span class="pill @GetStatePillClass(worker.State)">@worker.State</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div class="text-[11px] text-dim font-mono mb-0.5">Processed</div>
+                            <div class="text-[18px] font-mono font-semibold text-text">@worker.Metrics.JobsProcessed.ToString("N0")</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-dim font-mono mb-0.5">Failed</div>
+                            <div class="text-[18px] font-mono font-semibold @(worker.Metrics.JobsFailed > 5 ? "text-danger" : "text-subtext")">@worker.Metrics.JobsFailed</div>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-dim font-mono mb-0.5">Avg Latency</div>
+                            <div class="text-[18px] font-mono font-semibold text-text">@worker.Metrics.AvgProcessingLatencyMs.ToString("F0")ms</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] text-dim mb-1"><span>Success Rate</span><span class="@GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span></div>
+                        <div class="h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div class="h-full rounded-full @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private WorkerOverviewModel WorkerOverview { get; set; } = new();
+    private List<WorkerModel> FilteredWorkers { get; set; } = new();
+    private string SelectedStateFilter { get; set; } = "";
+
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+        _timer = new System.Timers.Timer(8000); // Update every 8 seconds
+        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            LoadData();
+            StateHasChanged();
+        });
+        _timer.Start();
+    }
+
+    private void LoadData()
+    {
+        WorkerOverview = GenerateWorkerOverview();
+        ApplyFilters();
+    }
+
+    private WorkerOverviewModel GenerateWorkerOverview()
+    {
+        var random = new Random();
+        var workers = new List<WorkerModel>();
+        var servers = new[] { "srv-alpha", "srv-beta", "srv-gamma" };
+        var queues = new[] { new[] { "default", "critical" }, new[] { "default" }, new[] { "analytics" }, new[] { "low-priority" } };
+        var jobNames = new[] { "ProcessPaymentReceipt", "GenerateAnalyticsReport", "SyncCrmContacts", "ResizeUserAvatar", "SendWelcomeEmail" };
+
+        for (int i = 1; i <= 6; i++)
+        {
+            var state = (WorkerState)random.Next(0, 3); // Active, Sleeping, Dead
+            var isActive = state == WorkerState.Active;
+            var currentJobId = isActive ? $"job_{random.Next(100000, 999999)}" : null;
+            var currentJobName = isActive ? jobNames[random.Next(jobNames.Length)] : null;
+            var startedAt = isActive ? (DateTime?)DateTime.UtcNow.AddSeconds(-random.Next(1, 120)) : null;
+
+            workers.Add(new WorkerModel
+            {
+                WorkerId = $"wkr-{i:D2}",
+                WorkerName = $"worker-prod-{i:D2}",
+                ServerName = servers[random.Next(servers.Length)],
+                State = state,
+                StartedAt = DateTime.UtcNow.AddHours(-random.Next(1, 24)),
+                LastHeartbeatAt = state == WorkerState.Dead ? DateTime.UtcNow.AddMinutes(-random.Next(5, 60)) : DateTime.UtcNow.AddSeconds(-random.Next(1, 30)),
+                CurrentJobId = currentJobId,
+                CurrentJobName = currentJobName,
+                CurrentJobStartedAt = startedAt,
+                Metrics = new WorkerMetricsModel
+                {
+                    WorkerId = $"wkr-{i:D2}",
+                    AvgProcessingLatencyMs = random.Next(200, 5000),
+                    JobsProcessed = random.Next(100, 3000),
+                    JobsSucceeded = random.Next(95, 3000),
+                    JobsFailed = random.Next(0, 50)
+                }
+            });
+        }
+
+        return new WorkerOverviewModel
+        {
+            TotalWorkers = workers.Count,
+            ActiveWorkers = workers.Count(w => w.State == WorkerState.Active),
+            SleepingWorkers = workers.Count(w => w.State == WorkerState.Sleeping),
+            DeadWorkers = workers.Count(w => w.State == WorkerState.Dead),
+            TotalActiveJobs = workers.Count(w => w.State == WorkerState.Active),
+            Workers = workers
+        };
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = WorkerOverview.Workers.AsQueryable();
+
+        if (!string.IsNullOrEmpty(SelectedStateFilter) && Enum.TryParse<WorkerState>(SelectedStateFilter, out var state))
+        {
+            filtered = filtered.Where(w => w.State == state);
+        }
+
+        FilteredWorkers = filtered.ToList();
+    }
+
+    private string GetStatePillClass(WorkerState state) => state switch
+    {
+        WorkerState.Active => "pill-green",
+        WorkerState.Sleeping => "pill-amber",
+        WorkerState.Dead => "pill-red",
+        _ => "pill-gray"
+    };
+
+    private List<string> GetWorkerQueues(WorkerModel worker)
+    {
+        // For demo, assign queues based on worker
+        return worker.WorkerId switch
+        {
+            "wkr-01" => new List<string> { "default", "critical" },
+            "wkr-02" => new List<string> { "default" },
+            "wkr-03" => new List<string> { "critical" },
+            "wkr-04" => new List<string> { "analytics" },
+            "wkr-05" => new List<string> { "low-priority" },
+            "wkr-06" => new List<string> { "default", "critical" },
+            _ => new List<string> { "default" }
+        };
+    }
+
+    private string FormatRunTime(TimeSpan? runTime) => runTime.HasValue ? $"{runTime.Value.TotalSeconds:F0}s" : "—";
+
+    private string FormatHeartbeat(TimeSpan age)
+    {
+        if (age.TotalMinutes < 1) return $"{age.TotalSeconds:F0}s ago";
+        if (age.TotalHours < 1) return $"{age.TotalMinutes:F0}m ago";
+        return $"{age.TotalHours:F0}h ago";
+    }
+
+    private string GetSuccessRateColor(double rate) => rate >= 95 ? "bg-accent" : rate >= 80 ? "bg-warn" : "bg-danger";
+
+    private string GetSuccessRateTextColor(double rate) => rate >= 95 ? "text-accent" : rate >= 80 ? "text-warn" : "text-danger";
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}

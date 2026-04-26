@@ -1,0 +1,199 @@
+/* FastJobs Dashboard Styles */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: #111111;
+    color: #e8e8e8;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.ms {
+    font-family: 'Material Symbols Outlined';
+    font-size: 18px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    line-height: 1;
+    display: inline-block;
+}
+
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #191919;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 2px;
+}
+
+/* Shared nav active state */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 16px;
+    font-size: 13px;
+    color: #737373;
+    cursor: pointer;
+    transition: all 0.12s;
+    border-left: 2px solid transparent;
+}
+
+.nav-item:hover {
+    background: #1f1f1f;
+    color: #e8e8e8;
+}
+
+.nav-item.active {
+    background: #1f1f1f;
+    color: #10b981;
+    border-left-color: #10b981;
+}
+
+/* Throughput mini sparkline */
+.spark-bar {
+    display: inline-block;
+    width: 5px;
+    border-radius: 1px 1px 0 0;
+    background: #10b981;
+    opacity: 0.7;
+}
+
+.spark-bar.fail {
+    background: #ef4444;
+    opacity: 0.6;
+}
+
+/* status dot */
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.dot.green {
+    background: #10b981;
+}
+
+.dot.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* Pills */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.pill-green {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.pill-red {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.pill-blue {
+    background: rgba(96, 165, 250, 0.12);
+    color: #60a5fa;
+}
+
+.pill-amber {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.pill-gray {
+    background: rgba(115, 115, 115, 0.12);
+    color: #a0a0a0;
+}
+
+/* Cron badge */
+.cron {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #a0a0a0;
+    background: rgba(58, 58, 58, 0.5);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* Form elements */
+select, input {
+    background: #191919;
+    border: 1px solid #272727;
+    color: #e8e8e8;
+    border-radius: 4px;
+}
+
+select {
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+input {
+    font-size: 13px;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+/* Tab */
+.tab {
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #737373;
+    border-bottom: 2px solid transparent;
+    transition: all 0.12s;
+}
+
+.tab:hover {
+    color: #e8e8e8;
+}
+
+.tab.active {
+    color: #10b981;
+    border-bottom-color: #10b981;
+}
+
+/* Countdown urgency */
+.soon {
+    color: #ef4444;
+}
+
+.near {
+    color: #f59e0b;
+}
+
+.later {
+    color: #a0a0a0;
+}

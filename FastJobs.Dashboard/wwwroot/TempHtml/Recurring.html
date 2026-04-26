@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FastJobs — Recurring</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode:'class',
+  theme:{extend:{
+    colors:{
+      bg:'#111111',surface:'#191919',border:'#272727',muted:'#3a3a3a',
+      dim:'#737373',text:'#e8e8e8',subtext:'#a0a0a0',
+      accent:'#10b981','accent-dim':'rgba(16,185,129,0.12)',
+      warn:'#f59e0b','warn-dim':'rgba(245,158,11,0.12)',
+      danger:'#ef4444','danger-dim':'rgba(239,68,68,0.12)',
+      info:'#60a5fa','info-dim':'rgba(96,165,250,0.12)',
+    },
+    fontFamily:{sans:['IBM Plex Sans','sans-serif'],mono:['IBM Plex Mono','monospace']}
+  }}
+}
+</script>
+<style>
+  *{box-sizing:border-box}
+  body{background:#111111;color:#e8e8e8;font-family:'IBM Plex Sans',sans-serif}
+  .ms{font-family:'Material Symbols Outlined';font-size:18px;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20;line-height:1;display:inline-block}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:#191919}
+  ::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:2px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;font-size:13px;color:#737373;cursor:pointer;transition:all 0.12s;border-left:2px solid transparent}
+  .nav-item:hover{background:#1f1f1f;color:#e8e8e8}
+  .nav-item.active{background:#1f1f1f;color:#10b981;border-left-color:#10b981}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .dot.green{background:#10b981}.dot.amber{background:#f59e0b}.dot.gray{background:#737373}
+  .dot.pulse{animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+  .pill-green{background:rgba(16,185,129,0.12);color:#10b981}
+  .pill-amber{background:rgba(245,158,11,0.12);color:#f59e0b}
+  .pill-gray{background:rgba(115,115,115,0.12);color:#a0a0a0}
+  .pill-red{background:rgba(239,68,68,0.12);color:#ef4444}
+  .pill-blue{background:rgba(96,165,250,0.12);color:#60a5fa}
+  .cron{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a0a0a0;background:rgba(58,58,58,0.5);padding:2px 6px;border-radius:3px}
+  select{background:#191919;border:1px solid #272727;color:#a0a0a0;font-size:11px;padding:3px 8px;border-radius:4px}
+  select:focus{outline:none;border-color:#10b981}
+</style>
+</head>
+<body class="flex min-h-screen">
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-surface border-r border-border flex flex-col z-30">
+  <div class="px-5 py-5 border-b border-border">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 bg-accent rounded flex items-center justify-center">
+        <span class="ms text-[#001a0e]" style="font-size:16px">bolt</span>
+      </div>
+      <div>
+        <div class="text-[14px] font-semibold text-text leading-none">FastJobs</div>
+        <div class="text-[10px] text-dim font-mono mt-0.5">v2.4.0</div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 py-2">
+    <a href="Dashboard.html" class="nav-item"><span class="ms">dashboard</span>Overview</a>
+    <a href="Jobs.html"      class="nav-item"><span class="ms">list_alt</span>Jobs</a>
+    <a href="Workers.html"   class="nav-item"><span class="ms">engineering</span>Workers</a>
+    <a href="Recurring.html" class="nav-item active"><span class="ms">autorenew</span>Recurring</a>
+    <a href="Scheduled.html" class="nav-item"><span class="ms">schedule</span>Scheduled</a>
+  </nav>
+  <div class="border-t border-border py-2">
+    <a class="nav-item"><span class="ms">settings</span>Settings</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="ml-[220px] flex flex-col min-h-screen w-full">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+      <span class="text-[13px] font-medium text-text">Recurring Jobs</span>
+      <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">RecurringJobModel</span>
+    </div>
+    <button class="flex items-center gap-1.5 text-[12px] text-[#001a0e] bg-accent hover:bg-[#0da871] px-3 py-1.5 rounded transition-colors font-semibold">
+      <span class="ms" style="font-size:16px;color:#001a0e">add</span>New Recurring
+    </button>
+  </header>
+
+  <div class="p-6 space-y-5 max-w-[1360px] w-full">
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-4 gap-2">
+      <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+        <div>
+          <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Active</div>
+          <div class="text-[22px] font-mono font-semibold text-accent">12</div>
+        </div>
+        <span class="ms text-accent opacity-50" style="font-size:28px">autorenew</span>
+      </div>
+      <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+        <div>
+          <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Paused</div>
+          <div class="text-[22px] font-mono font-semibold text-warn">3</div>
+        </div>
+        <span class="ms text-warn opacity-50" style="font-size:28px">pause_circle</span>
+      </div>
+      <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+        <div>
+          <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Cron</div>
+          <div class="text-[22px] font-mono font-semibold text-text">9</div>
+        </div>
+        <span class="ms text-dim opacity-50" style="font-size:28px">terminal</span>
+      </div>
+      <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
+        <div>
+          <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Interval</div>
+          <div class="text-[22px] font-mono font-semibold text-text">6</div>
+        </div>
+        <span class="ms text-dim opacity-50" style="font-size:28px">timer</span>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="flex items-center gap-3">
+      <select>
+        <option>All Statuses</option><option>Active</option><option>Paused</option><option>Deleted</option>
+      </select>
+      <select>
+        <option>All Types</option><option>Cron</option><option>Interval</option>
+      </select>
+    </div>
+
+    <!-- Table — RecurringJobModel fields -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">ID / Name</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Schedule</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Status</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Next Run</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Last Run</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Last State</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">✓ Runs</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">✗ Fails</th>
+              <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border" id="recTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const recurring = [
+  {id:'daily-invoice-export',   display:'Daily Invoice Export',     type:'Cron',     cron:'0 2 * * *',    desc:'Every day at 02:00',   queue:'default',   status:'Active', next:'Oct 25, 02:00',last:'Oct 24, 02:00',lastState:'Succeeded',succ:364,fail:0},
+  {id:'hourly-cache-warm',      display:'Hourly Cache Warm',        type:'Cron',     cron:'0 * * * *',    desc:'Every hour',           queue:'critical',  status:'Active', next:'Oct 24, 15:00',last:'Oct 24, 14:00',lastState:'Succeeded',succ:720,fail:2},
+  {id:'sync-crm-contacts',      display:'Sync CRM Contacts',        type:'Interval', interval:'00:15:00', desc:'Every 15 minutes',     queue:'default',   status:'Active', next:'Oct 24, 14:45',last:'Oct 24, 14:30',lastState:'Succeeded',succ:4320,fail:5},
+  {id:'analytics-rollup',       display:'Analytics Rollup',         type:'Cron',     cron:'0 0 * * *',    desc:'Midnight daily',       queue:'analytics', status:'Active', next:'Oct 25, 00:00',last:'Oct 24, 00:00',lastState:'Failed',   succ:29,fail:3},
+  {id:'email-digest-weekly',    display:'Weekly Email Digest',      type:'Cron',     cron:'0 8 * * 1',    desc:'Mondays at 08:00',     queue:'default',   status:'Paused', next:'—',            last:'Oct 21, 08:00',lastState:'Succeeded',succ:52,fail:0},
+  {id:'cleanup-orphaned-files', display:'Cleanup Orphaned Files',   type:'Interval', interval:'06:00:00', desc:'Every 6 hours',        queue:'low-priority',status:'Active',next:'Oct 24, 18:00',last:'Oct 24, 12:00',lastState:'Succeeded',succ:180,fail:1},
+  {id:'heartbeat-check',        display:'External Heartbeat Check', type:'Interval', interval:'00:01:00', desc:'Every 1 minute',       queue:'critical',  status:'Active', next:'Oct 24, 14:35',last:'Oct 24, 14:34',lastState:'Succeeded',succ:21600,fail:4},
+  {id:'backup-user-db',         display:'Backup User Database',     type:'Cron',     cron:'0 3 * * *',    desc:'Every day at 03:00',   queue:'default',   status:'Paused', next:'—',            last:'Oct 23, 03:00',lastState:'Succeeded',succ:180,fail:0},
+];
+
+const statusStyle = {Active:'pill-green',Paused:'pill-amber',Deleted:'pill-gray'};
+const lastStateStyle = {Succeeded:'pill-green',Failed:'pill-red',null:'pill-gray'};
+
+const tbody = document.getElementById('recTable');
+recurring.forEach(r=>{
+  const schedCell = r.type==='Cron'
+    ? `<span class="cron">${r.cron}</span><span class="block text-[10px] text-dim mt-0.5">${r.desc}</span>`
+    : `<span class="cron">${r.interval}</span><span class="block text-[10px] text-dim mt-0.5">${r.desc}</span>`;
+
+  const tr = document.createElement('tr');
+  tr.className = 'hover:bg-[#1f1f1f] transition-colors group';
+  tr.innerHTML = `
+    <td class="px-5 py-3">
+      <div class="text-[13px] text-text font-medium">${r.display}</div>
+      <div class="font-mono text-[10px] text-dim">${r.id}</div>
+    </td>
+    <td class="px-5 py-3">${schedCell}</td>
+    <td class="px-5 py-3"><span class="font-mono text-[11px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded">${r.queue}</span></td>
+    <td class="px-5 py-3"><span class="pill ${statusStyle[r.status]}">${r.status}</span></td>
+    <td class="px-5 py-3 font-mono text-[11px] text-subtext">${r.next}</td>
+    <td class="px-5 py-3 font-mono text-[11px] text-dim">${r.last}</td>
+    <td class="px-5 py-3"><span class="pill ${lastStateStyle[r.lastState]||'pill-gray'}">${r.lastState||'—'}</span></td>
+    <td class="px-5 py-3 font-mono text-[12px] text-accent">${r.succ.toLocaleString()}</td>
+    <td class="px-5 py-3 font-mono text-[12px] ${r.fail>0?'text-danger':'text-dim'}">${r.fail}</td>
+    <td class="px-5 py-3 text-right">
+      <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        ${r.status==='Active'
+          ? `<button class="ms text-dim hover:text-warn p-1" title="Pause">pause</button>`
+          : `<button class="ms text-dim hover:text-accent p-1" title="Resume">play_arrow</button>`}
+        <button class="ms text-dim hover:text-info p-1" title="Trigger now">bolt</button>
+        <button class="ms text-dim hover:text-danger p-1" title="Delete">delete</button>
+      </div>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>

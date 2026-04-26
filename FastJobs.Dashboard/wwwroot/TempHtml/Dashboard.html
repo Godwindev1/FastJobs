@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FastJobs — Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        bg:       '#111111',
+        surface:  '#191919',
+        border:   '#272727',
+        muted:    '#3a3a3a',
+        dim:      '#737373',
+        text:     '#e8e8e8',
+        subtext:  '#a0a0a0',
+        accent:   '#10b981',
+        'accent-dim': 'rgba(16,185,129,0.12)',
+        warn:     '#f59e0b',
+        'warn-dim':'rgba(245,158,11,0.12)',
+        danger:   '#ef4444',
+        'danger-dim':'rgba(239,68,68,0.12)',
+        info:     '#60a5fa',
+        'info-dim':'rgba(96,165,250,0.12)',
+      },
+      fontFamily: {
+        sans: ['IBM Plex Sans', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { background: #111111; color: #e8e8e8; font-family: 'IBM Plex Sans', sans-serif; }
+  .ms { font-family: 'Material Symbols Outlined'; font-size: 18px; font-variation-settings: 'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20; line-height: 1; display: inline-block; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #191919; }
+  ::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 2px; }
+
+  /* Shared nav active state */
+  .nav-item { display:flex; align-items:center; gap:10px; padding:7px 16px; font-size:13px; color:#737373; cursor:pointer; transition:all 0.12s; border-left: 2px solid transparent; }
+  .nav-item:hover { background:#1f1f1f; color:#e8e8e8; }
+  .nav-item.active { background:#1f1f1f; color:#10b981; border-left-color:#10b981; }
+
+  /* Throughput mini sparkline */
+  .spark-bar { display:inline-block; width:5px; border-radius:1px 1px 0 0; background:#10b981; opacity:0.7; }
+  .spark-bar.fail { background:#ef4444; opacity:0.6; }
+
+  /* status dot */
+  .dot { width:7px; height:7px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .dot.green { background:#10b981; }
+  .dot.pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+</head>
+<body class="flex min-h-screen">
+
+<!-- ── Sidebar ─────────────────────────────────────────────────── -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-surface border-r border-border flex flex-col z-30">
+  <div class="px-5 py-5 border-b border-border">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 bg-accent rounded flex items-center justify-center">
+        <span class="ms text-[#001a0e]" style="font-size:16px">bolt</span>
+      </div>
+      <div>
+        <div class="text-[14px] font-semibold text-text leading-none">FastJobs</div>
+        <div class="text-[10px] text-dim font-mono mt-0.5">v2.4.0</div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 py-2">
+    <a href="Dashboard.html" class="nav-item active"><span class="ms">dashboard</span>Overview</a>
+    <a href="Jobs.html"      class="nav-item"><span class="ms">list_alt</span>Jobs</a>
+    <a href="Workers.html"   class="nav-item"><span class="ms">engineering</span>Workers</a>
+    <a href="Recurring.html" class="nav-item"><span class="ms">autorenew</span>Recurring</a>
+    <a href="Scheduled.html" class="nav-item"><span class="ms">schedule</span>Scheduled</a>
+  </nav>
+  <div class="border-t border-border py-2">
+    <a class="nav-item"><span class="ms">settings</span>Settings</a>
+  </div>
+</aside>
+
+<!-- ── Main ──────────────────────────────────────────────────── -->
+<main class="ml-[220px] flex flex-col min-h-screen w-full">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+      <span class="text-[13px] font-medium text-text">Overview</span>
+      <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">DashboardSummaryModel</span>
+    </div>
+    <div class="flex items-center gap-2 text-[11px] text-dim font-mono">
+      <span class="dot green pulse"></span>
+      <span id="genAt">Generated just now</span>
+    </div>
+  </header>
+
+  <div class="p-6 space-y-5 max-w-[1360px] w-full">
+
+    <!-- ── Job State Summary ───────────────────────────────── -->
+    <section>
+      <div class="text-[11px] uppercase tracking-widest text-dim font-mono mb-3">Job States</div>
+      <!-- 8 states from DashboardSummaryModel -->
+      <div class="grid grid-cols-4 lg:grid-cols-8 gap-2">
+        <!-- Enqueued -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Enqueued</span>
+          <span class="text-[22px] font-mono font-semibold text-text leading-none">2,481</span>
+          <div class="flex items-center gap-1"><span class="ms text-warn" style="font-size:13px">pending</span><span class="text-[10px] text-dim">queued</span></div>
+        </div>
+        <!-- Scheduled -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Scheduled</span>
+          <span class="text-[22px] font-mono font-semibold text-text leading-none">341</span>
+          <div class="flex items-center gap-1"><span class="ms text-info" style="font-size:13px">event</span><span class="text-[10px] text-dim">future</span></div>
+        </div>
+        <!-- Processing -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Processing</span>
+          <span class="text-[22px] font-mono font-semibold text-info leading-none">142</span>
+          <div class="flex items-center gap-1"><span class="dot green pulse"></span><span class="text-[10px] text-dim">running</span></div>
+        </div>
+        <!-- Succeeded -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Succeeded</span>
+          <span class="text-[22px] font-mono font-semibold text-accent leading-none">42,892</span>
+          <div class="flex items-center gap-1"><span class="ms text-accent" style="font-size:13px">check_circle</span><span class="text-[10px] text-dim">done</span></div>
+        </div>
+        <!-- Failed -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Failed</span>
+          <span class="text-[22px] font-mono font-semibold text-danger leading-none">642</span>
+          <div class="flex items-center gap-1"><span class="ms text-danger" style="font-size:13px">error</span><span class="text-[10px] text-dim">errored</span></div>
+        </div>
+        <!-- Retrying -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Retrying</span>
+          <span class="text-[22px] font-mono font-semibold text-warn leading-none">18</span>
+          <div class="flex items-center gap-1"><span class="ms text-warn" style="font-size:13px">refresh</span><span class="text-[10px] text-dim">retry</span></div>
+        </div>
+        <!-- Cancelled -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Cancelled</span>
+          <span class="text-[22px] font-mono font-semibold text-dim leading-none">74</span>
+          <div class="flex items-center gap-1"><span class="ms text-dim" style="font-size:13px">cancel</span><span class="text-[10px] text-dim">stopped</span></div>
+        </div>
+        <!-- Total -->
+        <div class="bg-surface border border-border rounded p-3 flex flex-col gap-1.5 border-l-2 border-l-accent">
+          <span class="text-[10px] uppercase tracking-wider text-dim font-mono">Total</span>
+          <span class="text-[22px] font-mono font-semibold text-text leading-none">46,590</span>
+          <div class="flex items-center gap-1"><span class="ms text-accent" style="font-size:13px">layers</span><span class="text-[10px] text-dim">all time</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Middle Row: Throughput + Workers + Servers ─────── -->
+    <div class="grid grid-cols-12 gap-5">
+
+      <!-- Hourly Trend – HourlyTrend[] + ThroughputPerMinute -->
+      <div class="col-span-12 lg:col-span-7 bg-surface border border-border rounded p-5">
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <div class="text-[13px] font-semibold text-text">Hourly Throughput Trend</div>
+            <div class="text-[11px] text-dim font-mono mt-0.5">ThroughputBucketModel · last 12 hrs</div>
+          </div>
+          <div class="flex items-center gap-4 text-[11px] text-dim">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-accent inline-block"></span>Succeeded</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-danger inline-block"></span>Failed</span>
+            <div class="border-l border-border pl-4 flex flex-col items-end">
+              <span class="text-[18px] font-mono font-semibold text-text leading-none">24.3</span>
+              <span class="text-[10px] text-dim">jobs/min</span>
+            </div>
+          </div>
+        </div>
+        <!-- Chart canvas -->
+        <div class="relative h-36 flex items-end gap-[3px] px-1" id="chart">
+          <!-- bars injected by JS -->
+        </div>
+        <div class="flex justify-between text-[10px] text-dim font-mono mt-1.5 px-1">
+          <span>12h ago</span><span>6h ago</span><span>now</span>
+        </div>
+      </div>
+
+      <!-- Worker Cluster  (WorkerOverviewModel fields) -->
+      <div class="col-span-12 lg:col-span-2 bg-surface border border-border rounded p-5 flex flex-col">
+        <div class="text-[11px] uppercase tracking-widest text-dim font-mono mb-4">Workers</div>
+        <div class="space-y-3 flex-1">
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Total</span>
+            <span class="font-mono text-[13px] text-text">128</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Active</span>
+            <span class="font-mono text-[13px] text-accent font-semibold">94</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Sleeping</span>
+            <span class="font-mono text-[13px] text-dim">32</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Dead</span>
+            <span class="font-mono text-[13px] text-danger">2</span>
+          </div>
+        </div>
+        <!-- mini bar -->
+        <div class="mt-4">
+          <div class="text-[10px] text-dim mb-1.5">Utilisation</div>
+          <div class="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div class="h-full bg-accent rounded-full" style="width:73%"></div>
+          </div>
+          <div class="text-[10px] text-dim mt-1 text-right">73%</div>
+        </div>
+      </div>
+
+      <!-- Servers + Last-hour KPIs -->
+      <div class="col-span-12 lg:col-span-3 bg-surface border border-border rounded p-5 flex flex-col">
+        <div class="text-[11px] uppercase tracking-widest text-dim font-mono mb-4">System · Last Hour</div>
+        <div class="space-y-3 flex-1">
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Servers</span>
+            <span class="font-mono text-[13px] text-text">4</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Succeeded/hr</span>
+            <span class="font-mono text-[13px] text-accent">1,440</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Failed/hr</span>
+            <span class="font-mono text-[13px] text-danger">18</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-subtext">Max Retries</span>
+            <span class="font-mono text-[13px] text-text">3</span>
+          </div>
+        </div>
+        <!-- success rate -->
+        <div class="mt-4 bg-accent-dim border border-accent/20 rounded p-3">
+          <div class="text-[10px] text-dim mb-1">Success rate (1h)</div>
+          <div class="text-[22px] font-mono font-semibold text-accent leading-none">98.7%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Recent Activity Feed (SucceededLastHour + FailedLastHour) ── -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+      <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+        <div class="text-[13px] font-semibold text-text">Recent Execution Log</div>
+        <div class="flex items-center gap-2 text-[11px] text-dim">
+          <span class="dot green pulse"></span>
+          <span class="font-mono">live</span>
+        </div>
+      </div>
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job ID</th>
+            <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
+            <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+            <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
+            <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Duration</th>
+            <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium text-right">Started</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border" id="logTable">
+          <!-- JS filled -->
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+// ── Synthetic data matching DashboardSummaryModel ────────────────
+const trend = [
+  {s:820,f:12},{s:910,f:8},{s:760,f:21},{s:1100,f:5},{s:980,f:14},
+  {s:1200,f:9},{s:1050,f:7},{s:890,f:18},{s:1300,f:11},{s:1150,f:4},
+  {s:1400,f:16},{s:1440,f:18}
+];
+const maxS = Math.max(...trend.map(t=>t.s));
+const chart = document.getElementById('chart');
+trend.forEach(b=>{
+  const col = document.createElement('div');
+  col.className = 'flex-1 flex flex-col items-center justify-end gap-[2px]';
+  const fh = Math.max(2, Math.round((b.f / maxS) * 132));
+  const sh = Math.round((b.s / maxS) * 132);
+  col.innerHTML = `
+    <div style="height:${fh}px;width:100%;background:rgba(239,68,68,0.55);border-radius:2px 2px 0 0"></div>
+    <div style="height:${sh}px;width:100%;background:rgba(16,185,129,0.65);border-radius:2px 2px 0 0"></div>
+  `;
+  chart.appendChild(col);
+});
+
+// ── Recent log rows ─────────────────────────────────────────────
+const jobs = [
+  {id:'job_2f9a1',name:'ProcessPaymentReceipt',queue:'default',state:'Succeeded',dur:'1.2s',time:'14:32:01'},
+  {id:'job_8d2e4',name:'GenerateAnalyticsReport',queue:'analytics',state:'Failed',dur:'45.8s',time:'14:31:45'},
+  {id:'job_1c4b7',name:'SyncCrmContacts',queue:'low-priority',state:'Processing',dur:'—',time:'14:31:30'},
+  {id:'job_9f2k0',name:'ResizeUserAvatar',queue:'default',state:'Succeeded',dur:'0.8s',time:'14:30:58'},
+  {id:'job_7a1x2',name:'SendWelcomeEmail',queue:'critical',state:'Retrying',dur:'—',time:'14:30:44'},
+  {id:'job_3m8p9',name:'ExportLedgerPdf',queue:'default',state:'Succeeded',dur:'3.1s',time:'14:30:22'},
+];
+const stateStyle = {
+  Succeeded:'bg-[rgba(16,185,129,0.12)] text-[#10b981]',
+  Failed:   'bg-[rgba(239,68,68,0.12)] text-[#ef4444]',
+  Processing:'bg-[rgba(96,165,250,0.12)] text-[#60a5fa]',
+  Retrying: 'bg-[rgba(245,158,11,0.12)] text-[#f59e0b]',
+  Enqueued: 'bg-[rgba(115,115,115,0.12)] text-[#a0a0a0]',
+};
+const tbody = document.getElementById('logTable');
+jobs.forEach(j=>{
+  const tr = document.createElement('tr');
+  tr.className = 'hover:bg-[#1f1f1f] transition-colors';
+  tr.innerHTML = `
+    <td class="px-5 py-3 font-mono text-[12px] text-dim">#${j.id}</td>
+    <td class="px-5 py-3 text-[13px] text-text">${j.name}</td>
+    <td class="px-5 py-3"><span class="text-[11px] text-subtext bg-muted/40 px-2 py-0.5 rounded font-mono">${j.queue}</span></td>
+    <td class="px-5 py-3"><span class="text-[11px] font-semibold px-2 py-0.5 rounded ${stateStyle[j.state]||''}">${j.state}</span></td>
+    <td class="px-5 py-3 font-mono text-[12px] text-subtext">${j.dur}</td>
+    <td class="px-5 py-3 font-mono text-[12px] text-dim text-right">${j.time}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>

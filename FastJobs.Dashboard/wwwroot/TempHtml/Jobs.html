@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FastJobs — Jobs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        bg:'#111111',surface:'#191919',border:'#272727',muted:'#3a3a3a',
+        dim:'#737373',text:'#e8e8e8',subtext:'#a0a0a0',
+        accent:'#10b981','accent-dim':'rgba(16,185,129,0.12)',
+        warn:'#f59e0b','warn-dim':'rgba(245,158,11,0.12)',
+        danger:'#ef4444','danger-dim':'rgba(239,68,68,0.12)',
+        info:'#60a5fa','info-dim':'rgba(96,165,250,0.12)',
+      },
+      fontFamily: { sans:['IBM Plex Sans','sans-serif'], mono:['IBM Plex Mono','monospace'] }
+    }
+  }
+}
+</script>
+<style>
+  *{box-sizing:border-box}
+  body{background:#111111;color:#e8e8e8;font-family:'IBM Plex Sans',sans-serif}
+  .ms{font-family:'Material Symbols Outlined';font-size:18px;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 20;line-height:1;display:inline-block}
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:#191919}
+  ::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:2px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;font-size:13px;color:#737373;cursor:pointer;transition:all 0.12s;border-left:2px solid transparent}
+  .nav-item:hover{background:#1f1f1f;color:#e8e8e8}
+  .nav-item.active{background:#1f1f1f;color:#10b981;border-left-color:#10b981}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .dot.green{background:#10b981}
+  .dot.pulse{animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+  select{background:#191919;border:1px solid #272727;color:#e8e8e8;font-size:12px;padding:4px 8px;border-radius:4px;cursor:pointer}
+  select:focus{outline:none;border-color:#10b981}
+  input{background:#191919;border:1px solid #272727;color:#e8e8e8;font-size:13px;border-radius:4px}
+  input:focus{outline:none;border-color:#10b981}
+  /* state pills */
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+  .pill-green{background:rgba(16,185,129,0.12);color:#10b981}
+  .pill-red{background:rgba(239,68,68,0.12);color:#ef4444}
+  .pill-blue{background:rgba(96,165,250,0.12);color:#60a5fa}
+  .pill-amber{background:rgba(245,158,11,0.12);color:#f59e0b}
+  .pill-gray{background:rgba(115,115,115,0.12);color:#a0a0a0}
+  /* tab */
+  .tab{padding:6px 14px;font-size:12px;cursor:pointer;color:#737373;border-bottom:2px solid transparent;transition:all 0.12s}
+  .tab:hover{color:#e8e8e8}
+  .tab.active{color:#10b981;border-bottom-color:#10b981}
+</style>
+</head>
+<body class="flex min-h-screen">
+
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[220px] bg-surface border-r border-border flex flex-col z-30">
+  <div class="px-5 py-5 border-b border-border">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 bg-accent rounded flex items-center justify-center">
+        <span class="ms text-[#001a0e]" style="font-size:16px">bolt</span>
+      </div>
+      <div>
+        <div class="text-[14px] font-semibold text-text leading-none">FastJobs</div>
+        <div class="text-[10px] text-dim font-mono mt-0.5">v2.4.0</div>
+      </div>
+    </div>
+  </div>
+  <nav class="flex-1 py-2">
+    <a href="Dashboard.html" class="nav-item"><span class="ms">dashboard</span>Overview</a>
+    <a href="Jobs.html"      class="nav-item active"><span class="ms">list_alt</span>Jobs</a>
+    <a href="Workers.html"   class="nav-item"><span class="ms">engineering</span>Workers</a>
+    <a href="Recurring.html" class="nav-item"><span class="ms">autorenew</span>Recurring</a>
+    <a href="Scheduled.html" class="nav-item"><span class="ms">schedule</span>Scheduled</a>
+  </nav>
+  <div class="border-t border-border py-2">
+    <a class="nav-item"><span class="ms">settings</span>Settings</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="ml-[220px] flex flex-col min-h-screen w-full">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+      <span class="text-[13px] font-medium text-text">Jobs</span>
+      <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">JobSummaryModel · PagedResult</span>
+    </div>
+    <!-- Search -->
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <span class="ms absolute left-2.5 top-1/2 -translate-y-1/2 text-dim" style="font-size:15px">search</span>
+        <input type="text" placeholder="Search jobs, IDs…" class="pl-8 pr-3 py-1.5 w-60 text-[12px]"/>
+      </div>
+    </div>
+  </header>
+
+  <div class="p-6 space-y-4 max-w-[1360px] w-full">
+
+    <!-- Stats row — JobQueueStatModel per-state counts -->
+    <div class="grid grid-cols-7 gap-2">
+      <!-- counts match JobSummaryModel.State enum -->
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Enqueued</div>
+        <div class="text-[20px] font-mono font-semibold text-text">2,481</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Scheduled</div>
+        <div class="text-[20px] font-mono font-semibold text-info">341</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Processing</div>
+        <div class="flex items-center gap-2"><div class="text-[20px] font-mono font-semibold text-info">142</div><span class="dot green pulse"></span></div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Succeeded</div>
+        <div class="text-[20px] font-mono font-semibold text-accent">42,892</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Failed</div>
+        <div class="text-[20px] font-mono font-semibold text-danger">642</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Retrying</div>
+        <div class="text-[20px] font-mono font-semibold text-warn">18</div>
+      </div>
+      <div class="bg-surface border border-border rounded p-3">
+        <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Cancelled</div>
+        <div class="text-[20px] font-mono font-semibold text-dim">74</div>
+      </div>
+    </div>
+
+    <!-- Filter bar — JobFilterModel -->
+    <div class="bg-surface border border-border rounded flex flex-wrap items-center gap-3 px-4 py-2.5">
+      <span class="text-[11px] text-dim font-mono uppercase tracking-widest mr-1">Filter</span>
+      <div class="h-3.5 w-px bg-border"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-dim">Queue</span>
+        <select><option>All Queues</option><option>default</option><option>critical</option><option>analytics</option><option>low-priority</option></select>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-dim">State</span>
+        <select id="stateFilter">
+          <option value="">All States</option>
+          <option>Enqueued</option><option>Scheduled</option><option>Processing</option>
+          <option>Succeeded</option><option>Failed</option><option>Retrying</option>
+          <option>Cancelled</option><option>Deleted</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-dim">Sort</span>
+        <select>
+          <option>CreatedAt ↓</option><option>CreatedAt ↑</option>
+          <option>Duration ↓</option><option>AttemptCount ↓</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2 ml-auto">
+        <button class="text-[11px] text-dim hover:text-text px-2 py-1">Clear</button>
+        <button class="text-[11px] text-text bg-muted hover:bg-[#444] px-3 py-1 rounded transition-colors">Apply</button>
+      </div>
+    </div>
+
+    <!-- Table — JobSummaryModel fields: Id, JobName, QueueName, State, CreatedAt, StartedAt, Duration, AttemptCount, WorkerName -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium whitespace-nowrap">ID</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Created</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Started</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Duration</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Attempts</th>
+              <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Worker</th>
+              <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border" id="jobsTable"></tbody>
+        </table>
+      </div>
+      <!-- Pagination — PagedResult<JobSummaryModel> -->
+      <div class="px-5 py-3 border-t border-border flex items-center justify-between">
+        <span class="text-[11px] text-dim font-mono">Showing 1–25 of <strong class="text-text">12,482</strong> · Page <strong class="text-text">1</strong> of <strong class="text-text">500</strong></span>
+        <div class="flex items-center gap-1.5">
+          <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">‹ Prev</button>
+          <button class="px-2.5 py-1.5 rounded bg-accent text-[#001a0e] text-[11px] font-semibold">1</button>
+          <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">2</button>
+          <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">3</button>
+          <span class="text-dim text-[11px] px-1">…</span>
+          <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">500</button>
+          <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">Next ›</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const jobs = [
+  {id:'job_2f9a1',name:'ProcessPaymentReceipt',queue:'default',    state:'Succeeded', created:'Oct 24, 14:31',started:'Oct 24, 14:32',dur:'1.2s', att:1,worker:'wkr-01'},
+  {id:'job_8d2e4',name:'GenerateAnalyticsReport',queue:'analytics', state:'Failed',    created:'Oct 24, 14:29',started:'Oct 24, 14:31',dur:'45.8s',att:3,worker:'wkr-04'},
+  {id:'job_1c4b7',name:'SyncCrmContacts',       queue:'low-priority',state:'Enqueued', created:'Oct 24, 14:33',started:'—',            dur:'—',   att:0,worker:'—'},
+  {id:'job_9f2k0',name:'ResizeUserAvatar',       queue:'default',    state:'Processing',created:'Oct 24, 14:33',started:'Oct 24, 14:33',dur:'0.4s…',att:1,worker:'wkr-02'},
+  {id:'job_7a1x2',name:'SendWelcomeEmail',       queue:'critical',   state:'Succeeded', created:'Oct 24, 14:28',started:'Oct 24, 14:30',dur:'0.8s', att:1,worker:'wkr-03'},
+  {id:'job_3m8p9',name:'ExportLedgerPdf',        queue:'default',    state:'Retrying',  created:'Oct 24, 14:20',started:'Oct 24, 14:25',dur:'—',   att:2,worker:'wkr-01'},
+  {id:'job_5k1r3',name:'BackfillUserScores',     queue:'analytics',  state:'Cancelled', created:'Oct 24, 14:10',started:'—',            dur:'—',   att:0,worker:'—'},
+  {id:'job_4p2t8',name:'ArchiveOldSessions',     queue:'low-priority',state:'Succeeded',created:'Oct 24, 13:55',started:'Oct 24, 13:55',dur:'2.1s', att:1,worker:'wkr-05'},
+];
+
+const pillar = {
+  Succeeded:'pill-green',Failed:'pill-red',Processing:'pill-blue',
+  Retrying:'pill-amber',Enqueued:'pill-gray',Scheduled:'pill-blue',
+  Cancelled:'pill-gray',Deleted:'pill-gray',
+};
+
+const dot = {
+  Processing:'<span class="dot green pulse" style="margin-right:5px"></span>',
+};
+
+const tbody = document.getElementById('jobsTable');
+jobs.forEach(j=>{
+  const tr = document.createElement('tr');
+  tr.className = 'hover:bg-[#1f1f1f] transition-colors group';
+  tr.innerHTML = `
+    <td class="px-5 py-3 font-mono text-[11px] text-dim whitespace-nowrap">#${j.id}</td>
+    <td class="px-5 py-3 text-[13px] text-text font-medium">${j.name}</td>
+    <td class="px-5 py-3"><span class="text-[11px] font-mono text-subtext bg-muted/30 px-2 py-0.5 rounded">${j.queue}</span></td>
+    <td class="px-5 py-3"><span class="pill ${pillar[j.state]||'pill-gray'}">${dot[j.state]||''}${j.state}</span></td>
+    <td class="px-5 py-3 font-mono text-[11px] text-dim">${j.created}</td>
+    <td class="px-5 py-3 font-mono text-[11px] text-dim">${j.started}</td>
+    <td class="px-5 py-3 font-mono text-[12px] text-subtext">${j.dur}</td>
+    <td class="px-5 py-3 font-mono text-[12px] text-subtext">${j.att}</td>
+    <td class="px-5 py-3 font-mono text-[11px] text-dim">${j.worker}</td>
+    <td class="px-5 py-3 text-right">
+      <button class="ms text-dim hover:text-accent opacity-0 group-hover:opacity-100 transition-all">more_vert</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>

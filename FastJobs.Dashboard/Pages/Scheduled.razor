@@ -1,0 +1,310 @@
+@page "/fastjobs/scheduled"
+@implements IDisposable
+<PageTitle>FastJobs — Scheduled</PageTitle>
+
+<!-- Top bar -->
+<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+        <span class="text-[13px] font-medium text-text">Scheduled Jobs</span>
+        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">ScheduledJobModel</span>
+    </div>
+    <div class="flex items-center gap-3">
+        <span class="text-[11px] text-dim font-mono">@ScheduledJobs.Count pending</span>
+    </div>
+</header>
+
+<div class="p-6 space-y-5 max-w-[1360px] w-full">
+    <!-- Summary -->
+    <div class="grid grid-cols-4 gap-2">
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Total Pending</div>
+            <div class="text-[22px] font-mono font-semibold text-info">@ScheduledJobs.Count</div>
+            <div class="text-[11px] text-dim">awaiting enqueue</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Due &lt; 5 min</div>
+            <div class="text-[22px] font-mono font-semibold text-danger">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5)</div>
+            <div class="text-[11px] text-dim">imminent</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Due &lt; 1 hr</div>
+            <div class="text-[22px] font-mono font-semibold text-warn">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 60)</div>
+            <div class="text-[11px] text-dim">soon</div>
+        </div>
+        <div class="bg-surface border border-border rounded p-3">
+            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Recurring Triggers</div>
+            <div class="text-[22px] font-mono font-semibold text-text">@ScheduledJobs.Count(j => j.Id.Contains("rec"))</div>
+            <div class="text-[11px] text-dim">IsRecurringTrigger</div>
+        </div>
+    </div>
+
+    <!-- Timeline view — grouped by urgency bucket -->
+    <div class="space-y-1">
+        <div class="text-[11px] text-dim font-mono uppercase tracking-widest mb-2">Upcoming Timeline</div>
+
+        @if (ScheduledJobs.Any(j => j.TimeUntilEnqueue.TotalMinutes < 5))
+        {
+            <div class="border border-danger/20 bg-danger/5 rounded px-4 py-2 flex items-center gap-3 mb-2">
+                <span class="ms text-danger" style="font-size:16px">warning</span>
+                <span class="text-[12px] text-danger font-semibold">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5) jobs due within 5 minutes</span>
+            </div>
+        }
+    </div>
+
+    <!-- Table -->
+    <div class="bg-surface border border-border rounded overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-border">
+            <span class="text-[13px] font-semibold text-text">Pending Schedule</span>
+            <div class="flex items-center gap-2">
+                <select @bind="SelectedQueueFilter">
+                    <option value="">All Queues</option>
+                    <option>default</option>
+                    <option>critical</option>
+                    <option>analytics</option>
+                </select>
+                <select @bind="SelectedTypeFilter">
+                    <option value="">All Jobs</option>
+                    <option>Recurring Triggers</option>
+                    <option>One-off</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-border">
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">ID</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Method</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Enqueue At</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Time Until</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Created</th>
+                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Source</th>
+                        <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    @foreach (var job in FilteredScheduledJobs)
+                    {
+                        <tr class="hover:bg-[#1f1f1f] transition-colors group">
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim">#@job.Id</td>
+                            <td class="px-5 py-3">
+                                <div class="text-[13px] text-text font-medium">@job.JobName</div>
+                            </td>
+                            <td class="px-5 py-3">
+                                <span class="font-mono text-[11px] text-subtext">@job.TypeName.</span><span class="font-mono text-[11px] text-text">@job.MethodName</span>
+                            </td>
+                            <td class="px-5 py-3">
+                                <span class="font-mono text-[11px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded">@job.QueueName</span>
+                            </td>
+                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@job.EnqueueAt.ToString("HH:mm:ss")</td>
+                            <td class="px-5 py-3 font-mono text-[12px] font-semibold @GetUrgencyClass(job.TimeUntilEnqueue)">@FormatTimeUntil(job.TimeUntilEnqueue)</td>
+                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                            <td class="px-5 py-3">
+                                @if (job.Id.Contains("rec"))
+                                {
+                                    <span class="pill pill-blue" title="RecurringJobId: @(job.Id.Replace("sched_", ""))"><span class="ms" style="font-size:11px;margin-right:2px">autorenew</span>Recurring</span>
+                                }
+                                else
+                                {
+                                    <span class="pill pill-gray">One-off</span>
+                                }
+                            </td>
+                            <td class="px-5 py-3 text-right">
+                                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="ms text-dim hover:text-accent p-1" title="Enqueue now">bolt</button>
+                                    <button class="ms text-dim hover:text-danger p-1" title="Cancel">cancel</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="px-5 py-3 border-t border-border flex items-center justify-between">
+            <span class="text-[11px] text-dim font-mono">Showing 1–@FilteredScheduledJobs.Count of <strong class="text-text">@ScheduledJobs.Count</strong></span>
+            <div class="flex items-center gap-1.5">
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors" disabled>‹ Prev</button>
+                <button class="px-2.5 py-1.5 rounded bg-accent text-[#001a0e] text-[11px] font-semibold">1</button>
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">2</button>
+                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">Next ›</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ScheduledJobModel> ScheduledJobs { get; set; } = new();
+    private List<ScheduledJobModel> FilteredScheduledJobs { get; set; } = new();
+    private string SelectedQueueFilter { get; set; } = "";
+    private string SelectedTypeFilter { get; set; } = "";
+
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+        _timer = new System.Timers.Timer(12000); // Update every 12 seconds
+        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            LoadData();
+            StateHasChanged();
+        });
+        _timer.Start();
+    }
+
+    private void LoadData()
+    {
+        ScheduledJobs = GenerateScheduledJobs();
+        ApplyFilters();
+    }
+
+    private List<ScheduledJobModel> GenerateScheduledJobs()
+    {
+        var jobs = new List<ScheduledJobModel>();
+        var now = DateTime.UtcNow;
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_001",
+            JobName = "ProcessPaymentReceipt",
+            TypeName = "PaymentService",
+            MethodName = "ProcessAsync",
+            QueueName = "critical",
+            EnqueueAt = now.AddMinutes(2),
+            CreatedAt = now.AddMinutes(-5)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_002",
+            JobName = "Hourly Cache Warm",
+            TypeName = "CacheService",
+            MethodName = "WarmCacheAsync",
+            QueueName = "critical",
+            EnqueueAt = now.AddMinutes(25),
+            CreatedAt = now.AddHours(-1)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_003",
+            JobName = "SyncCrmContacts",
+            TypeName = "CrmService",
+            MethodName = "SyncAsync",
+            QueueName = "default",
+            EnqueueAt = now.AddMinutes(9).AddSeconds(42),
+            CreatedAt = now.AddMinutes(-15)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_004",
+            JobName = "SendReminderEmail",
+            TypeName = "MailService",
+            MethodName = "SendReminderAsync",
+            QueueName = "default",
+            EnqueueAt = now.AddMinutes(1).AddSeconds(44),
+            CreatedAt = now.AddHours(-1)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_005",
+            JobName = "ExportLedgerPdf",
+            TypeName = "FinanceService",
+            MethodName = "ExportAsync",
+            QueueName = "default",
+            EnqueueAt = now.AddHours(1).AddMinutes(25),
+            CreatedAt = now.AddMinutes(-30)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_006",
+            JobName = "Cleanup Orphaned Files",
+            TypeName = "StorageService",
+            MethodName = "CleanupAsync",
+            QueueName = "low-priority",
+            EnqueueAt = now.AddHours(3).AddMinutes(25),
+            CreatedAt = now.AddHours(-12)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_007",
+            JobName = "GenerateAnalyticsReport",
+            TypeName = "AnalyticsService",
+            MethodName = "GenerateAsync",
+            QueueName = "analytics",
+            EnqueueAt = now.AddMinutes(4).AddSeconds(58),
+            CreatedAt = now.AddMinutes(-3)
+        });
+
+        jobs.Add(new ScheduledJobModel
+        {
+            Id = "sched_008",
+            JobName = "BackfillUserScores",
+            TypeName = "ScoringService",
+            MethodName = "BackfillAsync",
+            QueueName = "analytics",
+            EnqueueAt = now.AddMinutes(55),
+            CreatedAt = now.AddHours(-1)
+        });
+
+        return jobs;
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = ScheduledJobs.AsQueryable();
+
+        if (!string.IsNullOrEmpty(SelectedQueueFilter))
+        {
+            filtered = filtered.Where(j => j.QueueName == SelectedQueueFilter);
+        }
+
+        if (!string.IsNullOrEmpty(SelectedTypeFilter))
+        {
+            if (SelectedTypeFilter == "Recurring Triggers")
+            {
+                filtered = filtered.Where(j => j.Id.Contains("rec"));
+            }
+            else if (SelectedTypeFilter == "One-off")
+            {
+                filtered = filtered.Where(j => !j.Id.Contains("rec"));
+            }
+        }
+
+        FilteredScheduledJobs = filtered.OrderBy(j => j.EnqueueAt).ToList();
+    }
+
+    private string GetUrgencyClass(TimeSpan until)
+    {
+        if (until.TotalMinutes < 5) return "soon";
+        if (until.TotalMinutes < 60) return "near";
+        return "later";
+    }
+
+    private string FormatTimeUntil(TimeSpan until)
+    {
+        if (until.TotalHours >= 1)
+        {
+            return $"{(int)until.TotalHours}h {(int)until.TotalMinutes % 60}m";
+        }
+        else if (until.TotalMinutes >= 1)
+        {
+            return $"{(int)until.TotalMinutes}m {(int)until.TotalSeconds % 60}s";
+        }
+        else
+        {
+            return $"{(int)until.TotalSeconds}s";
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
