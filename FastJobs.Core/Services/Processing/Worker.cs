@@ -8,11 +8,13 @@ public class Worker
     private readonly int _workerId;
     private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly CancellationToken _shutdownToken;
-    private readonly IServiceScopeFactory serviceScopeFactory; 
+    private readonly IServiceScopeFactory serviceScopeFactory;
+    private readonly WorkerManager _workerManager;
 
     private readonly QueueProcessor _QueueProcessor;
-    public Worker(int workerId, IServiceScopeFactory serviceScope, CancellationToken shutdownToken)
+    public Worker(int workerId, IServiceScopeFactory serviceScope, CancellationToken shutdownToken, WorkerManager workerManager)
     {
+        _workerManager = workerManager;
         using var Scopemanager = new ScopeManager(serviceScope);
         
         _QueueProcessor = new QueueProcessor(
@@ -29,11 +31,14 @@ public class Worker
 
     public async Task Run()
     {
+        _workerManager.UpdateWorkerState(_workerId, WorkerState.Sleeping);
+
         while (!_shutdownToken.IsCancellationRequested)
         {
             Tuple<Queue, SessionDatabaseLock>? JobDetails = null;
             if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
             {
+                _workerManager.UpdateWorkerState(_workerId, WorkerState.Sleeping);
                 await Task.Delay(200, _shutdownToken);
                 continue;
             }
@@ -81,6 +86,9 @@ public class Worker
 
                 var jobCts = CancellationTokenSource.CreateLinkedTokenSource(_shutdownToken);
                 bool jobSucceeded = false;
+
+                // Update worker state to active
+                _workerManager.UpdateWorkerState(_workerId, WorkerState.Active, job.Id.ToString(), job.JobName, DateTime.UtcNow);
 
                 // Set the job context so jobs like ExpressionFireAndForgetJob can access the job metadata
                 // Since This is a ScopedService Resolved Within A Scope Inside the Worker Its Thread safe And Does not Interfare Other Workers Setting Contexts for use Asewell
@@ -154,6 +162,8 @@ public class Worker
                     jobContext.SetJob( null );
                 }
 
+                // Reset worker state after job completion
+                _workerManager.UpdateWorkerState(_workerId, WorkerState.Sleeping);
             } 
         }
     }
