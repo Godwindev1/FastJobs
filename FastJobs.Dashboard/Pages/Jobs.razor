@@ -1,62 +1,61 @@
 @page "/fastjobs/jobs"
 @implements IDisposable
 <PageTitle>FastJobs — Jobs</PageTitle>
+<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Jobs.css" />
 
 <!-- Top bar -->
-<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
-    <div class="flex items-center gap-3">
-        <span class="text-[13px] font-medium text-text">Jobs</span>
-        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">JobDetailModel · PagedResult</span>
+<header class="jobs-header">
+    <div class="header-left">
+        <span class="header-title">Jobs</span>
+        <span class="header-badge">JobDetailModel · PagedResult</span>
     </div>
     <!-- Search -->
-    <div class="flex items-center gap-3">
-        <div class="relative">
-            <span class="ms absolute left-2.5 top-1/2 -translate-y-1/2 text-dim" style="font-size:15px">search</span>
-            <input type="text" placeholder="Search jobs, IDs…" class="pl-8 pr-3 py-1.5 w-60 text-[12px]" @bind="SearchQuery" @bind:event="oninput"/>
-        </div>
+    <div class="search-container">
+        <span class="search-icon ms">search</span>
+        <input type="text" placeholder="Search jobs, IDs…" class="search-input" @bind="SearchQuery" @bind:event="oninput"/>
     </div>
 </header>
 
-<div class="p-6 space-y-4 max-w-[1360px] w-full">
+<div class="jobs-container">
     <!-- Stats row -->
-    <div class="grid grid-cols-7 gap-2">
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Enqueued</div>
-            <div class="text-[20px] font-mono font-semibold text-text">@JobStats.Enqueued</div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card-label">Enqueued</div>
+            <div class="stat-card-value">@JobStats.Enqueued</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Scheduled</div>
-            <div class="text-[20px] font-mono font-semibold text-info">@JobStats.Scheduled</div>
+        <div class="stat-card">
+            <div class="stat-card-label">Scheduled</div>
+            <div class="stat-card-value info">@JobStats.Scheduled</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Processing</div>
-            <div class="flex items-center gap-2"><div class="text-[20px] font-mono font-semibold text-info">@JobStats.Processing</div><span class="dot green pulse"></span></div>
+        <div class="stat-card">
+            <div class="stat-card-label">Processing</div>
+            <div style="display: flex; align-items: center; gap: 8px;"><div class="stat-card-value info">@JobStats.Processing</div><span class="dot green pulse"></span></div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Succeeded</div>
-            <div class="text-[20px] font-mono font-semibold text-accent">@JobStats.Succeeded</div>
+        <div class="stat-card">
+            <div class="stat-card-label">Succeeded</div>
+            <div class="stat-card-value accent">@JobStats.Succeeded</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Failed</div>
-            <div class="text-[20px] font-mono font-semibold text-danger">@JobStats.Failed</div>
+        <div class="stat-card">
+            <div class="stat-card-label">Failed</div>
+            <div class="stat-card-value danger">@JobStats.Failed</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Retrying</div>
-            <div class="text-[20px] font-mono font-semibold text-warn">@JobStats.Retrying</div>
+        <div class="stat-card">
+            <div class="stat-card-label">Retrying</div>
+            <div class="stat-card-value warn">@JobStats.Retrying</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Cancelled</div>
-            <div class="text-[20px] font-mono font-semibold text-dim">@JobStats.Cancelled</div>
+        <div class="stat-card">
+            <div class="stat-card-label">Cancelled</div>
+            <div class="stat-card-value dim">@JobStats.Cancelled</div>
         </div>
     </div>
 
     <!-- Filter bar -->
-    <div class="bg-surface border border-border rounded flex flex-wrap items-center gap-3 px-4 py-2.5">
-        <span class="text-[11px] text-dim font-mono uppercase tracking-widest mr-1">Filter</span>
-        <div class="h-3.5 w-px bg-border"></div>
-        <div class="flex items-center gap-2">
-            <span class="text-[11px] text-dim">Queue</span>
-            <select @bind="SelectedQueue">
+    <div class="filter-bar">
+        <span class="filter-label">Filter</span>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <span class="filter-text">Queue</span>
+            <select class="filter-select" @bind="SelectedQueue">
                 <option value="">All Queues</option>
                 <option>default</option>
                 <option>critical</option>
@@ -64,9 +63,9 @@
                 <option>low-priority</option>
             </select>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-[11px] text-dim">State</span>
-            <select @bind="SelectedState">
+        <div class="filter-group">
+            <span class="filter-text">State</span>
+            <select class="filter-select" @bind="SelectedState">
                 <option value="">All States</option>
                 <option>Enqueued</option>
                 <option>Scheduled</option>
@@ -78,54 +77,54 @@
                 <option>Deleted</option>
             </select>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="text-[11px] text-dim">Sort</span>
-            <select @bind="SortBy">
+        <div class="filter-group">
+            <span class="filter-text">Sort</span>
+            <select class="filter-select" @bind="SortBy">
                 <option>CreatedAt ↓</option>
                 <option>CreatedAt ↑</option>
                 <option>Duration ↓</option>
                 <option>AttemptCount ↓</option>
             </select>
         </div>
-        <div class="flex items-center gap-2 ml-auto">
-            <button class="text-[11px] text-dim hover:text-text px-2 py-1" @onclick="ClearFilters">Clear</button>
-            <button class="text-[11px] text-text bg-muted hover:bg-[#444] px-3 py-1 rounded transition-colors" @onclick="ApplyFilters">Apply</button>
+        <div class="filter-actions">
+            <button class="filter-button filter-button-clear" @onclick="ClearFilters">Clear</button>
+            <button class="filter-button filter-button-apply" @onclick="ApplyFilters">Apply</button>
         </div>
     </div>
 
     <!-- Table -->
-    <div class="bg-surface border border-border rounded overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
+    <div class="table-wrapper">
+        <div class="table-container">
+            <table class="jobs-table">
                 <thead>
-                    <tr class="border-b border-border">
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium whitespace-nowrap">ID</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Created</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Started</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Duration</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Attempts</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Worker</th>
-                        <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Job Name</th>
+                        <th>Queue</th>
+                        <th>State</th>
+                        <th>Created</th>
+                        <th>Started</th>
+                        <th>Duration</th>
+                        <th>Attempts</th>
+                        <th>Worker</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-border">
+                <tbody>
                     @foreach (var job in FilteredJobs)
                     {
-                        <tr class="hover:bg-[#1f1f1f] transition-colors group">
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim whitespace-nowrap">#@job.Id</td>
-                            <td class="px-5 py-3 text-[13px] text-text font-medium">@job.JobName</td>
-                            <td class="px-5 py-3"><span class="text-[11px] font-mono text-subtext bg-muted/30 px-2 py-0.5 rounded">@job.QueueName</span></td>
-                            <td class="px-5 py-3"><span class="pill @GetStatePillClass(job.State)">@if (job.State == JobState.Processing) {<span class="dot green pulse" style="margin-right:5px"></span>} @job.State</span></td>
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@(job.StartedAt?.ToString("HH:mm:ss") ?? "—")</td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@FormatDuration(job.Duration)</td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@job.AttemptCount</td>
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@(job.WorkerName ?? "—")</td>
-                            <td class="px-5 py-3 text-right">
-                                <button class="ms text-dim hover:text-accent opacity-0 group-hover:opacity-100 transition-all">more_vert</button>
+                        <tr>
+                            <td class="table-cell-id">#@job.Id</td>
+                            <td class="table-cell-name">@job.JobName</td>
+                            <td><span class="table-cell-queue">@job.QueueName</span></td>
+                            <td><span class="table-cell-state @GetStatePillClass(job.State)">@if (job.State == JobState.Processing) {<span class="dot green pulse" style="margin-right:5px"></span>} @job.State</span></td>
+                            <td class="table-cell-time">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                            <td class="table-cell-time">@(job.StartedAt?.ToString("HH:mm:ss") ?? "—")</td>
+                            <td class="table-cell-duration">@FormatDuration(job.Duration)</td>
+                            <td class="table-cell-attempts">@job.AttemptCount</td>
+                            <td class="table-cell-worker">@(job.WorkerName ?? "—")</td>
+                            <td class="table-cell-actions">
+                                <button class="table-action-button ms">more_vert</button>
                             </td>
                         </tr>
                     }
@@ -133,16 +132,16 @@
             </table>
         </div>
         <!-- Pagination -->
-        <div class="px-5 py-3 border-t border-border flex items-center justify-between">
-            <span class="text-[11px] text-dim font-mono">Showing 1–@FilteredJobs.Count of <strong class="text-text">@AllJobs.Count</strong></span>
-            <div class="flex items-center gap-1.5">
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors" disabled>‹ Prev</button>
-                <button class="px-2.5 py-1.5 rounded bg-accent text-[#001a0e] text-[11px] font-semibold">1</button>
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">2</button>
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">3</button>
-                <span class="text-dim text-[11px] px-1">…</span>
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">@TotalPages</button>
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">Next ›</button>
+        <div class="pagination-container">
+            <span class="pagination-info">Showing 1–@FilteredJobs.Count of <strong>@AllJobs.Count</strong></span>
+            <div class="pagination-buttons">
+                <button class="pagination-button" disabled>‹ Prev</button>
+                <button class="pagination-button active">1</button>
+                <button class="pagination-button">2</button>
+                <button class="pagination-button">3</button>
+                <span style="color: var(--dim); font-size: 11px; padding: 0 4px;">…</span>
+                <button class="pagination-button">@TotalPages</button>
+                <button class="pagination-button">Next ›</button>
             </div>
         </div>
     </div>

@@ -1,60 +1,61 @@
 @page "/fastjobs/recurring"
 @implements IDisposable
 <PageTitle>FastJobs — Recurring</PageTitle>
+<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Recurring.css" />
 
 <!-- Top bar -->
-<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
-    <div class="flex items-center gap-3">
-        <span class="text-[13px] font-medium text-text">Recurring Jobs</span>
-        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">RecurringJobModel</span>
+<header class="recurring-header">
+    <div class="header-left">
+        <span class="header-title">Recurring Jobs</span>
+        <span class="header-badge">RecurringJobModel</span>
     </div>
-    <button class="flex items-center gap-1.5 text-[12px] text-[#001a0e] bg-accent hover:bg-[#0da871] px-3 py-1.5 rounded transition-colors font-semibold">
-        <span class="ms" style="font-size:16px;color:#001a0e">add</span>New Recurring
+    <button class="new-recurring-button">
+        <span class="new-recurring-icon ms">add</span>New Recurring
     </button>
 </header>
 
-<div class="p-6 space-y-5 max-w-[1360px] w-full">
+<div class="recurring-container">
     <!-- Summary stats -->
-    <div class="grid grid-cols-4 gap-2">
-        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
-            <div>
-                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Active</div>
-                <div class="text-[22px] font-mono font-semibold text-accent">@RecurringJobs.Count(r => r.Status == RecurringJobStatus.Active)</div>
+    <div class="summary-stats-grid">
+        <div class="summary-stat-card">
+            <div class="summary-stat-content">
+                <div class="summary-stat-label">Active</div>
+                <div class="summary-stat-value active">@RecurringJobs.Count(r => r.Status == RecurringJobStatus.Active)</div>
             </div>
-            <span class="ms text-accent opacity-50" style="font-size:28px">autorenew</span>
+            <span class="summary-stat-icon active ms">autorenew</span>
         </div>
-        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
-            <div>
-                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Disabled</div>
-                <div class="text-[22px] font-mono font-semibold text-warn">@RecurringJobs.Count(r => r.Status == RecurringJobStatus.Disabled)</div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-content">
+                <div class="summary-stat-label">Disabled</div>
+                <div class="summary-stat-value warn">@RecurringJobs.Count(r => r.Status == RecurringJobStatus.Disabled)</div>
             </div>
-            <span class="ms text-warn opacity-50" style="font-size:28px">pause_circle</span>
+            <span class="summary-stat-icon warn ms">pause_circle</span>
         </div>
-        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
-            <div>
-                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Cron</div>
-                <div class="text-[22px] font-mono font-semibold text-text">@RecurringJobs.Count(r => r.ScheduleType == ScheduleType.Cron)</div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-content">
+                <div class="summary-stat-label">Cron</div>
+                <div class="summary-stat-value">@RecurringJobs.Count(r => r.ScheduleType == ScheduleType.Cron)</div>
             </div>
-            <span class="ms text-dim opacity-50" style="font-size:28px">terminal</span>
+            <span class="summary-stat-icon ms">terminal</span>
         </div>
-        <div class="bg-surface border border-border rounded p-3 flex justify-between items-center">
-            <div>
-                <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Interval</div>
-                <div class="text-[22px] font-mono font-semibold text-text">@RecurringJobs.Count(r => r.ScheduleType == ScheduleType.Interval)</div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-content">
+                <div class="summary-stat-label">Interval</div>
+                <div class="summary-stat-value">@RecurringJobs.Count(r => r.ScheduleType == ScheduleType.Interval)</div>
             </div>
-            <span class="ms text-dim opacity-50" style="font-size:28px">timer</span>
+            <span class="summary-stat-icon ms">timer</span>
         </div>
     </div>
 
     <!-- Filter -->
-    <div class="flex items-center gap-3">
-        <select @bind="SelectedStatusFilter">
+    <div class="filter-section">
+        <select class="filter-select" @bind="SelectedStatusFilter">
             <option value="">All Statuses</option>
             <option>Active</option>
             <option>Disabled</option>
             <option>Deleted</option>
         </select>
-        <select @bind="SelectedTypeFilter">
+        <select class="filter-select" @bind="SelectedTypeFilter">
             <option value="">All Types</option>
             <option>Cron</option>
             <option>Interval</option>
@@ -62,62 +63,62 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-surface border border-border rounded overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
+    <div class="table-wrapper">
+        <div class="table-container">
+            <table class="recurring-table">
                 <thead>
-                    <tr class="border-b border-border">
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">ID / Name</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Schedule</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Status</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Next Run</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Last Run</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Last State</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">✓ Runs</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">✗ Fails</th>
-                        <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+                    <tr>
+                        <th>ID / Name</th>
+                        <th>Schedule</th>
+                        <th>Queue</th>
+                        <th>Status</th>
+                        <th>Next Run</th>
+                        <th>Last Run</th>
+                        <th>Last State</th>
+                        <th>✓ Runs</th>
+                        <th>✗ Fails</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-border">
+                <tbody>
                     @foreach (var job in FilteredRecurringJobs)
                     {
-                        <tr class="hover:bg-[#1f1f1f] transition-colors group">
-                            <td class="px-5 py-3">
-                                <div class="text-[13px] text-text font-medium">@job.DisplayName</div>
-                                <div class="font-mono text-[10px] text-dim">@job.Id</div>
+                        <tr>
+                            <td>
+                                <div class="recurring-name">@job.DisplayName</div>
+                                <div class="recurring-id">@job.Id</div>
                             </td>
-                            <td class="px-5 py-3">
+                            <td>
                                 @if (job.ScheduleType == ScheduleType.Cron)
                                 {
-                                    <span class="cron">@job.CronExpression</span>
-                                    <span class="block text-[10px] text-dim mt-0.5">@job.CronDescription</span>
+                                    <span class="cron-expression">@job.CronExpression</span>
+                                    <span class="cron-description">@job.CronDescription</span>
                                 }
                                 else
                                 {
-                                    <span class="cron">@job.Interval?.ToString(@"hh\:mm\:ss")</span>
-                                    <span class="block text-[10px] text-dim mt-0.5">Every @job.Interval?.ToString(@"hh\:mm\:ss")</span>
+                                    <span class="cron-expression">@job.Interval?.ToString(@"hh\:mm\:ss")</span>
+                                    <span class="cron-description">Every @job.Interval?.ToString(@"hh\:mm\:ss")</span>
                                 }
                             </td>
-                            <td class="px-5 py-3"><span class="font-mono text-[11px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded">@job.QueueName</span></td>
-                            <td class="px-5 py-3"><span class="pill @GetStatusPillClass(job.Status)">@job.Status</span></td>
-                            <td class="px-5 py-3 font-mono text-[11px] text-subtext">@(job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
-                            <td class="px-5 py-3"><span class="pill @GetLastStatePillClass(job.LastRunState)">@(job.LastRunState?.ToString() ?? "—")</span></td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-accent">@job.SucceededCount.ToString("N0")</td>
-                            <td class="px-5 py-3 font-mono text-[12px] @(job.FailedCount > 0 ? "text-danger" : "text-dim")">@job.FailedCount</td>
-                            <td class="px-5 py-3 text-right">
-                                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <td><span class="queue-badge">@job.QueueName</span></td>
+                            <td><span class="status-badge @(job.Status == RecurringJobStatus.Active ? "active" : job.Status == RecurringJobStatus.Disabled ? "disabled" : "deleted")">@job.Status</span></td>
+                            <td class="next-run-time">@(job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
+                            <td class="last-run-time">@(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
+                            <td><span class="last-state-badge @(job.LastRunState == JobState.Succeeded ? "succeeded" : job.LastRunState == JobState.Failed ? "failed" : "unknown")">@(job.LastRunState?.ToString() ?? "—")</span></td>
+                            <td class="success-count">@job.SucceededCount.ToString("N0")</td>
+                            <td class="failure-count @(job.FailedCount > 0 ? "has-failures" : "")">@job.FailedCount</td>
+                            <td>
+                                <div class="table-actions">
                                     @if (job.Status == RecurringJobStatus.Active)
                                     {
-                                        <button class="ms text-dim hover:text-warn p-1" title="Pause">pause</button>
+                                        <button class="action-button pause" title="Pause">pause</button>
                                     }
                                     else
                                     {
-                                        <button class="ms text-dim hover:text-accent p-1" title="Resume">play_arrow</button>
+                                        <button class="action-button resume" title="Resume">play_arrow</button>
                                     }
-                                    <button class="ms text-dim hover:text-info p-1" title="Trigger now">bolt</button>
-                                    <button class="ms text-dim hover:text-danger p-1" title="Delete">delete</button>
+                                    <button class="action-button trigger" title="Trigger now">bolt</button>
+                                    <button class="action-button delete" title="Delete">delete</button>
                                 </div>
                             </td>
                         </tr>

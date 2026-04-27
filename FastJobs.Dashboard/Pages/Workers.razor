@@ -2,58 +2,59 @@
 @implements IDisposable
 
 <PageTitle>FastJobs — Workers</PageTitle>
+<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Workers.css" />
 
 <!-- Top bar -->
-<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
-    <div class="flex items-center gap-3">
-        <span class="text-[13px] font-medium text-text">Workers</span>
-        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">WorkerOverviewModel · WorkerModel</span>
+<header class="workers-header">
+    <div class="header-left">
+        <span class="header-title">Workers</span>
+        <span class="header-badge">WorkerOverviewModel · WorkerModel</span>
     </div>
-    <div class="flex items-center gap-2 text-[11px] text-dim font-mono">
+    <div class="header-right">
         <span class="dot green pulse"></span>
         <span>Heartbeat: @(DateTime.Now.Second % 60)s</span>
     </div>
 </header>
 
-<div class="p-6 space-y-5 max-w-[1360px] w-full">
+<div class="workers-container">
     <!-- WorkerOverviewModel summary -->
-    <div class="grid grid-cols-5 gap-2">
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Total</div>
-            <div class="text-[22px] font-mono font-semibold text-text">@WorkerOverview.TotalWorkers</div>
-            <div class="text-[11px] text-dim">workers</div>
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-card-label">Total</div>
+            <div class="summary-card-value">@WorkerOverview.TotalWorkers</div>
+            <div class="summary-card-subtext">workers</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Active</div>
-            <div class="flex items-center gap-2">
-                <div class="text-[22px] font-mono font-semibold text-accent">@WorkerOverview.ActiveWorkers</div>
+        <div class="summary-card">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="summary-card-value accent">@WorkerOverview.ActiveWorkers</div>
                 <span class="dot green pulse"></span>
             </div>
-            <div class="text-[11px] text-dim">processing jobs</div>
+            <div class="summary-card-label">Active</div>
+            <div class="summary-card-subtext">processing jobs</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Sleeping</div>
-            <div class="text-[22px] font-mono font-semibold text-dim">@WorkerOverview.SleepingWorkers</div>
-            <div class="text-[11px] text-dim">idle / waiting</div>
+        <div class="summary-card">
+            <div class="summary-card-value">@WorkerOverview.SleepingWorkers</div>
+            <div class="summary-card-label">Sleeping</div>
+            <div class="summary-card-subtext">idle / waiting</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Dead</div>
-            <div class="text-[22px] font-mono font-semibold text-danger">@WorkerOverview.DeadWorkers</div>
-            <div class="text-[11px] text-dim">no heartbeat</div>
+        <div class="summary-card">
+            <div class="summary-card-value danger">@WorkerOverview.DeadWorkers</div>
+            <div class="summary-card-label">Dead</div>
+            <div class="summary-card-subtext">no heartbeat</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1.5">Active Jobs</div>
-            <div class="text-[22px] font-mono font-semibold text-info">@WorkerOverview.TotalActiveJobs</div>
-            <div class="text-[11px] text-dim">TotalActiveJobs</div>
+        <div class="summary-card">
+            <div class="summary-card-value info">@WorkerOverview.TotalActiveJobs</div>
+            <div class="summary-card-label">Active Jobs</div>
+            <div class="summary-card-subtext">TotalActiveJobs</div>
         </div>
     </div>
 
     <!-- Worker table -->
-    <div class="bg-surface border border-border rounded overflow-hidden">
-        <div class="px-5 py-3 border-b border-border flex items-center justify-between">
-            <div class="text-[13px] font-semibold text-text">Worker Instances</div>
-            <div class="flex items-center gap-2">
-                <select @bind="SelectedStateFilter">
+    <div class="worker-table-wrapper">
+        <div class="worker-table-header">
+            <div class="worker-table-title">Worker Instances</div>
+            <div class="worker-filter-section">
+                <select class="worker-filter-select" @bind="SelectedStateFilter">
                     <option value="">All States</option>
                     <option>Active</option>
                     <option>Sleeping</option>
@@ -61,57 +62,59 @@
                 </select>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
+        <div class="table-container">
+            <table class="workers-table">
                 <thead>
-                    <tr class="border-b border-border">
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Worker</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Server</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">State</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queues</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Current Job</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Run Time</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Heartbeat</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Jobs Done</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Success %</th>
+                    <tr>
+                        <th>Worker</th>
+                        <th>Server</th>
+                        <th>State</th>
+                        <th>Queues</th>
+                        <th>Current Job</th>
+                        <th>Run Time</th>
+                        <th>Heartbeat</th>
+                        <th>Jobs Done</th>
+                        <th>Success %</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-border">
+                <tbody>
                     @foreach (var worker in FilteredWorkers)
                     {
-                        <tr class="hover:bg-[#1f1f1f] transition-colors">
-                            <td class="px-5 py-3">
-                                <div class="text-[13px] text-text font-medium">@worker.WorkerName</div>
-                                <div class="font-mono text-[10px] text-dim">@worker.WorkerId</div>
+                        <tr>
+                            <td>
+                                <div class="worker-name-column">@worker.WorkerName</div>
+                                <div class="worker-id">@worker.WorkerId</div>
                             </td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@worker.ServerName</td>
-                            <td class="px-5 py-3"><span class="pill @GetStatePillClass(worker.State)">@if (worker.State == WorkerState.Active) {<span class="dot green pulse" style="margin-right:4px"></span>} @worker.State</span></td>
-                            <td class="px-5 py-3">
-                                @foreach (var queue in GetWorkerQueues(worker))
-                                {
-                                    <span class="font-mono text-[10px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded mr-1">@queue</span>
-                                }
+                            <td class="worker-server">@worker.ServerName</td>
+                            <td><span class="worker-state-badge @GetStatePillClass(worker.State)">@if (worker.State == WorkerState.Active) {<span class="dot green pulse" style="margin-right:4px"></span>} @worker.State</span></td>
+                            <td>
+                                <div class="worker-queues">
+                                    @foreach (var queue in GetWorkerQueues(worker))
+                                    {
+                                        <span class="queue-badge">@queue</span>
+                                    }
+                                </div>
                             </td>
-                            <td class="px-5 py-3">
+                            <td>
                                 @if (worker.CurrentJobId != null)
                                 {
-                                    <div class="text-[12px] text-text">@worker.CurrentJobName</div>
-                                    <div class="font-mono text-[10px] text-dim">#@worker.CurrentJobId</div>
+                                    <div class="current-job">@worker.CurrentJobName</div>
+                                    <div class="current-job-id">#@worker.CurrentJobId</div>
                                 }
                                 else
                                 {
-                                    <span class="text-[11px] text-dim">—</span>
+                                    <span class="current-job-empty">—</span>
                                 }
                             </td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@FormatRunTime(worker.CurrentJobRunTime)</td>
-                            <td class="px-5 py-3 font-mono text-[12px] @(worker.State == WorkerState.Dead ? "text-danger" : "text-dim")">@FormatHeartbeat(worker.HeartbeatAge)</td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@worker.Metrics.JobsProcessed.ToString("N0")</td>
-                            <td class="px-5 py-3">
-                                <div class="flex items-center gap-2">
-                                    <div class="h-1 w-14 bg-muted rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
+                            <td class="job-runtime">@FormatRunTime(worker.CurrentJobRunTime)</td>
+                            <td class="heartbeat @(worker.State == WorkerState.Dead ? "dead" : "")">@FormatHeartbeat(worker.HeartbeatAge)</td>
+                            <td class="jobs-processed">@worker.Metrics.JobsProcessed.ToString("N0")</td>
+                            <td>
+                                <div class="success-rate-cell">
+                                    <div class="success-rate-bar">
+                                        <div class="success-rate-fill @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
                                     </div>
-                                    <span class="font-mono text-[11px] @GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span>
+                                    <span class="success-rate-text @GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span>
                                 </div>
                             </td>
                         </tr>
@@ -122,34 +125,34 @@
     </div>
 
     <!-- Metrics cards -->
-    <div>
-        <div class="text-[11px] text-dim font-mono uppercase tracking-widest mb-3">Worker Metrics (WorkerMetricsModel)</div>
-        <div class="grid grid-cols-3 gap-3">
+    <div class="metrics-section">
+        <div class="metrics-title">Worker Metrics (WorkerMetricsModel)</div>
+        <div class="metrics-grid">
             @foreach (var worker in WorkerOverview.Workers.Take(3))
             {
-                <div class="bg-surface border border-border rounded p-4 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[13px] font-semibold text-text">@worker.WorkerName</span>
-                        <span class="pill @GetStatePillClass(worker.State)">@worker.State</span>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-name">@worker.WorkerName</span>
+                        <span class="metric-card-badge @GetStatePillClass(worker.State)">@worker.State</span>
                     </div>
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div>
-                            <div class="text-[11px] text-dim font-mono mb-0.5">Processed</div>
-                            <div class="text-[18px] font-mono font-semibold text-text">@worker.Metrics.JobsProcessed.ToString("N0")</div>
+                    <div class="metrics-grid-values">
+                        <div class="metric-value-container">
+                            <div class="metric-value-label">Processed</div>
+                            <div class="metric-value-number">@worker.Metrics.JobsProcessed.ToString("N0")</div>
                         </div>
-                        <div>
-                            <div class="text-[11px] text-dim font-mono mb-0.5">Failed</div>
-                            <div class="text-[18px] font-mono font-semibold @(worker.Metrics.JobsFailed > 5 ? "text-danger" : "text-subtext")">@worker.Metrics.JobsFailed</div>
+                        <div class="metric-value-container">
+                            <div class="metric-value-label">Failed</div>
+                            <div class="metric-value-number @(worker.Metrics.JobsFailed > 5 ? "danger" : "subtext")">@worker.Metrics.JobsFailed</div>
                         </div>
-                        <div>
-                            <div class="text-[11px] text-dim font-mono mb-0.5">Avg Latency</div>
-                            <div class="text-[18px] font-mono font-semibold text-text">@worker.Metrics.AvgProcessingLatencyMs.ToString("F0")ms</div>
+                        <div class="metric-value-container">
+                            <div class="metric-value-label">Avg Latency</div>
+                            <div class="metric-value-number">@worker.Metrics.AvgProcessingLatencyMs.ToString("F0")ms</div>
                         </div>
                     </div>
-                    <div>
-                        <div class="flex justify-between text-[10px] text-dim mb-1"><span>Success Rate</span><span class="@GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span></div>
-                        <div class="h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div class="h-full rounded-full @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
+                    <div class="metric-success-rate-section">
+                        <div class="metric-success-rate-label"><span>Success Rate</span><span class="@GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span></div>
+                        <div class="metric-success-rate-bar">
+                            <div class="metric-success-rate-fill @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
                         </div>
                     </div>
                 </div>

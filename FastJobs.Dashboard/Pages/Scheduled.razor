@@ -1,120 +1,123 @@
 @page "/fastjobs/scheduled"
 @implements IDisposable
 <PageTitle>FastJobs — Scheduled</PageTitle>
+<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Scheduled.css" />
 
 <!-- Top bar -->
-<header class="sticky top-0 z-20 h-12 bg-surface border-b border-border flex items-center justify-between px-6">
-    <div class="flex items-center gap-3">
-        <span class="text-[13px] font-medium text-text">Scheduled Jobs</span>
-        <span class="text-[11px] text-dim font-mono border border-border rounded px-1.5 py-0.5">ScheduledJobModel</span>
+<header class="scheduled-header">
+    <div class="header-left">
+        <span class="header-title">Scheduled Jobs</span>
+        <span class="header-badge">ScheduledJobModel</span>
     </div>
-    <div class="flex items-center gap-3">
-        <span class="text-[11px] text-dim font-mono">@ScheduledJobs.Count pending</span>
+    <div class="header-right">
+        <span>@ScheduledJobs.Count pending</span>
     </div>
 </header>
 
-<div class="p-6 space-y-5 max-w-[1360px] w-full">
+<div class="scheduled-container">
     <!-- Summary -->
-    <div class="grid grid-cols-4 gap-2">
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Total Pending</div>
-            <div class="text-[22px] font-mono font-semibold text-info">@ScheduledJobs.Count</div>
-            <div class="text-[11px] text-dim">awaiting enqueue</div>
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-card-label">Total Pending</div>
+            <div class="summary-card-value info">@ScheduledJobs.Count</div>
+            <div class="summary-card-subtext">awaiting enqueue</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Due &lt; 5 min</div>
-            <div class="text-[22px] font-mono font-semibold text-danger">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5)</div>
-            <div class="text-[11px] text-dim">imminent</div>
+        <div class="summary-card">
+            <div class="summary-card-label">Due &lt; 5 min</div>
+            <div class="summary-card-value danger">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5)</div>
+            <div class="summary-card-subtext">imminent</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Due &lt; 1 hr</div>
-            <div class="text-[22px] font-mono font-semibold text-warn">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 60)</div>
-            <div class="text-[11px] text-dim">soon</div>
+        <div class="summary-card">
+            <div class="summary-card-label">Due &lt; 1 hr</div>
+            <div class="summary-card-value warn">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 60)</div>
+            <div class="summary-card-subtext">soon</div>
         </div>
-        <div class="bg-surface border border-border rounded p-3">
-            <div class="text-[10px] text-dim font-mono uppercase tracking-wider mb-1">Recurring Triggers</div>
-            <div class="text-[22px] font-mono font-semibold text-text">@ScheduledJobs.Count(j => j.Id.Contains("rec"))</div>
-            <div class="text-[11px] text-dim">IsRecurringTrigger</div>
+        <div class="summary-card">
+            <div class="summary-card-label">Recurring Triggers</div>
+            <div class="summary-card-value">@ScheduledJobs.Count(j => j.Id.Contains("rec"))</div>
+            <div class="summary-card-subtext">IsRecurringTrigger</div>
         </div>
     </div>
 
     <!-- Timeline view — grouped by urgency bucket -->
-    <div class="space-y-1">
-        <div class="text-[11px] text-dim font-mono uppercase tracking-widest mb-2">Upcoming Timeline</div>
+    <div class="timeline-section">
+        <div class="timeline-title">Upcoming Timeline</div>
 
         @if (ScheduledJobs.Any(j => j.TimeUntilEnqueue.TotalMinutes < 5))
         {
-            <div class="border border-danger/20 bg-danger/5 rounded px-4 py-2 flex items-center gap-3 mb-2">
-                <span class="ms text-danger" style="font-size:16px">warning</span>
-                <span class="text-[12px] text-danger font-semibold">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5) jobs due within 5 minutes</span>
+            <div class="alert-box">
+                <span class="alert-icon ms">warning</span>
+                <span class="alert-text">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5) jobs due within 5 minutes</span>
             </div>
         }
     </div>
 
     <!-- Table -->
-    <div class="bg-surface border border-border rounded overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-3 border-b border-border">
-            <span class="text-[13px] font-semibold text-text">Pending Schedule</span>
-            <div class="flex items-center gap-2">
-                <select @bind="SelectedQueueFilter">
+    <div class="table-wrapper">
+        <div class="table-header-section">
+            <span class="table-title">Pending Schedule</span>
+            <div class="table-filters">
+                <select class="table-filter-select" @bind="SelectedQueueFilter">
                     <option value="">All Queues</option>
                     <option>default</option>
                     <option>critical</option>
                     <option>analytics</option>
                 </select>
-                <select @bind="SelectedTypeFilter">
+                <select class="table-filter-select" @bind="SelectedTypeFilter">
                     <option value="">All Jobs</option>
                     <option>Recurring Triggers</option>
                     <option>One-off</option>
                 </select>
             </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
+        <div class="table-container">
+            <table class="scheduled-table">
                 <thead>
-                    <tr class="border-b border-border">
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">ID</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Job Name</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Method</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Queue</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Enqueue At</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Time Until</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Created</th>
-                        <th class="px-5 py-2.5 text-[10px] uppercase tracking-widest text-dim font-mono font-medium">Source</th>
-                        <th class="px-5 py-2.5 text-[10px] text-dim font-mono font-medium text-right">—</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>Job Name</th>
+                        <th>Method</th>
+                        <th>Queue</th>
+                        <th>Enqueue At</th>
+                        <th>Time Until</th>
+                        <th>Created</th>
+                        <th>Source</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-border">
+                <tbody>
                     @foreach (var job in FilteredScheduledJobs)
                     {
-                        <tr class="hover:bg-[#1f1f1f] transition-colors group">
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim">#@job.Id</td>
-                            <td class="px-5 py-3">
-                                <div class="text-[13px] text-text font-medium">@job.JobName</div>
+                        <tr>
+                            <td class="table-cell-id">#@job.Id</td>
+                            <td>
+                                <div class="table-cell-name">@job.JobName</div>
                             </td>
-                            <td class="px-5 py-3">
-                                <span class="font-mono text-[11px] text-subtext">@job.TypeName.</span><span class="font-mono text-[11px] text-text">@job.MethodName</span>
+                            <td>
+                                <div class="table-cell-method">
+                                    <span class="table-cell-method-type">@job.TypeName.</span><span class="table-cell-method-name">@job.MethodName</span>
+                                </div>
                             </td>
-                            <td class="px-5 py-3">
-                                <span class="font-mono text-[11px] text-subtext bg-muted/30 px-1.5 py-0.5 rounded">@job.QueueName</span>
+                            <td>
+                                <span class="table-cell-queue">@job.QueueName</span>
                             </td>
-                            <td class="px-5 py-3 font-mono text-[12px] text-subtext">@job.EnqueueAt.ToString("HH:mm:ss")</td>
-                            <td class="px-5 py-3 font-mono text-[12px] font-semibold @GetUrgencyClass(job.TimeUntilEnqueue)">@FormatTimeUntil(job.TimeUntilEnqueue)</td>
-                            <td class="px-5 py-3 font-mono text-[11px] text-dim">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
-                            <td class="px-5 py-3">
+                            <td class="table-cell-time">@job.EnqueueAt.ToString("HH:mm:ss")</td>
+                            <td class="table-cell-until @GetUrgencyClass(job.TimeUntilEnqueue)">@FormatTimeUntil(job.TimeUntilEnqueue)</td>
+                            <td class="table-cell-created">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                            <td>
                                 @if (job.Id.Contains("rec"))
                                 {
-                                    <span class="pill pill-blue" title="RecurringJobId: @(job.Id.Replace("sched_", ""))"><span class="ms" style="font-size:11px;margin-right:2px">autorenew</span>Recurring</span>
+                                    <span class="table-source-badge recurring" title="RecurringJobId: @(job.Id.Replace("sched_", ""))"><span class="table-source-icon ms">autorenew</span>Recurring</span>
                                 }
                                 else
                                 {
-                                    <span class="pill pill-gray">One-off</span>
+                                    <span class="table-source-badge oneoff">One-off</span>
                                 }
                             </td>
-                            <td class="px-5 py-3 text-right">
-                                <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button class="ms text-dim hover:text-accent p-1" title="Enqueue now">bolt</button>
-                                    <button class="ms text-dim hover:text-danger p-1" title="Cancel">cancel</button>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="action-button" title="Enqueue now">bolt</button>
+                                    <button class="action-button danger" title="Cancel">cancel</button>
                                 </div>
                             </td>
                         </tr>
@@ -122,13 +125,13 @@
                 </tbody>
             </table>
         </div>
-        <div class="px-5 py-3 border-t border-border flex items-center justify-between">
-            <span class="text-[11px] text-dim font-mono">Showing 1–@FilteredScheduledJobs.Count of <strong class="text-text">@ScheduledJobs.Count</strong></span>
-            <div class="flex items-center gap-1.5">
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors" disabled>‹ Prev</button>
-                <button class="px-2.5 py-1.5 rounded bg-accent text-[#001a0e] text-[11px] font-semibold">1</button>
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">2</button>
-                <button class="px-2.5 py-1.5 rounded bg-[#1f1f1f] border border-border text-dim hover:text-text text-[11px] transition-colors">Next ›</button>
+        <div class="pagination-container">
+            <span class="pagination-info">Showing 1–@FilteredScheduledJobs.Count of <strong>@ScheduledJobs.Count</strong></span>
+            <div class="pagination-buttons">
+                <button class="pagination-button" disabled>‹ Prev</button>
+                <button class="pagination-button active">1</button>
+                <button class="pagination-button">2</button>
+                <button class="pagination-button">Next ›</button>
             </div>
         </div>
     </div>

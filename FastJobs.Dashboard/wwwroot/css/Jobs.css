@@ -1,0 +1,450 @@
+/* Jobs.css - Tailwind to CSS conversion */
+
+:root {
+    --surface: #191919;
+    --border: #272727;
+    --text: #e8e8e8;
+    --dim: #737373;
+    --subtext: #a0a0a0;
+    --accent: #10b981;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --info: #60a5fa;
+    --muted: rgba(58, 58, 58, 0.3);
+    --hover-bg: #1f1f1f;
+}
+
+/* Header */
+.jobs-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 48px;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.header-badge {
+    font-size: 11px;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--dim);
+    font-size: 15px;
+}
+
+.search-input {
+    padding-left: 32px;
+    padding-right: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    width: 240px;
+    font-size: 12px;
+    background-color: #1a1a1a;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+}
+
+.search-input::placeholder {
+    color: var(--dim);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Main container */
+.jobs-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1360px;
+    width: 100%;
+}
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.stat-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.stat-card-label {
+    font-size: 10px;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+}
+
+.stat-card-value {
+    font-size: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.stat-card-value.info {
+    color: var(--info);
+}
+
+.stat-card-value.accent {
+    color: var(--accent);
+}
+
+.stat-card-value.danger {
+    color: var(--danger);
+}
+
+.stat-card-value.warn {
+    color: var(--warn);
+}
+
+.stat-card-value.dim {
+    color: var(--dim);
+}
+
+/* Filter bar */
+.filter-bar {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+}
+
+.filter-label {
+    font-size: 11px;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-right: 4px;
+}
+
+.filter-divider {
+    height: 14px;
+    width: 1px;
+    background-color: var(--border);
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-text {
+    font-size: 11px;
+    color: var(--dim);
+}
+
+.filter-select {
+    background-color: #1a1a1a;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.filter-button {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.filter-button-clear {
+    color: var(--dim);
+    background-color: transparent;
+}
+
+.filter-button-clear:hover {
+    color: var(--text);
+}
+
+.filter-button-apply {
+    color: var(--text);
+    background-color: rgba(58, 58, 58, 0.5);
+}
+
+.filter-button-apply:hover {
+    background-color: rgba(68, 68, 68, 0.7);
+}
+
+/* Table wrapper */
+.table-wrapper {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.jobs-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+.jobs-table thead {
+    border-bottom: 1px solid var(--border);
+}
+
+.jobs-table th {
+    padding: 10px 20px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.jobs-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s;
+}
+
+.jobs-table tbody tr:hover {
+    background-color: var(--hover-bg);
+}
+
+.jobs-table td {
+    padding: 12px 20px;
+}
+
+.table-cell-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    white-space: nowrap;
+}
+
+.table-cell-name {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.table-cell-queue {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--subtext);
+    background-color: rgba(58, 58, 58, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.table-cell-state {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.table-cell-state.enqueued {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.table-cell-state.scheduled {
+    background-color: rgba(96, 165, 250, 0.12);
+    color: #60a5fa;
+}
+
+.table-cell-state.processing {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.table-cell-state.succeeded {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.table-cell-state.failed {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.table-cell-state.retrying {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.table-cell-state.cancelled {
+    background-color: rgba(115, 115, 115, 0.12);
+    color: #a0a0a0;
+}
+
+.table-cell-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+}
+
+.table-cell-duration {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--subtext);
+}
+
+.table-cell-attempts {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--subtext);
+}
+
+.table-cell-worker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+}
+
+.table-cell-actions {
+    text-align: right;
+}
+
+.table-action-button {
+    background-color: transparent;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+.jobs-table tbody tr:hover .table-action-button {
+    opacity: 1;
+    color: var(--accent);
+}
+
+/* Pagination */
+.pagination-container {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pagination-info {
+    font-size: 11px;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.pagination-info strong {
+    color: var(--text);
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination-button {
+    padding: 6px 10px;
+    border-radius: 4px;
+    background-color: #1f1f1f;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-button:hover:not(:disabled) {
+    color: var(--text);
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-button.active {
+    background-color: var(--accent);
+    color: #001a0e;
+    border-color: var(--accent);
+    font-weight: 600;
+}
