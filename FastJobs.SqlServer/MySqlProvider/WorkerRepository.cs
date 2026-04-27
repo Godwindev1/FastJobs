@@ -112,4 +112,14 @@ internal sealed class WorkerRepository : IWorkerRepository
             new CommandDefinition(sql, new { id },  cancellationToken: cancellationToken));
     }
 
+    public async Task TruncateAsync(CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "TRUNCATE TABLE Workers";
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(sql, cancellationToken: cancellationToken));
+    }
+
 }

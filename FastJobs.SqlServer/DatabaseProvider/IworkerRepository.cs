@@ -10,4 +10,5 @@ public interface IWorkerRepository
     Task<List<FSTJBS_Worker>> GetSleepingAsync(CancellationToken cancellationToken = default);
     Task<List<FSTJBS_Worker>> GetActiveAsync(CancellationToken cancellationToken = default);
     Task<List<FSTJBS_Worker>> GetDeadWorkersAsync(CancellationToken cancellationToken = default);
+    Task TruncateAsync(CancellationToken cancellationToken = default);
 }

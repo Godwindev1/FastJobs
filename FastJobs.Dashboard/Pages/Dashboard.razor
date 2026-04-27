@@ -200,13 +200,13 @@
 
     private System.Timers.Timer? _timer;
 
-    protected override async Task OnInitializedAsync()
+    protected override  async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
         _timer = new System.Timers.Timer(5000); // Update every 5 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
         {
-            LoadData();
+            await LoadData();
             StateHasChanged();
         });
         _timer.Start();
@@ -214,15 +214,12 @@
 
      private async Task LoadData()
     {
-        // Generate dummy data
-        var random = new Random();
-        
         DashboardData = await summaryService.GetDashboardSummaryAsync();
         
 
         WorkerData = new WorkerOverviewModel
         {
-            TotalWorkers = 128,
+            TotalWorkers = DashboardData.ActiveWorkers + DashboardData.SleepingWorkers + DashboardData.DeadWorkers,
             ActiveWorkers = DashboardData.ActiveWorkers,
             SleepingWorkers = DashboardData.SleepingWorkers,
             DeadWorkers = DashboardData.DeadWorkers,

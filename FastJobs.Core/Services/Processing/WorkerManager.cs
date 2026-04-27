@@ -15,7 +15,12 @@ public class WorkerManager
         _shutdownCts = shutdownCts;
         _scopeFactory = scopeFactory;
 
+         using var Scopemanager = new ScopeManager(scopeFactory);
+         var repo = Scopemanager.Resolve<IWorkerRepository>();
 
+         repo.TruncateAsync()
+         .GetAwaiter()
+         .GetResult();
 
         for (int i = 0; i < workerCount; i++)
         {
