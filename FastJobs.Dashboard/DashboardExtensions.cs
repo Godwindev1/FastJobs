@@ -1,13 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Fastjobs.Dashboard.Pages;
+using Fastjobs.Dashboard.Pages; //small j in fastjobs seems to be preffered by razor So Well have both namespaces for now till its unified into FastJobs
 
-public static class FastjobsDashboardExtensions
+namespace FastJobs.Dashboard;
+
+
+
+public static class FastJobsDashboardExtensions
 {
-    internal const string InternalPath = "/fastjobs";
+    internal const string InternalPath = "/FastJobs";
 
-    public static IServiceCollection AddFastjobsDashboard(
+    public static IServiceCollection AddFastJobsDashboard(
         this IServiceCollection services)
     {
         services.AddRazorComponents()
@@ -16,11 +20,11 @@ public static class FastjobsDashboardExtensions
     }
 
     /// <summary>
-    // Middleware To rewrites the path Before routing happens
-    /// <summary>
-    public static IApplicationBuilder UseFastjobsDashboard(
+    /// Middleware that rewrites the path before routing happens.
+    /// </summary>
+    public static IApplicationBuilder UseFastJobsDashboard(
         this IApplicationBuilder app,
-        string path = "/fastjobs")
+        string path = "/FastJobs")
     {
         path = "/" + path.Trim('/');
 
@@ -38,7 +42,7 @@ public static class FastjobsDashboardExtensions
     }
 
     // Endpoint registration  uses internal path
-    public static IEndpointRouteBuilder MapFastjobsDashboard(
+    public static IEndpointRouteBuilder MapFastJobsDashboard(
         this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapRazorComponents<DashboardRoot>()

@@ -1,9 +1,11 @@
-@page "/fastjobs"
+@page "/FastJobs"
 @implements IDisposable
 @inject IJSRuntime JSRuntime
+@inject DashboardSummaryService summaryService
+@inject JobDetailService jobDetailService
 
 <PageTitle>FastJobs — Overview</PageTitle>
-<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Dashboard.css" />
+<link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Dashboard.css" />
 
 <!-- Top bar -->
 <header class="dashboard-header">
@@ -52,11 +54,7 @@
                 <span class="state-card-value" style="color: #f59e0b;">@DashboardData.RetryingCount</span>
                 <div class="state-card-description"><span class="ms text-warn" style="font-size:13px">refresh</span><span class="state-card-description-text">retry</span></div>
             </div>
-            <div class="state-card">
-                <span class="state-card-label">Cancelled</span>
-                <span class="state-card-value">@DashboardData.CancelledCount</span>
-                <div class="state-card-description"><span class="ms text-dim" style="font-size:13px">cancel</span><span class="state-card-description-text">stopped</span></div>
-            </div>
+
             <div class="state-card" style="border-left: 2px solid #10b981;">
                 <span class="state-card-label">Total</span>
                 <span class="state-card-value">@DashboardData.TotalJobs</span>
@@ -136,10 +134,6 @@
             <div class="section-title">System · Last Hour</div>
             <div style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
                 <div class="metric-row">
-                    <span class="metric-label">Servers</span>
-                    <span class="metric-value">@DashboardData.TotalServers</span>
-                </div>
-                <div class="metric-row">
                     <span class="metric-label">Succeeded/hr</span>
                     <span class="metric-value accent">@DashboardData.SucceededLastHour</span>
                 </div>
@@ -206,7 +200,7 @@
 
     private System.Timers.Timer? _timer;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         LoadData();
         _timer = new System.Timers.Timer(5000); // Update every 5 seconds
@@ -218,30 +212,13 @@
         _timer.Start();
     }
 
-    private void LoadData()
+     private async Task LoadData()
     {
         // Generate dummy data
         var random = new Random();
-        DashboardData = new DashboardSummaryModel
-        {
-            EnqueuedCount = random.Next(2000, 3000),
-            ScheduledCount = random.Next(200, 500),
-            ProcessingCount = random.Next(100, 200),
-            SucceededCount = random.Next(40000, 50000),
-            FailedCount = random.Next(500, 1000),
-            RetryingCount = random.Next(10, 50),
-            CancelledCount = random.Next(50, 100),
-            TotalJobs = 46590,
-            ActiveWorkers = random.Next(80, 120),
-            SleepingWorkers = random.Next(20, 40),
-            DeadWorkers = random.Next(0, 5),
-            TotalServers = 4,
-            SucceededLastHour = random.Next(1300, 1500),
-            FailedLastHour = random.Next(10, 30),
-            ThroughputPerMinute = Math.Round(random.NextDouble() * 5 + 20, 1),
-            HourlyTrend = GenerateHourlyTrend(),
-            DefaultMaxRetries = 3
-        };
+        
+        DashboardData = await summaryService.GetDashboardSummaryAsync();
+        
 
         WorkerData = new WorkerOverviewModel
         {
@@ -252,54 +229,18 @@
             TotalActiveJobs = DashboardData.ActiveWorkers
         };
 
-        RecentJobs = GenerateRecentJobs();
+        RecentJobs = await GenerateRecentJobs();
     }
 
-    private List<ThroughputBucketModel> GenerateHourlyTrend()
-    {
-        var random = new Random();
-        var trend = new List<ThroughputBucketModel>();
-        for (int i = 11; i >= 0; i--)
-        {
-            trend.Add(new ThroughputBucketModel
-            {
-                HourStart = DateTime.UtcNow.AddHours(-i),
-                SucceededCount = random.Next(800, 1500),
-                FailedCount = random.Next(5, 25),
-                EnqueuedCount = random.Next(50, 200)
-            });
-        }
-        return trend;
-    }
 
-    private List<JobDetailModel> GenerateRecentJobs()
+    private async Task<List<JobDetailModel>> GenerateRecentJobs()
     {
-        var random = new Random();
-        var jobs = new List<JobDetailModel>();
-        var jobNames = new[] { "ProcessPaymentReceipt", "GenerateAnalyticsReport", "SyncCrmContacts", "ResizeUserAvatar", "SendWelcomeEmail", "ExportLedgerPdf" };
-        var queues = new[] { "default", "analytics", "low-priority", "critical" };
-        var states = new[] { JobState.Succeeded, JobState.Failed, JobState.Processing, JobState.Retrying };
-
-        for (int i = 0; i < 6; i++)
-        {
-            var state = states[random.Next(states.Length)];
-            jobs.Add(new JobDetailModel
-            {
-                Id = $"job_{random.Next(100000, 999999)}",
-                JobName = jobNames[random.Next(jobNames.Length)],
-                QueueName = queues[random.Next(queues.Length)],
-                State = state,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-random.Next(1, 60)),
-                StartedAt = state == JobState.Processing || state == JobState.Succeeded || state == JobState.Failed ? DateTime.UtcNow.AddSeconds(-random.Next(1, 300)) : null,
-                Duration = state == JobState.Succeeded || state == JobState.Failed ? TimeSpan.FromSeconds(random.Next(1, 300)) : null
-            });
-        }
-        return jobs;
+      return (await jobDetailService.GetAllJobDetailsAsync()).Take(10).ToList();
     }
 
     private string GetStateStyle(JobState state) => state switch
     {
-        JobState.Succeeded => "bg-[rgba(16,185,129,0.12)] text-[#10b981]",
+        JobState.Completed => "bg-[rgba(16,185,129,0.12)] text-[#10b981]",
         JobState.Failed => "bg-[rgba(239,68,68,0.12)] text-[#ef4444]",
         JobState.Processing => "bg-[rgba(96,165,250,0.12)] text-[#60a5fa]",
         JobState.Retrying => "bg-[rgba(245,158,11,0.12)] text-[#f59e0b]",

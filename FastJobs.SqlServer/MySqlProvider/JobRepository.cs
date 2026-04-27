@@ -44,6 +44,17 @@ internal sealed class JobRepository : IJobRepository
     }
 
 
+    public async Task<List<Job>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM Jobs ORDER BY CreatedAt DESC;"; //WHERE DeletedAt IS NULL
+
+        var result = await _connection.QueryAsync<Job>(
+            new CommandDefinition(sql, cancellationToken: cancellationToken));
+
+        return result.ToList();
+    }
     public async Task<Job?> GetByIdAsync(long id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
@@ -131,6 +142,76 @@ internal sealed class JobRepository : IJobRepository
 
         return await _connection.ExecuteAsync(new CommandDefinition(sql, job, cancellationToken: cancellationToken));
 
+    }
+
+    public async Task<int> CountByStateAsync(string stateName, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT COUNT(*) FROM Jobs 
+            WHERE StateName = @StateName 
+           "; // AND DeletedAt IS NULL
+
+        return await _connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql, new { StateName = stateName }, cancellationToken: cancellationToken));
+    }
+
+    public async Task<int> CountRetryingAsync(CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT COUNT(*) FROM Jobs 
+            WHERE RetryCount > 1 
+            AND StateName = @StateName
+           "; // AND DeletedAt IS NULL
+
+        return await _connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql, new { StateName = QueueStateTypes.Processing }, cancellationToken: cancellationToken));
+    }
+
+    public async Task<int> CountCompletedSinceAsync(DateTime since, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT COUNT(*) FROM Jobs
+            WHERE StateName = @StateName
+            AND CreatedAt >= @Since
+           ";// AND DeletedAt IS NULL
+
+        return await _connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql, new { StateName = QueueStateTypes.Completed, Since = since }, cancellationToken: cancellationToken));
+    }
+
+    public async Task<int> CountFailedSinceAsync(DateTime since, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT COUNT(*) FROM Jobs
+            WHERE StateName = @StateName
+            AND CreatedAt >= @Since
+            ";// AND DeletedAt IS NULL
+
+        return await _connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql, new { StateName = QueueStateTypes.Failed, Since = since }, cancellationToken: cancellationToken));
+    }
+
+    public async Task<int> CountStateBetween( string statename, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+        {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT COUNT(*) FROM Jobs
+            WHERE StateName = @StateName
+            AND CreatedAt >= @From
+            AND CreatedAt <= @To
+           "; //AND DeletedAt IS NULL
+
+        return await _connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(sql, new { StateName = statename, From = from, To = to }, cancellationToken: cancellationToken));
     }
 
 }

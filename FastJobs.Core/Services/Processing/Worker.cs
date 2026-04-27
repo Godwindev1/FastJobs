@@ -3,18 +3,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
 //PENDING MODIFICATIONS
-public class Worker
+public partial class Worker
 {
     private readonly int _workerId;
+    private int _dbWorkerId; // ID of this worker in the database for observability
     private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly CancellationToken _shutdownToken;
     private readonly IServiceScopeFactory serviceScopeFactory;
-    private readonly WorkerManager _workerManager;
+    private CancellationTokenSource? _heartbeatCts; 
 
     private readonly QueueProcessor _QueueProcessor;
-    public Worker(int workerId, IServiceScopeFactory serviceScope, CancellationToken shutdownToken, WorkerManager workerManager)
+
+    private FastJobsOptions _options;
+    public Worker(int workerId, IServiceScopeFactory serviceScope, CancellationToken shutdownToken)
     {
-        _workerManager = workerManager;
         using var Scopemanager = new ScopeManager(serviceScope);
         
         _QueueProcessor = new QueueProcessor(
@@ -27,147 +29,196 @@ public class Worker
         _workerId = workerId;
         serviceScopeFactory = serviceScope;
         _shutdownToken = shutdownToken;
+
+        _options = Scopemanager.Resolve<FastJobsOptions>();
     }
+
+    public void SetDBWorkerID(long id)
+    {
+        _dbWorkerId = (int)id;
+    }
+
 
     public async Task Run()
     {
-        _workerManager.UpdateWorkerState(_workerId, WorkerState.Sleeping);
 
-        while (!_shutdownToken.IsCancellationRequested)
+        var workerRecord =  await WorkerObservability();
+
+        try
         {
-            Tuple<Queue, SessionDatabaseLock>? JobDetails = null;
-            if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
+            while (!_shutdownToken.IsCancellationRequested)
             {
-                _workerManager.UpdateWorkerState(_workerId, WorkerState.Sleeping);
-                await Task.Delay(200, _shutdownToken);
-                continue;
-            }
+                Tuple<Queue, SessionDatabaseLock>? JobDetails = null;
 
-            // WHen work is likely,  lock and re-check
-            await _semaphore.WaitAsync(_shutdownToken);
-            try
-            {
-                // Must re-check — another worker may have dequeued
-                // the last job between our outer check and acquiring the lock
+  
                 if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
                 {
-                    continue;
-                }
-
-                JobDetails = await _QueueProcessor.Dequeue(_shutdownToken);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
-
-            using ( var Scope = new ScopeManager(serviceScopeFactory) )
-            {
-                
-                if (JobDetails == null)
-                {
-                    continue;
-                }
-
-                IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
-                Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
-
-                // If the job has expired by the time we got it, skip processing
-                if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
-                    return; 
-
-                var ResolvedJob = JobResolver.ResolveJob(job, Scope);
-                
-                if (ResolvedJob == null)
-                {
-                    await Task.Delay(500, _shutdownToken);
-                    continue;
-                }
-
-                var jobCts = CancellationTokenSource.CreateLinkedTokenSource(_shutdownToken);
-                bool jobSucceeded = false;
-
-                // Update worker state to active
-                _workerManager.UpdateWorkerState(_workerId, WorkerState.Active, job.Id.ToString(), job.JobName, DateTime.UtcNow);
-
-                // Set the job context so jobs like ExpressionFireAndForgetJob can access the job metadata
-                // Since This is a ScopedService Resolved Within A Scope Inside the Worker Its Thread safe And Does not Interfare Other Workers Setting Contexts for use Asewell
-                var jobContext = Scope.Resolve<IJobContext>() as JobContext;
-                jobContext.SetJob( job );
-
-                // Check if this is a recurring job and increment ExecutingInstances
-                IRecurringJobRepository? recurringRepo = null;
-                RecurringJob? recurringJob = null;
-                if (job.JobType == JobTypes.Recurring)
-                {
-                    recurringRepo = Scope.Resolve<IRecurringJobRepository>();
-                    recurringJob = await recurringRepo.GetByJob(job, jobCts.Token);
-                    if (recurringJob != null)
+                    using( var scope = new ScopeManager(serviceScopeFactory))
                     {
-                        recurringJob.ExecutingInstances++;
-                        await recurringRepo.UpdateByIdAsync(recurringJob, jobCts.Token);
+                        IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
+
+                        // Mark sleeping only if we weren't already
+                        if (!workerRecord.isSleeping)
+                        {
+                            workerRecord.isSleeping = true;
+                            await workerRepo.UpdateAsync(workerRecord, _shutdownToken);
+                        }
+
+                        await Task.Delay(200, _shutdownToken);
+                        continue;
                     }
                 }
 
+                // WHen work is likely,  lock and re-check
+                await _semaphore.WaitAsync(_shutdownToken);
                 try
                 {
-                    StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
-                    await StateHelper.UpdateJobStateAsync(job.Id, QueueStateTypes.Processing, "Job is being processed", "", jobCts.Token);
+                     // Must re-check — another worker may have dequeued
+                    // the last job between our outer check and acquiring the lock
+                    if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
+                        continue;
 
-                    await ResolvedJob.ExecuteAsync(jobCts.Token);
-                    jobSucceeded = true; 
-                }
-                catch (OperationCanceledException) when (jobCts.IsCancellationRequested)
-                {
-                    // expected during shutdown
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, ex.Message);
+                    JobDetails = await _QueueProcessor.Dequeue(_shutdownToken);
                 }
                 finally
                 {
-                    // Update recurring job execution counters
-                    if (recurringRepo != null && recurringJob != null)
-                    {
-                        recurringJob.ExecutingInstances--;
-                        if (jobSucceeded)
-                        {
-                            recurringJob.ExecutedInstances++;
-                        }
-                        await recurringRepo.UpdateByIdAsync(recurringJob, jobCts.Token);
-                    }
+                    _semaphore.Release();
                 }
 
-               
-                if (jobSucceeded)
+                using (var Scope = new ScopeManager(serviceScopeFactory))
                 {
+                    if (JobDetails == null)
+                        continue;
+
+                    IWorkerRepository workerRepo = Scope.Resolve<IWorkerRepository>();
+
+                    // Wake up There is  Work to do 
+                    if (workerRecord.isSleeping)
+                    {
+                        workerRecord.isSleeping = false;
+                        await workerRepo.UpdateAsync(workerRecord, _shutdownToken);
+                    }
+
+                    IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
+                    Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
+
+                    // If the job has expired by the time we got it, skip processing
+                    if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+                        return;
+
+                    var ResolvedJob = JobResolver.ResolveJob(job, Scope);
+
+                    if (ResolvedJob == null)
+                    {
+                        await Task.Delay(500, _shutdownToken);
+                        continue;
+                    }
+
+                    var jobCts = CancellationTokenSource.CreateLinkedTokenSource(_shutdownToken);
+                    bool jobSucceeded = false;
+
+                    // Set the job context so jobs like ExpressionFireAndForgetJob can access the job metadata
+                    // Since This is a ScopedService Resolved Within A Scope Inside the Worker Its Thread safe And Does not Interfare Other Workers Setting Contexts for use Asewell
+                    var jobContext = Scope.Resolve<IJobContext>() as JobContext;
+                    jobContext.SetJob(job);
+
+                    IRecurringJobRepository? recurringRepo = null;
+                    RecurringJob? recurringJob = null;
+
+                    // Check if this is a recurring job and increment ExecutingInstances
+                    if (job.JobType == JobTypes.Recurring)
+                    {
+                        recurringRepo = Scope.Resolve<IRecurringJobRepository>();
+                        recurringJob = await recurringRepo.GetByJob(job, jobCts.Token);
+                        if (recurringJob != null)
+                        {
+                            recurringJob.ExecutingInstances++;
+                            await recurringRepo.UpdateByIdAsync(recurringJob, jobCts.Token);
+                        }
+                    }
+
                     try
                     {
-                        await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2);
+                        StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
+                        await StateHelper.UpdateJobStateAsync(job.Id, QueueStateTypes.Processing, "Job is being processed", "", jobCts.Token);
+
+                        await ResolvedJob.ExecuteAsync(jobCts.Token);
+                        jobSucceeded = true;
+                    }
+                    catch (OperationCanceledException) when (jobCts.IsCancellationRequested)
+                    {
+                        // expected during shutdown
                     }
                     catch (Exception ex)
                     {
-                        // Log but don't requeue — job work is done, only cleanup failed
-                        Console.WriteLine($"CompleteJob failed: {ex.Message}");
+                        Console.WriteLine(ex.Message);
+                        await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, ex.Message);
                     }
-
-                    // Reschedule recurring jobs
-                    if (job.JobType == JobTypes.Recurring)
+                    finally
                     {
-                        await RescheduleRecurringJobAsync(job.Id, Scope);
+                        // Update recurring job execution counters
+                        if (recurringRepo != null && recurringJob != null)
+                        {
+                            recurringJob.ExecutingInstances--;
+                            if (jobSucceeded)
+                                recurringJob.ExecutedInstances++;
+
+                            await recurringRepo.UpdateByIdAsync(recurringJob, jobCts.Token);
+                        }
                     }
 
-                    jobContext.SetJob( null );
-                }
+                    if (jobSucceeded)
+                    {
+                        try
+                        {
+                            await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log but don't requeue — job work is done, only cleanup failed
+                            Console.WriteLine($"CompleteJob failed: {ex.Message}");
+                        }
 
-                // Reset worker state after job completion
-                _workerManager.UpdateWorkerState(_workerId, WorkerState.Sleeping);
-            } 
+                        if (job.JobType == JobTypes.Recurring)
+                         {  
+                             await RescheduleRecurringJobAsync(job.Id, Scope);
+                         }
+                        jobContext.SetJob(null);
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Graceful shutdown — not a crash
+        }
+        catch (Exception ex)
+        {
+            using var scope = new ScopeManager(serviceScopeFactory);
+            IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
+
+            // Unhandled exception with no fallback — mark as crashed
+            Console.WriteLine($"[Worker] Fatal crash: {ex.Message}");
+
+            workerRecord.isCrashed = true;
+            workerRecord.isSleeping     = false;
+            await workerRepo.UpdateAsync(workerRecord, CancellationToken.None);
+
+            throw; // re-throw so the host knows this worker died
+        }
+        finally
+        {
+            using var scope = new ScopeManager(serviceScopeFactory);
+            IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
+            
+            // Stop heartbeat regardless of how we exited
+            await _heartbeatCts.CancelAsync();
+
+            // Clean up worker record if shutdown was graceful
+            if (!workerRecord.isCrashed)
+                await workerRepo.DeleteAsync(_dbWorkerId, CancellationToken.None);
         }
     }
-
     private async Task RescheduleRecurringJobAsync(long jobId, ScopeManager scope)
     {
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();

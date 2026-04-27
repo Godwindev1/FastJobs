@@ -1,7 +1,7 @@
-@page "/fastjobs/recurring"
+@page "/FastJobs/recurring"
 @implements IDisposable
 <PageTitle>FastJobs — Recurring</PageTitle>
-<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Recurring.css" />
+<link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Recurring.css" />
 
 <!-- Top bar -->
 <header class="recurring-header">
@@ -104,7 +104,7 @@
                             <td><span class="status-badge @(job.Status == RecurringJobStatus.Active ? "active" : job.Status == RecurringJobStatus.Disabled ? "disabled" : "deleted")">@job.Status</span></td>
                             <td class="next-run-time">@(job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
                             <td class="last-run-time">@(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
-                            <td><span class="last-state-badge @(job.LastRunState == JobState.Succeeded ? "succeeded" : job.LastRunState == JobState.Failed ? "failed" : "unknown")">@(job.LastRunState?.ToString() ?? "—")</span></td>
+                            <td><span class="last-state-badge @(job.LastRunState == JobState.Completed ? "succeeded" : job.LastRunState == JobState.Failed ? "failed" : "unknown")">@(job.LastRunState?.ToString() ?? "—")</span></td>
                             <td class="success-count">@job.SucceededCount.ToString("N0")</td>
                             <td class="failure-count @(job.FailedCount > 0 ? "has-failures" : "")">@job.FailedCount</td>
                             <td>
@@ -173,7 +173,7 @@
             Status = RecurringJobStatus.Active,
             NextRunAt = DateTime.UtcNow.Date.AddDays(1).AddHours(2),
             LastRunAt = DateTime.UtcNow.Date.AddHours(2),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 364,
             FailedCount = 0,
             RegisteredAt = DateTime.UtcNow.AddDays(-365)
@@ -192,7 +192,7 @@
             Status = RecurringJobStatus.Active,
             NextRunAt = DateTime.UtcNow.AddHours(1).AddMinutes(-DateTime.UtcNow.Minute),
             LastRunAt = DateTime.UtcNow.AddHours(-1).AddMinutes(-DateTime.UtcNow.Minute),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 720,
             FailedCount = 2,
             RegisteredAt = DateTime.UtcNow.AddDays(-30)
@@ -210,7 +210,7 @@
             Status = RecurringJobStatus.Active,
             NextRunAt = DateTime.UtcNow.AddMinutes(15 - (DateTime.UtcNow.Minute % 15)).AddSeconds(-DateTime.UtcNow.Second),
             LastRunAt = DateTime.UtcNow.AddMinutes(-15 + (DateTime.UtcNow.Minute % 15)).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 4320,
             FailedCount = 5,
             RegisteredAt = DateTime.UtcNow.AddDays(-180)
@@ -248,7 +248,7 @@
             Status = RecurringJobStatus.Disabled,
             NextRunAt = null,
             LastRunAt = DateTime.UtcNow.AddDays(-7),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 52,
             FailedCount = 0,
             RegisteredAt = DateTime.UtcNow.AddDays(-365)
@@ -266,7 +266,7 @@
             Status = RecurringJobStatus.Active,
             NextRunAt = DateTime.UtcNow.AddHours(6 - (DateTime.UtcNow.Hour % 6)).AddMinutes(-DateTime.UtcNow.Minute).AddSeconds(-DateTime.UtcNow.Second),
             LastRunAt = DateTime.UtcNow.AddHours(-6 + (DateTime.UtcNow.Hour % 6)).AddMinutes(-DateTime.UtcNow.Minute).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 180,
             FailedCount = 1,
             RegisteredAt = DateTime.UtcNow.AddDays(-60)
@@ -284,7 +284,7 @@
             Status = RecurringJobStatus.Active,
             NextRunAt = DateTime.UtcNow.AddMinutes(1).AddSeconds(-DateTime.UtcNow.Second),
             LastRunAt = DateTime.UtcNow.AddMinutes(-1).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 21600,
             FailedCount = 4,
             RegisteredAt = DateTime.UtcNow.AddDays(-15)
@@ -303,7 +303,7 @@
             Status = RecurringJobStatus.Disabled,
             NextRunAt = null,
             LastRunAt = DateTime.UtcNow.AddDays(-1).AddHours(3),
-            LastRunState = JobState.Succeeded,
+            LastRunState = JobState.Completed,
             SucceededCount = 180,
             FailedCount = 0,
             RegisteredAt = DateTime.UtcNow.AddDays(-180)
@@ -338,7 +338,7 @@
 
     private string GetLastStatePillClass(JobState? state) => state switch
     {
-        JobState.Succeeded => "pill-green",
+        JobState.Completed => "pill-green",
         JobState.Failed => "pill-red",
         _ => "pill-gray"
     };

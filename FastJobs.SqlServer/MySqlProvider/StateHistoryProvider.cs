@@ -44,7 +44,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
             new CommandDefinition(sql, states, cancellationToken: cancellationToken)
         );
     }
-    public async Task<State?> GetByIdAsync(int id, CancellationToken cancellationToken )
+    public async Task<State?> GetByIdAsync(long id, CancellationToken cancellationToken )
     {
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
@@ -71,6 +71,26 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
         );
 
         return result;
+    }
+
+    // In StateHistoryRepository
+
+    public async Task<JobTimestamps?> GetTimestampsByJobIdAsync(long jobId, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT
+                MAX(CASE WHEN StateName = 'Enqueued'   THEN CreatedAt END) AS EnqueuedAt,
+                MAX(CASE WHEN StateName = 'Processing' THEN CreatedAt END) AS StartedAt,
+                MAX(CASE WHEN StateName IN ('Succeeded', 'Failed') THEN CreatedAt END) AS CompletedAt
+            FROM State
+            WHERE JobId = @JobId
+            AND DeletedAt IS NULL";
+
+        return await _connection.QuerySingleOrDefaultAsync<JobTimestamps>(
+            new CommandDefinition(sql, new { JobId = jobId }, cancellationToken: cancellationToken)
+        );
     }
 
 }

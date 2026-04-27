@@ -1,7 +1,8 @@
-@page "/fastjobs/jobs"
+@page "/FastJobs/jobs"
 @implements IDisposable
+@inject JobDetailService jobsDetailService
 <PageTitle>FastJobs — Jobs</PageTitle>
-<link rel="stylesheet" href="_content/Fastjobs.Dashboard/css/Jobs.css" />
+<link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Jobs.css" />
 
 <!-- Top bar -->
 <header class="jobs-header">
@@ -106,7 +107,6 @@
                         <th>Started</th>
                         <th>Duration</th>
                         <th>Attempts</th>
-                        <th>Worker</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -122,7 +122,6 @@
                             <td class="table-cell-time">@(job.StartedAt?.ToString("HH:mm:ss") ?? "—")</td>
                             <td class="table-cell-duration">@FormatDuration(job.Duration)</td>
                             <td class="table-cell-attempts">@job.AttemptCount</td>
-                            <td class="table-cell-worker">@(job.WorkerName ?? "—")</td>
                             <td class="table-cell-actions">
                                 <button class="table-action-button ms">more_vert</button>
                             </td>
@@ -160,57 +159,28 @@
 
     private System.Timers.Timer? _timer;
 
-    protected override void OnInitialized()
+    protected override  async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
         _timer = new System.Timers.Timer(10000); // Update every 10 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
         {
-            LoadData();
+            await LoadData();
             StateHasChanged();
         });
         _timer.Start();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        AllJobs = GenerateJobs();
+        AllJobs = await GetJobs();
         JobStats = CalculateStats(AllJobs);
         ApplyFilters();
     }
 
-    private List<JobDetailModel> GenerateJobs()
+    private async Task<List<JobDetailModel>> GetJobs()
     {
-        var random = new Random();
-        var jobs = new List<JobDetailModel>();
-        var jobNames = new[] { "ProcessPaymentReceipt", "GenerateAnalyticsReport", "SyncCrmContacts", "ResizeUserAvatar", "SendWelcomeEmail", "ExportLedgerPdf", "BackfillUserScores", "ArchiveOldSessions" };
-        var queues = new[] { "default", "analytics", "low-priority", "critical" };
-        var states = Enum.GetValues<JobState>();
-        var workers = new[] { "wkr-01", "wkr-02", "wkr-03", "wkr-04", "wkr-05", null };
-
-        for (int i = 0; i < 25; i++)
-        {
-            var state = states[random.Next(states.Length)];
-            var createdAt = DateTime.UtcNow.AddMinutes(-random.Next(1, 1440)); // Last 24 hours
-            var startedAt = state == JobState.Processing || state == JobState.Succeeded || state == JobState.Failed || state == JobState.Retrying ? (DateTime?)createdAt.AddSeconds(random.Next(1, 3600)) : null;
-            var duration = startedAt.HasValue && (state == JobState.Succeeded || state == JobState.Failed) ? (TimeSpan?)TimeSpan.FromSeconds(random.Next(1, 300)) : null;
-
-            jobs.Add(new JobDetailModel
-            {
-                Id = $"job_{random.Next(100000, 999999)}",
-                JobName = jobNames[random.Next(jobNames.Length)],
-                QueueName = queues[random.Next(queues.Length)],
-                State = state,
-                CreatedAt = createdAt,
-                StartedAt = startedAt,
-                Duration = duration,
-                AttemptCount = random.Next(1, 4),
-                WorkerName = state == JobState.Processing ? workers[random.Next(workers.Length - 1)] : null,
-                TypeName = "SomeService",
-                MethodName = "SomeMethod"
-            });
-        }
-        return jobs;
+       return (await jobsDetailService.GetAllJobDetailsAsync()).ToList();
     }
 
     private JobStatsModel CalculateStats(List<JobDetailModel> jobs)
@@ -220,7 +190,7 @@
             Enqueued = jobs.Count(j => j.State == JobState.Enqueued),
             Scheduled = jobs.Count(j => j.State == JobState.Scheduled),
             Processing = jobs.Count(j => j.State == JobState.Processing),
-            Succeeded = jobs.Count(j => j.State == JobState.Succeeded),
+            Succeeded = jobs.Count(j => j.State == JobState.Completed),
             Failed = jobs.Count(j => j.State == JobState.Failed),
             Retrying = jobs.Count(j => j.State == JobState.Retrying),
             Cancelled = jobs.Count(j => j.State == JobState.Deleted)
@@ -233,7 +203,7 @@
 
         if (!string.IsNullOrEmpty(SearchQuery))
         {
-            filtered = filtered.Where(j => j.Id.Contains(SearchQuery) || j.JobName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(j => j.JobName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrEmpty(SelectedQueue))
@@ -270,7 +240,7 @@
 
     private string GetStatePillClass(JobState state) => state switch
     {
-        JobState.Succeeded => "pill-green",
+        JobState.Completed => "pill-green",
         JobState.Failed => "pill-red",
         JobState.Processing => "pill-blue",
         JobState.Retrying => "pill-amber",

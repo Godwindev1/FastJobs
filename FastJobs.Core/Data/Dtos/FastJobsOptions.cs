@@ -6,4 +6,7 @@ public class FastJobsOptions
 
     public TimeSpan IdleWaitPeriod {get; set; }  = TimeSpan.FromSeconds(30);
     public TimeSpan  MaxSleep  {get; set; }  = TimeSpan.FromMinutes(5);
+
+    public int DefaultMaxRetries {get; set; } = 3;
+    public int DefaultWOrkerHeartbeatIntervalSeconds {get; set; } = 30;
 }

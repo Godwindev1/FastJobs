@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 namespace FastJobs;
 
+using Fastjobs.Dashboard;
 using FastJobs.SqlServer;
 
 public static  class ServiceCollectionExtensions
@@ -13,7 +14,7 @@ public static  class ServiceCollectionExtensions
     /// <param name="ConnectionString"> Database Connection string </param>
     /// <param name="Database Provider"> Selected Or Only Installed Provider </param>
     /// <returns></returns>
-    public static IServiceCollection FastJobs(
+    public static IServiceCollection AddFastJobs(
         this IServiceCollection services, Action<FastJobsOptions> optionsFactory, IDatabaseProviderDependencies databaseProvider)
     {
         RegisterApplicationShutdownToken(services);
@@ -34,6 +35,10 @@ public static  class ServiceCollectionExtensions
         services.AddScoped<IJobContext, JobContext>();
         services.AddScoped<ExpressionFireAndForgetJob>();
         services.AddScoped<IExpressionResolver, DefaultExpressionResolver>();
+
+        //DASHBOARD SERVICES
+        services.AddScoped<JobDetailService>();
+        services.AddScoped<DashboardSummaryService>();
 
         return services;
     }

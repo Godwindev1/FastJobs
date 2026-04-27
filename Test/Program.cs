@@ -1,18 +1,20 @@
-﻿using System.Net.Sockets;
-using FastJobs;
-using Microsoft.Extensions.DependencyInjection;
+﻿using FastJobs;
+using FastJobs.SqlServer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 
-
+//
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
 var builder = Host.CreateApplicationBuilder(args);
+
+// Register the ComplexTestJob with the DI container so it can be resolved when the job is executed.
 builder.Services.AddJobService<ComplexTestJob>();
-builder.Services.FastJobs(
-    option => {  option.WorkerCount = 4; },
-     new FastJobs.SqlServer.FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
+
+builder.Services.AddFastJobs(
+    option => {  option.WorkerCount = 2; },
+     new FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
 );
 
 
@@ -21,36 +23,48 @@ var app = builder.Build();
 
 app.Services.UseFastJobs();
 
+//start host 
 await app.StartAsync();
 
-//bloating trial 
-while(true )
-{
-    await FastJobServer.EnqueueJob<ComplexTestJob>()
-    .Start();
+//Enqueuing a Concrete Job that implements IBackGroundJob interface
+await FastJobServer.EnqueueJob<ComplexTestJob>()
+.Start();
 
-    //await FastJobServer.ScheduleJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
-    //.WaitDelay(TimeSpan.FromSeconds(45))
-    //.Start();
+//Schdeuling a Concrete Job that implements IBackGroundJob interface to run after a delay of 45 seconds
+await FastJobServer.ScheduleJob<ComplexTestJob>()
+.WaitDelay(TimeSpan.FromSeconds(45))
+.Start();
 
-    //await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
-    //.AddCronExpression("*/1 * * * *") // Every minute
-    //.RunAt(DateTime.Now)
-    //.WaitDelay(TimeSpan.FromSeconds(4))
-    //.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
-    //.Start();
+//Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
+await FastJobServer.AddRecurringJob<ComplexTestJob>()
+.WithInterval(TimeSpan.FromSeconds(10), DateTime.Now)// Simple Interval Based to Run every 40 minutes, starting immediately
+.Start();
 
-    //await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now))
-    //.SetPriority(JobPriority.High) // High priority job
-    //.SetMaxRetryCount(i < 10 ? 3 : 0) // First 10 jobs will retry up to 3 times, others won't retry
-    //.Start();
+//Scheduling a simple job to run after a delay of 45 seconds
+await FastJobServer.ScheduleJob(() => Console.WriteLine("Hello Kaboom At " + DateTime.Now))
+.WaitDelay(TimeSpan.FromSeconds(45))
+.Start();
 
-    await Task.Delay(1000);
-}
+//Adding a recurring job that runs every minute, starting immediately, with a delay of 4 seconds before the first execution, and expires after 5 minutes.
+await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
+.AddCronExpression("*/1 * * * *") // Every minute
+.RunAt(DateTime.Now)
+.WaitDelay(TimeSpan.FromSeconds(4))
+.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+.Start();
+
+await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
+.SetPriority(JobPriority.High) // High priority job
+.SetMaxRetryCount(3) // Retry up to 3 times on failure
+.Start();
+
+
+
 
 await app.WaitForShutdownAsync();
 
 
+//CONCRETE JOBS THAT INHERIT FROM IBackGroundJob INTERFACE
 public class ComplexTestJob : IBackGroundJob
 {
     private readonly Logger<ComplexTestJob> _logger;

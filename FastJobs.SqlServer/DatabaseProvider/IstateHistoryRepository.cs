@@ -3,7 +3,9 @@ namespace FastJobs.SqlServer;
 public interface IStateHistoryRepository
 {
     Task<long> InsertAsync(State job, CancellationToken cancellationToken = default);
-    Task<State?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<State?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+
+    Task<JobTimestamps?> GetTimestampsByJobIdAsync(long jobId, CancellationToken cancellationToken = default);
 
     Task InsertAsync(IEnumerable<State> states, CancellationToken cancellationToken = default);
 
