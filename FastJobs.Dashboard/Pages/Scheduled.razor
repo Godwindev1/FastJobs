@@ -1,5 +1,7 @@
 @page "/FastJobs/scheduled"
 @implements IDisposable
+@inject ScheduledJobService ScheduledJobsService
+
 <PageTitle>FastJobs — Scheduled</PageTitle>
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Scheduled.css" />
 
@@ -24,17 +26,17 @@
         </div>
         <div class="summary-card">
             <div class="summary-card-label">Due &lt; 5 min</div>
-            <div class="summary-card-value danger">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5)</div>
+            <div class="summary-card-value danger">@ScheduledJobs.Count(j => j.TimeTillScheduledrun.TotalMinutes < 5)</div>
             <div class="summary-card-subtext">imminent</div>
         </div>
         <div class="summary-card">
             <div class="summary-card-label">Due &lt; 1 hr</div>
-            <div class="summary-card-value warn">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 60)</div>
+            <div class="summary-card-value warn">@ScheduledJobs.Count(j => j.TimeTillScheduledrun.TotalMinutes < 60)</div>
             <div class="summary-card-subtext">soon</div>
         </div>
         <div class="summary-card">
             <div class="summary-card-label">Recurring Triggers</div>
-            <div class="summary-card-value">@ScheduledJobs.Count(j => j.Id.Contains("rec"))</div>
+            <div class="summary-card-value">@ScheduledJobs.Count(j => j.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase)))</div>
             <div class="summary-card-subtext">IsRecurringTrigger</div>
         </div>
     </div>
@@ -43,11 +45,11 @@
     <div class="timeline-section">
         <div class="timeline-title">Upcoming Timeline</div>
 
-        @if (ScheduledJobs.Any(j => j.TimeUntilEnqueue.TotalMinutes < 5))
+        @if (ScheduledJobs.Any(j => j.TimeTillScheduledrun.TotalMinutes < 5))
         {
             <div class="alert-box">
                 <span class="alert-icon ms">warning</span>
-                <span class="alert-text">@ScheduledJobs.Count(j => j.TimeUntilEnqueue.TotalMinutes < 5) jobs due within 5 minutes</span>
+                <span class="alert-text">@ScheduledJobs.Count(j => j.TimeTillScheduledrun.TotalMinutes < 5) jobs due within 5 minutes</span>
             </div>
         }
     </div>
@@ -102,17 +104,18 @@
                                 <span class="table-cell-queue">@job.QueueName</span>
                             </td>
                             <td class="table-cell-time">@job.EnqueueAt.ToString("HH:mm:ss")</td>
-                            <td class="table-cell-until @GetUrgencyClass(job.TimeUntilEnqueue)">@FormatTimeUntil(job.TimeUntilEnqueue)</td>
+                            <td class="table-cell-until @GetUrgencyClass(job.TimeTillScheduledrun)">@FormatTimeUntil(job.TimeTillScheduledrun)</td>
                             <td class="table-cell-created">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
                             <td>
-                                @if (job.Id.Contains("rec"))
+                                @if (job.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="table-source-badge recurring" title="RecurringJobId: @(job.Id.Replace("sched_", ""))"><span class="table-source-icon ms">autorenew</span>Recurring</span>
+                                    <span class="table-source-badge recurring" title="RecurringJobId: @(job.JobType.Replace("sched_", ""))"><span class="table-source-icon ms">autorenew</span>Recurring</span>
                                 }
                                 else
                                 {
                                     <span class="table-source-badge oneoff">One-off</span>
                                 }
+                                
                             </td>
                             <td>
                                 <div class="table-actions">
@@ -145,118 +148,27 @@
 
     private System.Timers.Timer? _timer;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
         _timer = new System.Timers.Timer(12000); // Update every 12 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
         {
-            LoadData();
+            await LoadData();
             StateHasChanged();
         });
         _timer.Start();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        ScheduledJobs = GenerateScheduledJobs();
+        ScheduledJobs = await GetSchdeuledJobs();
         ApplyFilters();
     }
 
-    private List<ScheduledJobModel> GenerateScheduledJobs()
+    private async Task< List<ScheduledJobModel> > GetSchdeuledJobs()
     {
-        var jobs = new List<ScheduledJobModel>();
-        var now = DateTime.UtcNow;
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_001",
-            JobName = "ProcessPaymentReceipt",
-            TypeName = "PaymentService",
-            MethodName = "ProcessAsync",
-            QueueName = "critical",
-            EnqueueAt = now.AddMinutes(2),
-            CreatedAt = now.AddMinutes(-5)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_002",
-            JobName = "Hourly Cache Warm",
-            TypeName = "CacheService",
-            MethodName = "WarmCacheAsync",
-            QueueName = "critical",
-            EnqueueAt = now.AddMinutes(25),
-            CreatedAt = now.AddHours(-1)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_003",
-            JobName = "SyncCrmContacts",
-            TypeName = "CrmService",
-            MethodName = "SyncAsync",
-            QueueName = "default",
-            EnqueueAt = now.AddMinutes(9).AddSeconds(42),
-            CreatedAt = now.AddMinutes(-15)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_004",
-            JobName = "SendReminderEmail",
-            TypeName = "MailService",
-            MethodName = "SendReminderAsync",
-            QueueName = "default",
-            EnqueueAt = now.AddMinutes(1).AddSeconds(44),
-            CreatedAt = now.AddHours(-1)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_005",
-            JobName = "ExportLedgerPdf",
-            TypeName = "FinanceService",
-            MethodName = "ExportAsync",
-            QueueName = "default",
-            EnqueueAt = now.AddHours(1).AddMinutes(25),
-            CreatedAt = now.AddMinutes(-30)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_006",
-            JobName = "Cleanup Orphaned Files",
-            TypeName = "StorageService",
-            MethodName = "CleanupAsync",
-            QueueName = "low-priority",
-            EnqueueAt = now.AddHours(3).AddMinutes(25),
-            CreatedAt = now.AddHours(-12)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_007",
-            JobName = "GenerateAnalyticsReport",
-            TypeName = "AnalyticsService",
-            MethodName = "GenerateAsync",
-            QueueName = "analytics",
-            EnqueueAt = now.AddMinutes(4).AddSeconds(58),
-            CreatedAt = now.AddMinutes(-3)
-        });
-
-        jobs.Add(new ScheduledJobModel
-        {
-            Id = "sched_008",
-            JobName = "BackfillUserScores",
-            TypeName = "ScoringService",
-            MethodName = "BackfillAsync",
-            QueueName = "analytics",
-            EnqueueAt = now.AddMinutes(55),
-            CreatedAt = now.AddHours(-1)
-        });
-
-        return jobs;
+        return (await ScheduledJobsService.GetAllScheduledJobsAsync()).ToList();
     }
 
     private void ApplyFilters()
@@ -272,11 +184,11 @@
         {
             if (SelectedTypeFilter == "Recurring Triggers")
             {
-                filtered = filtered.Where(j => j.Id.Contains("rec"));
+                filtered = filtered.Where(j => j.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase));
             }
             else if (SelectedTypeFilter == "One-off")
             {
-                filtered = filtered.Where(j => !j.Id.Contains("rec"));
+                filtered = filtered.Where(j => !j.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase));
             }
         }
 

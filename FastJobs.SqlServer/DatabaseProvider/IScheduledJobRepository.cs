@@ -6,6 +6,8 @@ public interface IScheduledJobRepository
 
     Task<ScheduledJobInfo?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
 
+    Task<List<ScheduledJobInfo>> GetAllAsync(CancellationToken cancellationToken = default);
+
     Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default);
 
     Task<int> UpdateByIdAsync(ScheduledJobInfo scheduledJob, CancellationToken cancellationToken = default);

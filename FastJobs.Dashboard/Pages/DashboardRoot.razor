@@ -21,9 +21,11 @@
     </Router>
 
     @* Suppress RZ9992 - this component is intentionally the document root shell *@
-    #pragma warning disable RZ9992
+    @{
+        #pragma warning disable RZ9992;
         <script src="_framework/blazor.web.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
-    #pragma warning restore RZ9992
+        #pragma warning restore RZ9992;
+    }
 </body>
 </html>

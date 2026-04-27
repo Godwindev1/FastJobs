@@ -52,6 +52,17 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
         return await connection.QuerySingleOrDefaultAsync<ScheduledJobInfo>(command);
     }
 
+    public async Task<List<ScheduledJobInfo>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM ScheduledJobs;";
+
+        var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
+        var result = await connection.QueryAsync<ScheduledJobInfo>(command);
+        return result.ToList();
+    }
+
     /// <summary>
     /// Deletes a scheduled job by its ID
     /// </summary>

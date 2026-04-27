@@ -39,6 +39,8 @@ public static  class ServiceCollectionExtensions
         //DASHBOARD SERVICES
         services.AddScoped<JobDetailService>();
         services.AddScoped<DashboardSummaryService>();
+        services.AddScoped<RecurringJobService>();
+        services.AddScoped<ScheduledJobService>();
 
         return services;
     }

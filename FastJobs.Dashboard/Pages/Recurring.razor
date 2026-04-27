@@ -1,5 +1,7 @@
 @page "/FastJobs/recurring"
 @implements IDisposable
+@inject RecurringJobService RecurringJobService
+
 <PageTitle>FastJobs — Recurring</PageTitle>
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Recurring.css" />
 
@@ -74,7 +76,6 @@
                         <th>Status</th>
                         <th>Next Run</th>
                         <th>Last Run</th>
-                        <th>Last State</th>
                         <th>✓ Runs</th>
                         <th>✗ Fails</th>
                         <th></th>
@@ -104,7 +105,6 @@
                             <td><span class="status-badge @(job.Status == RecurringJobStatus.Active ? "active" : job.Status == RecurringJobStatus.Disabled ? "disabled" : "deleted")">@job.Status</span></td>
                             <td class="next-run-time">@(job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
                             <td class="last-run-time">@(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
-                            <td><span class="last-state-badge @(job.LastRunState == JobState.Completed ? "succeeded" : job.LastRunState == JobState.Failed ? "failed" : "unknown")">@(job.LastRunState?.ToString() ?? "—")</span></td>
                             <td class="success-count">@job.SucceededCount.ToString("N0")</td>
                             <td class="failure-count @(job.FailedCount > 0 ? "has-failures" : "")">@job.FailedCount</td>
                             <td>
@@ -137,179 +137,27 @@
 
     private System.Timers.Timer? _timer;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
         _timer = new System.Timers.Timer(15000); // Update every 15 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
         {
-            LoadData();
+            await LoadData();
             StateHasChanged();
         });
         _timer.Start();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        RecurringJobs = GenerateRecurringJobs();
+        RecurringJobs = await GetRecurringJobs();
         ApplyFilters();
     }
 
-    private List<RecurringJobModel> GenerateRecurringJobs()
+    private async Task<List<RecurringJobModel>> GetRecurringJobs()
     {
-        var random = new Random();
-        var jobs = new List<RecurringJobModel>();
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "daily-invoice-export",
-            DisplayName = "Daily Invoice Export",
-            TypeName = "InvoiceService",
-            MethodName = "ExportAsync",
-            QueueName = "default",
-            ScheduleType = ScheduleType.Cron,
-            CronExpression = "0 2 * * *",
-            CronDescription = "Every day at 02:00",
-            Status = RecurringJobStatus.Active,
-            NextRunAt = DateTime.UtcNow.Date.AddDays(1).AddHours(2),
-            LastRunAt = DateTime.UtcNow.Date.AddHours(2),
-            LastRunState = JobState.Completed,
-            SucceededCount = 364,
-            FailedCount = 0,
-            RegisteredAt = DateTime.UtcNow.AddDays(-365)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "hourly-cache-warm",
-            DisplayName = "Hourly Cache Warm",
-            TypeName = "CacheService",
-            MethodName = "WarmCacheAsync",
-            QueueName = "critical",
-            ScheduleType = ScheduleType.Cron,
-            CronExpression = "0 * * * *",
-            CronDescription = "Every hour",
-            Status = RecurringJobStatus.Active,
-            NextRunAt = DateTime.UtcNow.AddHours(1).AddMinutes(-DateTime.UtcNow.Minute),
-            LastRunAt = DateTime.UtcNow.AddHours(-1).AddMinutes(-DateTime.UtcNow.Minute),
-            LastRunState = JobState.Completed,
-            SucceededCount = 720,
-            FailedCount = 2,
-            RegisteredAt = DateTime.UtcNow.AddDays(-30)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "sync-crm-contacts",
-            DisplayName = "Sync CRM Contacts",
-            TypeName = "CrmService",
-            MethodName = "SyncAsync",
-            QueueName = "default",
-            ScheduleType = ScheduleType.Interval,
-            Interval = TimeSpan.FromMinutes(15),
-            Status = RecurringJobStatus.Active,
-            NextRunAt = DateTime.UtcNow.AddMinutes(15 - (DateTime.UtcNow.Minute % 15)).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunAt = DateTime.UtcNow.AddMinutes(-15 + (DateTime.UtcNow.Minute % 15)).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunState = JobState.Completed,
-            SucceededCount = 4320,
-            FailedCount = 5,
-            RegisteredAt = DateTime.UtcNow.AddDays(-180)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "analytics-rollup",
-            DisplayName = "Analytics Rollup",
-            TypeName = "AnalyticsService",
-            MethodName = "RollupAsync",
-            QueueName = "analytics",
-            ScheduleType = ScheduleType.Cron,
-            CronExpression = "0 0 * * *",
-            CronDescription = "Midnight daily",
-            Status = RecurringJobStatus.Active,
-            NextRunAt = DateTime.UtcNow.Date.AddDays(1),
-            LastRunAt = DateTime.UtcNow.Date,
-            LastRunState = JobState.Failed,
-            SucceededCount = 29,
-            FailedCount = 3,
-            RegisteredAt = DateTime.UtcNow.AddDays(-30)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "email-digest-weekly",
-            DisplayName = "Weekly Email Digest",
-            TypeName = "MailService",
-            MethodName = "SendDigestAsync",
-            QueueName = "default",
-            ScheduleType = ScheduleType.Cron,
-            CronExpression = "0 8 * * 1",
-            CronDescription = "Mondays at 08:00",
-            Status = RecurringJobStatus.Disabled,
-            NextRunAt = null,
-            LastRunAt = DateTime.UtcNow.AddDays(-7),
-            LastRunState = JobState.Completed,
-            SucceededCount = 52,
-            FailedCount = 0,
-            RegisteredAt = DateTime.UtcNow.AddDays(-365)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "cleanup-orphaned-files",
-            DisplayName = "Cleanup Orphaned Files",
-            TypeName = "StorageService",
-            MethodName = "CleanupAsync",
-            QueueName = "low-priority",
-            ScheduleType = ScheduleType.Interval,
-            Interval = TimeSpan.FromHours(6),
-            Status = RecurringJobStatus.Active,
-            NextRunAt = DateTime.UtcNow.AddHours(6 - (DateTime.UtcNow.Hour % 6)).AddMinutes(-DateTime.UtcNow.Minute).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunAt = DateTime.UtcNow.AddHours(-6 + (DateTime.UtcNow.Hour % 6)).AddMinutes(-DateTime.UtcNow.Minute).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunState = JobState.Completed,
-            SucceededCount = 180,
-            FailedCount = 1,
-            RegisteredAt = DateTime.UtcNow.AddDays(-60)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "heartbeat-check",
-            DisplayName = "External Heartbeat Check",
-            TypeName = "HealthService",
-            MethodName = "CheckHeartbeatAsync",
-            QueueName = "critical",
-            ScheduleType = ScheduleType.Interval,
-            Interval = TimeSpan.FromMinutes(1),
-            Status = RecurringJobStatus.Active,
-            NextRunAt = DateTime.UtcNow.AddMinutes(1).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunAt = DateTime.UtcNow.AddMinutes(-1).AddSeconds(-DateTime.UtcNow.Second),
-            LastRunState = JobState.Completed,
-            SucceededCount = 21600,
-            FailedCount = 4,
-            RegisteredAt = DateTime.UtcNow.AddDays(-15)
-        });
-
-        jobs.Add(new RecurringJobModel
-        {
-            Id = "backup-user-db",
-            DisplayName = "Backup User Database",
-            TypeName = "BackupService",
-            MethodName = "BackupAsync",
-            QueueName = "default",
-            ScheduleType = ScheduleType.Cron,
-            CronExpression = "0 3 * * *",
-            CronDescription = "Every day at 03:00",
-            Status = RecurringJobStatus.Disabled,
-            NextRunAt = null,
-            LastRunAt = DateTime.UtcNow.AddDays(-1).AddHours(3),
-            LastRunState = JobState.Completed,
-            SucceededCount = 180,
-            FailedCount = 0,
-            RegisteredAt = DateTime.UtcNow.AddDays(-180)
-        });
-
-        return jobs;
+        return (await RecurringJobService.GetAllRecurringJobsAsync()).ToList();
     }
 
     private void ApplyFilters()
