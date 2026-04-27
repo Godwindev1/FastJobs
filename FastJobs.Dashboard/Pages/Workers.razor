@@ -1,5 +1,6 @@
 @page "/FastJobs/workers"
 @implements IDisposable
+@inject WorkerOverviewService WorkerService
 
 <PageTitle>FastJobs — Workers</PageTitle>
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Workers.css" />
@@ -67,11 +68,8 @@
                 <thead>
                     <tr>
                         <th>Worker</th>
-                        <th>Server</th>
                         <th>State</th>
                         <th>Queues</th>
-                        <th>Current Job</th>
-                        <th>Run Time</th>
                         <th>Heartbeat</th>
                         <th>Jobs Done</th>
                         <th>Success %</th>
@@ -85,7 +83,7 @@
                                 <div class="worker-name-column">@worker.WorkerName</div>
                                 <div class="worker-id">@worker.WorkerId</div>
                             </td>
-                            <td class="worker-server">@worker.ServerName</td>
+                            
                             <td><span class="worker-state-badge @GetStatePillClass(worker.State)">@if (worker.State == WorkerState.Active) {<span class="dot green pulse" style="margin-right:4px"></span>} @worker.State</span></td>
                             <td>
                                 <div class="worker-queues">
@@ -95,18 +93,8 @@
                                     }
                                 </div>
                             </td>
-                            <td>
-                                @if (worker.CurrentJobId != null)
-                                {
-                                    <div class="current-job">@worker.CurrentJobName</div>
-                                    <div class="current-job-id">#@worker.CurrentJobId</div>
-                                }
-                                else
-                                {
-                                    <span class="current-job-empty">—</span>
-                                }
-                            </td>
-                            <td class="job-runtime">@FormatRunTime(worker.CurrentJobRunTime)</td>
+
+                            
                             <td class="heartbeat @(worker.State == WorkerState.Dead ? "dead" : "")">@FormatHeartbeat(worker.HeartbeatAge)</td>
                             <td class="jobs-processed">@worker.Metrics.JobsProcessed.ToString("N0")</td>
                             <td>
@@ -168,71 +156,27 @@
 
     private System.Timers.Timer? _timer;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadData();
+        await LoadData();
         _timer = new System.Timers.Timer(8000); // Update every 8 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
         {
-            LoadData();
+            await LoadData();
             StateHasChanged();
         });
         _timer.Start();
     }
 
-    private void LoadData()
+    private async Task LoadData()
     {
-        WorkerOverview = GenerateWorkerOverview();
+        WorkerOverview = await GetWorkerOverview();
         ApplyFilters();
     }
 
-    private WorkerOverviewModel GenerateWorkerOverview()
+    private async Task<WorkerOverviewModel> GetWorkerOverview()
     {
-        var random = new Random();
-        var workers = new List<WorkerModel>();
-        var servers = new[] { "srv-alpha", "srv-beta", "srv-gamma" };
-        var queues = new[] { new[] { "default", "critical" }, new[] { "default" }, new[] { "analytics" }, new[] { "low-priority" } };
-        var jobNames = new[] { "ProcessPaymentReceipt", "GenerateAnalyticsReport", "SyncCrmContacts", "ResizeUserAvatar", "SendWelcomeEmail" };
-
-        for (int i = 1; i <= 6; i++)
-        {
-            var state = (WorkerState)random.Next(0, 3); // Active, Sleeping, Dead
-            var isActive = state == WorkerState.Active;
-            var currentJobId = isActive ? $"job_{random.Next(100000, 999999)}" : null;
-            var currentJobName = isActive ? jobNames[random.Next(jobNames.Length)] : null;
-            var startedAt = isActive ? (DateTime?)DateTime.UtcNow.AddSeconds(-random.Next(1, 120)) : null;
-
-            workers.Add(new WorkerModel
-            {
-                WorkerId = $"wkr-{i:D2}",
-                WorkerName = $"worker-prod-{i:D2}",
-                ServerName = servers[random.Next(servers.Length)],
-                State = state,
-                StartedAt = DateTime.UtcNow.AddHours(-random.Next(1, 24)),
-                LastHeartbeatAt = state == WorkerState.Dead ? DateTime.UtcNow.AddMinutes(-random.Next(5, 60)) : DateTime.UtcNow.AddSeconds(-random.Next(1, 30)),
-                CurrentJobId = currentJobId,
-                CurrentJobName = currentJobName,
-                CurrentJobStartedAt = startedAt,
-                Metrics = new WorkerMetricsModel
-                {
-                    WorkerId = $"wkr-{i:D2}",
-                    AvgProcessingLatencyMs = random.Next(200, 5000),
-                    JobsProcessed = random.Next(100, 3000),
-                    JobsSucceeded = random.Next(95, 3000),
-                    JobsFailed = random.Next(0, 50)
-                }
-            });
-        }
-
-        return new WorkerOverviewModel
-        {
-            TotalWorkers = workers.Count,
-            ActiveWorkers = workers.Count(w => w.State == WorkerState.Active),
-            SleepingWorkers = workers.Count(w => w.State == WorkerState.Sleeping),
-            DeadWorkers = workers.Count(w => w.State == WorkerState.Dead),
-            TotalActiveJobs = workers.Count(w => w.State == WorkerState.Active),
-            Workers = workers
-        };
+        return await WorkerService.GetWorkersOverviewAsync();
     }
 
     private void ApplyFilters()

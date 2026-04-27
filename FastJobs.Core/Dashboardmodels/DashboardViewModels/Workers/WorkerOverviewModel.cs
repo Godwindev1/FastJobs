@@ -2,11 +2,11 @@ namespace FastJobs.Dashboard.Models;
 
 public sealed class WorkerOverviewModel
 {
-    public int TotalWorkers                 { get; init; }
-    public int ActiveWorkers                { get; init; }
-    public int SleepingWorkers              { get; init; }
-    public int DeadWorkers                  { get; init; }
-    public int TotalActiveJobs              { get; init; }
-    public DateTime GeneratedAt             { get; init; } = DateTime.UtcNow;
-    public IReadOnlyList<WorkerModel> Workers { get; init; } = Array.Empty<WorkerModel>();
+    public int TotalWorkers                 { get; set; }
+    public int ActiveWorkers                { get; set; }
+    public int SleepingWorkers              { get; set; }
+    public int DeadWorkers                  { get; set; }
+    public int TotalActiveJobs              { get; set; }
+    public DateTime GeneratedAt             { get; set; } = DateTime.UtcNow;
+    public List<WorkerModel> Workers { get; set; } = [];
 }

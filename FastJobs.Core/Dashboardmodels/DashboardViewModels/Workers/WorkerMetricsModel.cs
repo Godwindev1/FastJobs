@@ -1,5 +1,6 @@
 namespace FastJobs.Dashboard.Models;
 
+//METRICS MODEL WILL BE IMPLEMENTED AT A LATER STAGE, CURRENTLY JUST A PLACEHOLDER FOR FUTURE METRICS RELATED TO WORKERS
 public sealed class WorkerMetricsModel
 {
     public string WorkerId                  { get; init; } = string.Empty;
