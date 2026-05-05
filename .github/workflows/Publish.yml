@@ -24,15 +24,15 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
 
           if [[ "$TAG" == sqlserver-v* ]]; then
-            echo "PATH=src/FastJobs.SqlServer/FastJobs.SqlServer.csproj" >> $GITHUB_OUTPUT
+            echo "PATH=FastJobs.SqlServer/FastJobs.SqlServer.csproj" >> $GITHUB_OUTPUT
             echo "VERSION=${TAG#sqlserver-v}" >> $GITHUB_OUTPUT
 
           elif [[ "$TAG" == core-v* ]]; then
-            echo "PATH=src/FastJobs.Core/FastJobs.Core.csproj" >> $GITHUB_OUTPUT
+            echo "PATH=FastJobs.Core/FastJobs.Core.csproj" >> $GITHUB_OUTPUT
             echo "VERSION=${TAG#core-v}" >> $GITHUB_OUTPUT
 
           elif [[ "$TAG" == dashboard-v* ]]; then
-            echo "PATH=src/FastJobs.Dashboard/FastJobs.Dashboard.csproj" >> $GITHUB_OUTPUT
+            echo "PATH=FastJobs.Dashboard/FastJobs.Dashboard.csproj" >> $GITHUB_OUTPUT
             echo "VERSION=${TAG#dashboard-v}" >> $GITHUB_OUTPUT
           fi
 
