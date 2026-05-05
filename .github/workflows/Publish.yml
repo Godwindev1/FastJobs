@@ -1,0 +1,61 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'sqlserver-v*.*.*'
+      - 'core-v*.*.*'
+      - 'dashboard-v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Resolve package from tag
+        id: meta
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+
+          if [[ "$TAG" == sqlserver-v* ]]; then
+            echo "PATH=src/FastJobs.SqlServer/FastJobs.SqlServer.csproj" >> $GITHUB_OUTPUT
+            echo "VERSION=${TAG#sqlserver-v}" >> $GITHUB_OUTPUT
+
+          elif [[ "$TAG" == core-v* ]]; then
+            echo "PATH=src/FastJobs.Core/FastJobs.Core.csproj" >> $GITHUB_OUTPUT
+            echo "VERSION=${TAG#core-v}" >> $GITHUB_OUTPUT
+
+          elif [[ "$TAG" == dashboard-v* ]]; then
+            echo "PATH=src/FastJobs.Dashboard/FastJobs.Dashboard.csproj" >> $GITHUB_OUTPUT
+            echo "VERSION=${TAG#dashboard-v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: |
+          dotnet build ${{ steps.meta.outputs.PATH }} \
+            --configuration Release \
+            --no-restore
+
+      - name: Pack
+        run: |
+          dotnet pack ${{ steps.meta.outputs.PATH }} \
+            --configuration Release \
+            --no-build \
+            -p:PackageVersion=${{ steps.meta.outputs.VERSION }} \
+            --output ./artifacts
+
+      - name: Push
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

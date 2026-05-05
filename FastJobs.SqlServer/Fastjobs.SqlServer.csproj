@@ -13,4 +13,24 @@
     <PackageReference Include="MySqlConnector" Version="2.5.0" />
   </ItemGroup>
 
+
+   <PropertyGroup>
+    <PackageId>FastJobs.SqlServer</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Godwin Oluowho</Authors>
+    <Description>SQL Server data layer for FastJobs.</Description>
+    <RepositoryUrl>https://github.com/Godwindev1/FastJobs</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>aspnetcore;fastjobs;sqlserver;entityframework</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+
+    <ItemGroup>
+      <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 </Project>

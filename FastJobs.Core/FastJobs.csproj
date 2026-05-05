@@ -26,4 +26,24 @@
   <Copy SourceFiles="$(TargetDir)**\*.*" DestinationFolder="C:\ClientFolder\" />
   -->
 
+  <PropertyGroup>
+    <PackageId>FastJobs.Core</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Godwin Oluowho</Authors>
+    <Description>Core logic for FastJobs, built on FastJobs.SqlServer.</Description>
+    <RepositoryUrl>https://github.com/Godwindev1/FastJobs</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>aspnetcore;fastjobs;core;backgroundjobs</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  
+    <ItemGroup>
+      <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
 </Project>

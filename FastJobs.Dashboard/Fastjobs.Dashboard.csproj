@@ -26,4 +26,26 @@
     <ItemGroup>
         <EmbeddedResource Include="wwwroot\**\*" />
     </ItemGroup>
+
+<PropertyGroup>
+     <!-- NuGet metadata -->
+    <PackageId>FastJobs.Dashboard</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Godwin Oluowho</Authors>
+    <Description>Dashboard and reporting layer for FastJobs  .</Description>
+    <PackageTags>aspnetcore;fastjobs;backgroundjobs;</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Godwindev1/FastJobs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <!-- Embeds source for debuggability -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+</PropertyGroup>
+
+    <ItemGroup>
+      <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 </Project>
