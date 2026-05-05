@@ -1,4 +1,5 @@
 # Fastjobs
+![CI](https://github.com/Godwindev1/FastJobs/actions/workflows/ValidatePackages.yml/badge.svg)
 
 Welcome to the Quick Start Guide for Getting up and running with **FastJobs** .
 
