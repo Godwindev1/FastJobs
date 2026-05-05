@@ -3,7 +3,7 @@ using FastJobs;
 using FastJobs.Dashboard.Models;
 using FastJobs.SqlServer;
 
-namespace Fastjobs.Dashboard;
+namespace FastJobs.Dashboard;
 
 public class WorkerOverviewService
 {

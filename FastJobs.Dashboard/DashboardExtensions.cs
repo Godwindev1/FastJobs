@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Fastjobs.Dashboard.Pages; //small j in fastjobs seems to be preffered by razor So Well have both namespaces for now till its unified into FastJobs
+using FastJobs.Dashboard.Pages; 
 
 namespace FastJobs.Dashboard;
 
@@ -9,6 +9,7 @@ namespace FastJobs.Dashboard;
 
 public static class FastJobsDashboardExtensions
 {
+    
     internal const string InternalPath = "/FastJobs";
 
     public static IServiceCollection AddFastJobsDashboard(

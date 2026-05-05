@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Hosting;
 namespace FastJobs;
 
-using Fastjobs.Dashboard;
+using FastJobs.Dashboard;
 using FastJobs.SqlServer;
 
 public static  class ServiceCollectionExtensions
