@@ -7,6 +7,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add job to the DI container.
 builder.Services.AddJobService<ComplexTestJob>();
 
+FastJobsOptions options = new FastJobsOptions
+{
+    WorkerCount = 2,
+    MaxSleep = TimeSpan.FromSeconds(10),
+    DefaultWOrkerHeartbeatIntervalSeconds = 30,
+    IdleWaitPeriod = TimeSpan.FromSeconds(30),
+    DefaultJobExpiration = TimeSpan.FromHours(24),
+    DefaultMaxRetries = 4
+};
+
+FastJobsSqlStorageOptions sqlOptions = new FastJobsSqlStorageOptions
+{
+    ConnectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;",
+};
+
 builder.Services.AddFastJobs(
     option => { option.WorkerCount = 2; },
     new FastJobMysqlDependencies(options => options.ConnectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;")
@@ -29,6 +44,9 @@ app.MapFastJobsDashboard();
 app.MapGet("/", () => "FastJobs Dashboard is running at /Dashboard");
 
 app.Services.UseFastJobs();
+
+    await FastJobServer.
+    EnqueueJob(() => Console.WriteLine("Hello World" )).SetExpiresAt(DateTime.Now.AddMinutes(10)).Start();
 
 await FastJobServer.EnqueueJob<ComplexTestJob>().Start();
 
