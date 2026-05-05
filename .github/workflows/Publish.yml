@@ -28,7 +28,7 @@ jobs:
             echo "VERSION=${TAG#sqlserver-v}" >> $GITHUB_OUTPUT
 
           elif [[ "$TAG" == core-v* ]]; then
-            echo "PATH=FastJobs.Core/FastJobs.Core.csproj" >> $GITHUB_OUTPUT
+            echo "PATH=FastJobs.Core/FastJobs.csproj" >> $GITHUB_OUTPUT
             echo "VERSION=${TAG#core-v}" >> $GITHUB_OUTPUT
 
           elif [[ "$TAG" == dashboard-v* ]]; then
