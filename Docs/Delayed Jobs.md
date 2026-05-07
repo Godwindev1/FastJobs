@@ -1,3 +1,11 @@
+---
+title: Delayed Jobs
+nav_order: 5
+next_page:
+  title: recurring Jobs
+  url: /recurring Jobs
+---
+
 # Scheduled / Delayed Jobs
 
 Scheduled jobs Allow You to Set A Delay With Timespan or Set the Date on Which this Job Would Run. 

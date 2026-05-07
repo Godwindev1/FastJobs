@@ -1,3 +1,11 @@
+---
+title: Quickstart
+nav_order: 2
+next_page:
+  title: Configuration
+  url: /Configuration
+---
+
 # Quickstart
 
 Welcome to the Quick Start Guide for Getting up and running with **FastJobs** .
@@ -95,15 +103,15 @@ using FastJobs.Dashboard;
 
 var app = builder.Build();
 
-app.UseFastjobsDashboard("/Dashboard"); //should come before routing is done to allow rewriting path to internal Dashboard path
+app.UseFastJobsDashboard("/Dashboard"); //should come before routing is done to allow rewriting path to internal Dashboard path
 app.UseStaticFiles();   
 app.UseRouting();
 app.UseAntiforgery();   
 
 //Expose Dashboard Components
-app.MapFastjobsDashboard();
+app.MapFastJobsDashboard();
 
-app.UseFastJobs();
+app.Services.UseFastJobs();
 ```
 
 ## Console App Tutorial Fastjobs 

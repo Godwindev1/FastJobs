@@ -94,13 +94,13 @@ using FastJobs.Dashboard;
 
 var app = builder.Build();
 
-app.UseFastjobsDashboard("/Dashboard"); //should come before routing is done to allow rewriting path to internal Dashboard path
+app.UseFastJobsDashboard("/Dashboard"); //should come before routing is done to allow rewriting path to internal Dashboard path
 app.UseStaticFiles();   
 app.UseRouting();
 app.UseAntiforgery();   
 
 //Expose Dashboard Components
-app.MapFastjobsDashboard();
+app.MapFastJobsDashboard();
 
-app.UseFastJobs();
+
 ```

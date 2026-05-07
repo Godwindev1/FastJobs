@@ -1,3 +1,9 @@
+---
+title: Dashboard Monitoring
+nav_order: 8
+---
+
+
 # Monitoring with FastJobs.Dashboard
 
 `FastJobs.Dashboard` is an optional Blazor-based UI for monitoring and observing the state of your

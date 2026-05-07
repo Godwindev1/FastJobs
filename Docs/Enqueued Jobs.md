@@ -1,3 +1,11 @@
+---
+title: Enqueued Jobs
+nav_order: 4
+next_page:
+  title: Delayed Jobs
+  url: /Delayed Jobs
+---
+
 # Enqueued Jobs
 
 Enqueued Jobs Get placed Directly in Queue For Execution And Assuming Worker Availability. They Are Instantly Picked Up For Execution 

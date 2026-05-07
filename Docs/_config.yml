@@ -1,0 +1,13 @@
+remote_theme: just-the-docs/just-the-docs
+
+title: FastJobs
+description: Lightweight background job processing for .NET
+
+url: https://Godwindev1.github.io
+baseurl: /FastJobs
+
+aux_links:
+  "View on GitHub":
+    - "https://github.com/Godwindev1/FastJobs"
+
+color_scheme: dark

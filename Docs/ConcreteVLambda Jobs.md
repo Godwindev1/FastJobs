@@ -1,3 +1,11 @@
+---
+title: Concrete v Lambda Jobs
+nav_order: 7
+next_page:
+  title: Monitoring
+  url: /Monitoring
+---
+
 # Concrete Jobs vs Lambda Jobs
 
 FastJobs supports two ways to define and enqueue background jobs: **Concrete Jobs** and **Lambda Jobs**.

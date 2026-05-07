@@ -1,4 +1,10 @@
-Here's the refined documentation:
+---
+title: Configuration
+nav_order: 3
+next_page:
+  title: Enqueued Jobs
+  url: /Enqueued Jobs
+---
 
 ---
 

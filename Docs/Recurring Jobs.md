@@ -1,3 +1,11 @@
+---
+title: recurring Jobs
+nav_order: 6
+next_page:
+  title: Concrete v Lambda Jobs
+  url: /Concrete v Lambda Jobs
+---
+
 # Recurring Jobs
 
 Recurring Jobs Allow You To Use Either Simple `Timespan based Intervals` or `Cron Expressions`  To Configure Jobs That Repeats After Configured Periods of Time. 
