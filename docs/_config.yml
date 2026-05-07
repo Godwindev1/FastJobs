@@ -11,3 +11,6 @@ aux_links:
     - "https://github.com/Godwindev1/FastJobs"
 
 color_scheme: dark
+
+include:
+  - Images
