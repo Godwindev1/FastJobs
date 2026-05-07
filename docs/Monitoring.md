@@ -1,5 +1,5 @@
 ---
-title: Dashboard Monitoring
+title: Monitoring
 nav_order: 8
 ---
 
