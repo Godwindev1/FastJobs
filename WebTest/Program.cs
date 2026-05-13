@@ -45,28 +45,16 @@ app.MapGet("/", () => "FastJobs Dashboard is running at /Dashboard");
 
 app.Services.UseFastJobs();
 
-    await FastJobServer.
-    EnqueueJob(() => Console.WriteLine("Hello World" )).SetExpiresAt(DateTime.Now.AddMinutes(10)).Start();
-
-await FastJobServer.EnqueueJob<ComplexTestJob>().Start();
-
-//Schdeuling a Concrete Job that implements IBackGroundJob interface to run after a delay of 45 seconds
-await FastJobServer.ScheduleJob<ComplexTestJob>()
-.WaitDelay(TimeSpan.FromSeconds(45))
-.Start();
-
-//Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
-await FastJobServer.AddRecurringJob<ComplexTestJob>()
-.WithInterval(TimeSpan.FromSeconds(10), DateTime.Now)// Simple Interval Based to Run every 40 minutes, starting immediately
-.Start();
-
-//Scheduling a simple job to run after a delay of 45 seconds
-await FastJobServer.ScheduleJob(() => Console.WriteLine("Hello Kaboom At " + DateTime.Now))
-.WaitDelay(TimeSpan.FromSeconds(45))
-.Start();
 
 //Adding a recurring job that runs every minute, starting immediately, with a delay of 4 seconds before the first execution, and expires after 5 minutes.
 await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
+.AddCronExpression("*/1 * * * *") // Every minute
+.RunAt(DateTime.Now)
+.WaitDelay(TimeSpan.FromSeconds(4))
+.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+.Start();
+
+await FastJobServer.AddRecurringJob<ComplexTestJob>( )
 .AddCronExpression("*/1 * * * *") // Every minute
 .RunAt(DateTime.Now)
 .WaitDelay(TimeSpan.FromSeconds(4))
@@ -86,16 +74,28 @@ public class ComplexTestJob : IBackGroundJob
 {
     private readonly ILogger<ComplexTestJob> _logger;
 
-    public ComplexTestJob(ILogger<ComplexTestJob> logger)
+    private readonly JobContext context1;
+
+    private readonly IRecurringJobRepository repo;
+
+    public ComplexTestJob(ILogger<ComplexTestJob> logger, IJobContext context, IRecurringJobRepository jobRepository)
     {
         _logger = logger;
+        repo = jobRepository;
+        context1 = (JobContext)context;
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("ComplexTestJob started at {Time}", DateTime.UtcNow);
-        // Simulate work
-        await Task.Delay(5000);
-        _logger.LogInformation("ComplexTestJob completed at {Time}", DateTime.UtcNow);
-    }
+        try {
+            var Result = await repo.GetByJob(context1.CurrentJob);
+            _logger.LogInformation("Testing");
+            await Task.Delay(40000);
+            _logger.LogInformation("This Is Instance {} completed at {Time}", Result.ExecutedInstances,  DateTime.UtcNow);
+        }
+        catch(Exception e)
+        {
+            _logger.LogInformation($"Error {e.Message}");
+        }
+     }
 }
