@@ -47,25 +47,29 @@ app.Services.UseFastJobs();
 
 
 //Adding a recurring job that runs every minute, starting immediately, with a delay of 4 seconds before the first execution, and expires after 5 minutes.
-await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
-.AddCronExpression("*/1 * * * *") // Every minute
-.RunAt(DateTime.Now)
-.WaitDelay(TimeSpan.FromSeconds(4))
-.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+
+
+await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
+.SetPriority(JobPriority.High) // High priority job
+.SetMaxRetryCount(3) // Retry up to 3 times on failure
 .Start();
 
-await FastJobServer.AddRecurringJob<ComplexTestJob>( )
-.AddCronExpression("*/1 * * * *") // Every minute
-.RunAt(DateTime.Now)
-.WaitDelay(TimeSpan.FromSeconds(4))
-.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
+.SetPriority(JobPriority.High) // High priority job
+.SetMaxRetryCount(3) // Retry up to 3 times on failure
 .Start();
 
-//await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
-//.SetPriority(JobPriority.High) // High priority job
-//.SetMaxRetryCount(3) // Retry up to 3 times on failure
-//.Start();
 
+await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
+.SetPriority(JobPriority.High) // High priority job
+.SetMaxRetryCount(3) // Retry up to 3 times on failure
+.Start();
+
+
+await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
+.SetPriority(JobPriority.High) // High priority job
+.SetMaxRetryCount(3) // Retry up to 3 times on failure
+.Start();
 
 app.Run();
 
