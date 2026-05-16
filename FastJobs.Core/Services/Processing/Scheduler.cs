@@ -1,6 +1,7 @@
 using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
 using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
 
 public class Scheduler
 {
@@ -14,10 +15,15 @@ public class Scheduler
     // Protects against clock drift and missed signals
     private static TimeSpan MaxSleep = TimeSpan.FromMinutes(5);
 
+    private readonly ILogger<Scheduler> _logger;
+
+
     public Scheduler(IServiceScopeFactory factory)
     {
         _scopeFactory = factory;
         using var scope = new ScopeManager(factory);
+        
+        _logger = scope.Resolve<ILogger<Scheduler>>();
         var options = scope.Resolve<FastJobsOptions>();
         IdleWait = options.IdleWaitPeriod;
         MaxSleep = options.MaxSleep;
@@ -102,7 +108,7 @@ public class Scheduler
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger.LogError(ex, "Error Encountered While Enqueuing Scheduled Job #{JobID} ", jobInfo.JobId);
         }
     }
 

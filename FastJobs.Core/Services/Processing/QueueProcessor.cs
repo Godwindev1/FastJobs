@@ -83,7 +83,7 @@ internal class QueueProcessor
             await _stateHelpers.UpdateJobStateAsync(
                 Job.Id,
                 QueueStateTypes.Dequeued,
-                "Job Dequeued",
+                $"Job #{Job.Id} of Type {Job.MethodDeclaringTypeName} Has Been  Dequeued",
                 data: "",
                 cancellationToken);
 
@@ -104,12 +104,13 @@ internal class QueueProcessor
         //NOTE: Intentionally no CancellationToken — finalisation operation must complete to avoid orphaned locks
         try
         {
+            
             // Update job state with atomic state history creation and rollback support
             await _stateHelpers.UpdateJobStateAsync(
                 JobQueueEntry.JobId,
                 QueueStateTypes.Completed,
-                "Job Has Been Completed",
-                data: "Completed");
+                $"Job #{JobQueueEntry.JobId}  Has Been  Completed",
+                data: "");
 
             await _queueRepo.RemoveAsync(JobQueueEntry.Id);
         }
@@ -127,7 +128,7 @@ internal class QueueProcessor
         await _stateHelpers.UpdateJobStateAsync(
             job.Id,
             QueueStateTypes.Failed,
-            $"Job Has Failed As Many As {job.MaxRetries} Times",
+            $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Failed As Many As {job.MaxRetries} Times",
             data: ExceptionMessage);
     }
 
@@ -154,7 +155,7 @@ internal class QueueProcessor
                 await _stateHelpers.UpdateJobStateAsync(
                     JobQueueEntry.JobId,
                     QueueStateTypes.Enqueued,
-                    "Retrying",
+                    $"Job #{JobQueueEntry.JobId} of type {Job.MethodDeclaringTypeName} is Attempting a Retry",
                     data: ExceptionMessage);
 
                 // Increment retry count separately

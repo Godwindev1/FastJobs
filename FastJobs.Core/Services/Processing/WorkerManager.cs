@@ -1,6 +1,7 @@
 using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
 using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
 
 public class WorkerManager
 {
@@ -18,6 +19,8 @@ public class WorkerManager
          using var Scopemanager = new ScopeManager(scopeFactory);
          var repo = Scopemanager.Resolve<IWorkerRepository>();
 
+         var _Logger = Scopemanager.Resolve<ILogger<WorkerManager>>();
+
          repo.TruncateAsync()
          .GetAwaiter()
          .GetResult();
@@ -26,7 +29,10 @@ public class WorkerManager
         {
             var workerId = i;
             string workerName = $"Worker-{workerId}";
-            var worker = new Worker(workerId, _scopeFactory, _shutdownCts.Token);
+
+            _Logger.LogInformation("New Worker Created Worker: {WorkerName}", workerName);
+
+            var worker = new Worker(workerId,workerName, _scopeFactory, _shutdownCts.Token);
 
             var taskResult = Task.Factory.StartNew(
                 async (object? _) =>

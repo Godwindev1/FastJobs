@@ -178,7 +178,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         {
             JobID = jobId,
             StateName = QueueStateTypes.Scheduled,
-            Reason = $"Recurring job registered. First run at {firstRun:O}.",
+            Reason = $"Recurring job #{_job.Id} registered. First run at {firstRun:O}.",
             data = $"StartTime={_startTime:O}; Cron={_cronExpression}; IntervalTicks={_intervalTicks}",
             CreatedAt = DateTime.UtcNow
         };

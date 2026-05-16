@@ -1,6 +1,7 @@
 
 using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
 public partial class Worker
@@ -43,7 +44,7 @@ private ScopeManager? _observabilityScope;
                 catch (OperationCanceledException) { break; }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Heartbeat] Failed: {ex.Message}");
+                    _logger.LogError(ex, "Heartbeat Update Failed For Worker: {WorkerName}", _WorkerName);
                 }
             }
         }, _heartbeatCts.Token);

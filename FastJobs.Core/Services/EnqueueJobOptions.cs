@@ -46,8 +46,8 @@ namespace FastJobs {
         {
             JobID     = jobId,
             StateName = QueueStateTypes.Enqueued,
-            Reason    = "Enqueued Job",
-            data      = "Enqueued Job",
+            Reason    = $"Enqueued New Job #{jobId} of type {_job.MethodDeclaringTypeName}",
+            data      = "",
             CreatedAt = DateTime.UtcNow
         };
 

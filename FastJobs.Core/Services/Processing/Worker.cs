@@ -1,5 +1,6 @@
 using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
 //PENDING MODIFICATIONS
@@ -13,9 +14,13 @@ public partial class Worker
     private CancellationTokenSource? _heartbeatCts; 
 
     private readonly QueueProcessor _QueueProcessor;
+    
+    private ILogger<Worker> _logger;
+
+    private string _WorkerName;
 
     private FastJobsOptions _options;
-    public Worker(int workerId, IServiceScopeFactory serviceScope, CancellationToken shutdownToken)
+    public Worker(int workerId, string workerName, IServiceScopeFactory serviceScope, CancellationToken shutdownToken)
     {
         using var Scopemanager = new ScopeManager(serviceScope);
         
@@ -27,10 +32,12 @@ public partial class Worker
         );
 
         _workerId = workerId;
+        _WorkerName = workerName;
         serviceScopeFactory = serviceScope;
         _shutdownToken = shutdownToken;
 
         _options = Scopemanager.Resolve<FastJobsOptions>();
+        _logger = Scopemanager.Resolve<ILogger<Worker>>();
     }
 
     public void SetDBWorkerID(long id)
@@ -140,7 +147,7 @@ public partial class Worker
                     try
                     {
                         StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
-                        await StateHelper.UpdateJobStateAsync(job.Id, QueueStateTypes.Processing, "Job is being processed", "", jobCts.Token);
+                        await StateHelper.UpdateJobStateAsync(job.Id, QueueStateTypes.Processing, $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Begun Processing", "", jobCts.Token);
 
                         await ResolvedJob.ExecuteAsync(jobCts.Token);
                         jobSucceeded = true;
@@ -151,7 +158,7 @@ public partial class Worker
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
+                         _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Beginning Retry {RetryCOunt}  ", job.Id, job.MethodDeclaringTypeName, job.RetryCount + 1);
                         await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, ex.Message);
                     }
                     finally
@@ -176,7 +183,9 @@ public partial class Worker
                         catch (Exception ex)
                         {
                             // Log but don't requeue — job work is done, only cleanup failed
-                            Console.WriteLine($"CompleteJob failed: {ex.Message}");
+                            _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Failed State Update After Completion ",
+                                job.Id, 
+                                job.MethodDeclaringTypeName                             );
                         }
 
                         if (job.JobType == JobTypes.Recurring)
@@ -198,7 +207,7 @@ public partial class Worker
             IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
 
             // Unhandled exception with no fallback — mark as crashed
-            Console.WriteLine($"[Worker] Fatal crash: {ex.Message}");
+            _logger.LogError(ex, "Worker: {WorkerName} Has Crashed ", _WorkerName);
 
             workerRecord.isCrashed = true;
             workerRecord.isSleeping     = false;
@@ -259,7 +268,7 @@ public partial class Worker
         recurringJob.NextScheduledTime = nextRun.Value;
         await recurringJobRepository.UpdateByIdAsync(recurringJob);
 
-        await stateHelper.UpdateJobStateAsync(jobId, QueueStateTypes.Scheduled, $"Recurring job rescheduled for {nextRun:O}", "", CancellationToken.None);
+        await stateHelper.UpdateJobStateAsync(jobId, QueueStateTypes.Scheduled, $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", CancellationToken.None);
 
         processingServer.NotifyScheduledJobAdded();
     }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MySqlConnector;
 using Microsoft.Extensions.Configuration;
 using Dapper;
+using Microsoft.Extensions.Logging;
 
 namespace FastJobs.SqlServer;
 
@@ -38,8 +39,14 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
             ConnectionString = ConnectionString
         };
 
+         var _LoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Information).AddConsole());
+
+
+        var _Logger = _LoggerFactory.CreateLogger("Fastjobs.NET");
+
+
+
         string? DBName = stringBuilder["Database"].ToString();
-        Console.WriteLine($"DBName { DBName } ");
 
         if(DBName == null)
         {
@@ -47,13 +54,14 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
         }
 
         try {
-            Console.WriteLine($"Testing DB Connection");
+            _Logger.LogInformation("Connecting To Database {DBName} {DateTime}", DBName, DateTime.UtcNow);
+
             using IDbConnection db = new MySqlConnection(ConnectionString);
             db.Open();
         }
         catch(Exception ex)
         {
-            Console.WriteLine("Connection Failed Attemting to Create Database");
+            _Logger.LogError(ex, "Connection Failed Attemting to Create Database");
 
             if(ex is MySqlException)
             {
@@ -65,12 +73,12 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
             }   
             else
             {
-                Console.WriteLine(ex.Message);
+                _Logger.LogError(ex, "DB creation Failed");
             } 
         }
         finally
         {
-            Console.WriteLine("Connecting To Database");
+            _Logger.LogInformation("Connection Done");
         }
 
     }

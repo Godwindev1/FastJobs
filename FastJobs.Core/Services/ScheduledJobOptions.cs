@@ -66,7 +66,7 @@ namespace FastJobs {
         {
             JobID     = jobId,
             StateName = QueueStateTypes.Scheduled,
-            Reason    = $"Scheduled for execution at {_scheduledTime:O}",
+            Reason    = $"Scheduled Job #{_job.Id} for execution at {_scheduledTime:O}",
             data      = $"Scheduled to {_scheduledTime:O}",
             CreatedAt = DateTime.UtcNow
         };

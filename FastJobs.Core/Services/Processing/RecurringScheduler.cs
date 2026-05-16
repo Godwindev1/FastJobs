@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs;
 using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
+
 internal class RecurringScheduler
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -10,12 +12,15 @@ internal class RecurringScheduler
     private readonly TimeSpan _idleWait;
     private readonly Action _notifyScheduledJobAdded;
 
+    private readonly ILogger<RecurringScheduler> _logger;
+
     public RecurringScheduler(IServiceScopeFactory scopeFactory, Action notifyScheduledJobAdded)
     {
         _scopeFactory = scopeFactory;
         _notifyScheduledJobAdded = notifyScheduledJobAdded;
 
         using var scope = new ScopeManager(scopeFactory);
+        _logger = scope.Resolve<ILogger<RecurringScheduler>>();
         var options = scope.Resolve<FastJobsOptions>();
         _idleWait = options.IdleWaitPeriod;
     }
@@ -41,7 +46,7 @@ internal class RecurringScheduler
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Error Encountered While Running Recovery Sweep For Orphaned Jobs");
                 await Task.Delay(TimeSpan.FromSeconds(5), ct);
             }
         }

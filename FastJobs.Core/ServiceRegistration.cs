@@ -4,6 +4,7 @@ namespace FastJobs;
 
 using FastJobs.Dashboard;
 using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
 
 public static  class ServiceCollectionExtensions
 {
@@ -19,11 +20,15 @@ public static  class ServiceCollectionExtensions
     {
         RegisterApplicationShutdownToken(services);
 
+        var _LoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Information).AddConsole());
+
         FastJobsOptions Options = new FastJobsOptions();
         optionsFactory.Invoke(Options); 
         services.AddSingleton(Options);
 
-        Console.WriteLine("Adding FastJobs");
+        var _Logger = _LoggerFactory.CreateLogger("Fastjobs.NET");
+
+        _Logger.LogInformation("Starting Fastjobs.NET Core At {DateTime}", DateTime.UtcNow);
         //TODO: Use A options Or Descriptor For Parameters
         databaseProvider.SetupDatabase();
         databaseProvider.RegisterDependencies(services);
@@ -42,6 +47,8 @@ public static  class ServiceCollectionExtensions
         services.AddScoped<RecurringJobService>();
         services.AddScoped<ScheduledJobService>();
         services.AddScoped<WorkerOverviewService>();
+
+        
 
         return services;
     }
