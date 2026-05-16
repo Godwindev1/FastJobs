@@ -39,7 +39,7 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
             ConnectionString = ConnectionString
         };
 
-         var _LoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Information).AddConsole());
+         var _LoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Information));
 
 
         var _Logger = _LoggerFactory.CreateLogger("Fastjobs.NET");

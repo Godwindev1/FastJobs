@@ -2,25 +2,19 @@ using FastJobs;
 using FastJobs.SqlServer;
 using FastJobs.Dashboard;
 
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.File("logs/app.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add job to the DI container.
 builder.Services.AddJobService<ComplexTestJob>();
 
-FastJobsOptions options = new FastJobsOptions
-{
-    WorkerCount = 2,
-    MaxSleep = TimeSpan.FromSeconds(10),
-    DefaultWOrkerHeartbeatIntervalSeconds = 30,
-    IdleWaitPeriod = TimeSpan.FromSeconds(30),
-    DefaultJobExpiration = TimeSpan.FromHours(24),
-    DefaultMaxRetries = 4
-};
-
-FastJobsSqlStorageOptions sqlOptions = new FastJobsSqlStorageOptions
-{
-    ConnectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;",
-};
 
 builder.Services.AddFastJobs(
     option => { option.WorkerCount = 2; },
@@ -29,6 +23,7 @@ builder.Services.AddFastJobs(
 
 //ADD FastJobs Dashboard services
 builder.Services.AddFastJobsDashboard();
+builder.Host.UseSerilog();
 
 var app = builder.Build();
 

@@ -20,7 +20,7 @@ public static  class ServiceCollectionExtensions
     {
         RegisterApplicationShutdownToken(services);
 
-        var _LoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Information).AddConsole());
+        var _LoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Information));
 
         FastJobsOptions Options = new FastJobsOptions();
         optionsFactory.Invoke(Options); 

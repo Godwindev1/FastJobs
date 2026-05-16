@@ -3,7 +3,6 @@ using FastJobs.SqlServer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-
 //
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
@@ -21,6 +20,7 @@ builder.Services.AddFastJobs(
 
 var app = builder.Build();
 
+
 app.Services.UseFastJobs();
 
 //start host 
@@ -36,30 +36,30 @@ await FastJobServer.ScheduleJob<ComplexTestJob>()
 .Start();
 
 //Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
-await FastJobServer.AddRecurringJob<ComplexTestJob>()
-.WithInterval(TimeSpan.FromSeconds(10), DateTime.Now)// Simple Interval Based to Run every 40 minutes, starting immediately
-.Start();
-
-//Scheduling a simple job to run after a delay of 45 seconds
-await FastJobServer.ScheduleJob(() => Console.WriteLine("Hello Kaboom At " + DateTime.Now))
-.WaitDelay(TimeSpan.FromSeconds(45))
-.Start();
-
-//Adding a recurring job that runs every minute, starting immediately, with a delay of 4 seconds before the first execution, and expires after 5 minutes.
-await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
-.AddCronExpression("*/1 * * * *") // Every minute
-.RunAt(DateTime.Now)
-.WaitDelay(TimeSpan.FromSeconds(4))
-.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
-.Start();
-
-await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
-.SetPriority(JobPriority.High) // High priority job
-.SetMaxRetryCount(3) // Retry up to 3 times on failure
-.Start();
-
-
-
+//await FastJobServer.AddRecurringJob<ComplexTestJob>()
+//.WithInterval(TimeSpan.FromSeconds(10), DateTime.Now)// Simple Interval Based to Run every 40 minutes, starting immediately
+///.Start();
+///
+/////Scheduling a simple job to run after a delay of 45 seconds
+///await FastJobServer.ScheduleJob(() => Console.WriteLine("Hello Kaboom At " + DateTime.Now))
+///.WaitDelay(TimeSpan.FromSeconds(45))
+///.Start();
+///
+/////Adding a recurring job that runs every minute, starting immediately, with a delay of 4 seconds before the first execution, and expires after 5 minutes.
+///await FastJobServer.AddRecurringJob(() =>  Console.WriteLine($"Hello FastJobs {DateTime.Now.ToShortTimeString()} ") )
+///.AddCronExpression("*/1 * * * *") // Every minute
+///.RunAt(DateTime.Now)
+///.WaitDelay(TimeSpan.FromSeconds(4))
+///.SetExpiresAt(DateTime.Now.Add(TimeSpan.FromMinutes(5)))
+///.Start();
+///
+///await FastJobServer.EnqueueJob(() => Console.WriteLine("Testing Fire and Forget at " + DateTime.Now)) //ENQUEUE WiTH FIRE & FORGET METHOD
+///.SetPriority(JobPriority.High) // High priority job
+///.SetMaxRetryCount(3) // Retry up to 3 times on failure
+///.Start();
+///
+///
+///
 
 await app.WaitForShutdownAsync();
 
