@@ -28,10 +28,10 @@ internal sealed class JobRepository : IJobRepository
 
         const string sql = @"
         INSERT INTO Jobs
-        (TypeName, JobType, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
+        (AfterActionId, TypeName, JobType, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
         Queue, StateName, RetryCount, MaxRetries, CreatedAt)
         VALUES
-        (@TypeName,@JobType, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
+        (@AfterActionId, @TypeName,@JobType, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
         @Queue, @StateName, @RetryCount, @MaxRetries, @CreatedAt);
 
         SELECT LAST_INSERT_ID();
@@ -89,6 +89,7 @@ internal sealed class JobRepository : IJobRepository
         const string sql = @"
         UPDATE Jobs
         SET 
+            AfterActionId = @AfterActionId,
             TypeName = @TypeName,
             JobType = @JobType,
             MethodName = @MethodName,
@@ -106,6 +107,7 @@ internal sealed class JobRepository : IJobRepository
         var command = new CommandDefinition(sql, new
         {
             Id = job.Id,
+            job.AfterActionId,
             job.TypeName,
             job.JobType,
             job.MethodName,

@@ -10,6 +10,8 @@ public static class JobTableInitializer
     (
         Id BIGINT AUTO_INCREMENT PRIMARY KEY,
 
+        AfterActionId BIGINT NULL,
+
         JobType VARCHAR(50) NOT NULL DEFAULT '',
 
         TypeName VARCHAR(500) NOT NULL,

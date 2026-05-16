@@ -1,4 +1,5 @@
-﻿using FastJobs;
+﻿using Fastjobs.AfterActions;
+using FastJobs;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -28,12 +29,13 @@ await app.StartAsync();
 
 //Enqueuing a Concrete Job that implements IBackGroundJob interface
 await FastJobServer.EnqueueJob<ComplexTestJob>()
+.AddAfterAction(builder => builder.WithType<EnqueueAfterAction>())
 .Start();
 
 //Schdeuling a Concrete Job that implements IBackGroundJob interface to run after a delay of 45 seconds
-await FastJobServer.ScheduleJob<ComplexTestJob>()
-.WaitDelay(TimeSpan.FromSeconds(45))
-.Start();
+//await FastJobServer.ScheduleJob<ComplexTestJob>()
+//.WaitDelay(TimeSpan.FromSeconds(45))
+//.Start();
 
 //Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
 //await FastJobServer.AddRecurringJob<ComplexTestJob>()

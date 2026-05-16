@@ -27,6 +27,7 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
         services.AddScoped<IRecurringJobRepository, RecurringJobRepository>();
         services.AddScoped<IStateHistoryRepository, StateHistoryRepository>();
         services.AddScoped<IWorkerRepository, WorkerRepository>();
+        services.AddScoped<IAfterActionRepository, AfterActionRepository>();
         services.AddScoped<DbConnectionFactory, MySqlDbConnectionFactory>();
         services.AddScoped<LockProvider, MySqlLockProvider>();
     }
