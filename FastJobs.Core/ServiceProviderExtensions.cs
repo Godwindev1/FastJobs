@@ -41,6 +41,11 @@ namespace FastJobs
              .EnsureCreatedAsync(connection)
              .GetAwaiter()
              .GetResult();
+
+             AfterActionTableInitializer
+             .EnsureCreatedAsync(connection)
+             .GetAwaiter()
+             .GetResult();
         }
 
         private static void InitializeJobServerAbstraction(IServiceProvider provider)

@@ -147,7 +147,7 @@ public partial class Worker
                     try
                     {
                         StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
-                        await StateHelper.UpdateJobStateAsync(job.Id, QueueStateTypes.Processing, $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Begun Processing", "", jobCts.Token);
+                        await StateHelper.UpdateJobStateAsync(job.Id ?? 0, QueueStateTypes.Processing, $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Begun Processing", "", jobCts.Token);
 
                         await ResolvedJob.ExecuteAsync(jobCts.Token);
                         jobSucceeded = true;
@@ -190,7 +190,7 @@ public partial class Worker
 
                         if (job.JobType == JobTypes.Recurring)
                          {  
-                             await RescheduleRecurringJobAsync(job.Id, Scope);
+                             await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
                          }
                         jobContext.SetJob(null);
                     }

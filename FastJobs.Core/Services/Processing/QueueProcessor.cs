@@ -81,7 +81,7 @@ internal class QueueProcessor
             
             // Update job state with atomic state history creation and rollback support
             await _stateHelpers.UpdateJobStateAsync(
-                Job.Id,
+                Job.Id ?? 0,
                 QueueStateTypes.Dequeued,
                 $"Job #{Job.Id} of Type {Job.MethodDeclaringTypeName} Has Been  Dequeued",
                 data: "",
@@ -126,7 +126,7 @@ internal class QueueProcessor
         //NOTE: Intentionally no CancellationToken — compensating operation must complete
         // Update job state with atomic state history creation and rollback support
         await _stateHelpers.UpdateJobStateAsync(
-            job.Id,
+            job.Id ?? 0,
             QueueStateTypes.Failed,
             $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Failed As Many As {job.MaxRetries} Times",
             data: ExceptionMessage);

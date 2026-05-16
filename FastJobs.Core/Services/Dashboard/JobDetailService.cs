@@ -54,11 +54,11 @@ public class JobDetailService
         // Private conversion abstraction
         private async Task<JobDetailModel> MapToDetailModelAsync(Job job)
         {
-            JobTimestamps? timestamps = await _stateHistoryRepository.GetTimestampsByJobIdAsync(job.Id);
+            JobTimestamps? timestamps = await _stateHistoryRepository.GetTimestampsByJobIdAsync(job.Id ?? 0);
 
             return new JobDetailModel
             {
-                Id = job.Id,
+                Id = job.Id ?? 0,
                 JobName = job.TypeName,
                 QueueName = job.Queue,
                 State = SwitchjobState(job.StateName),
