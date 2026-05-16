@@ -12,6 +12,7 @@ public static class JobTypes
     public static string Enqueued = "Enqueued";
     public static string Scheduled = "Scheduled";
     public static string Recurring = "Recurring";
+    public static string AfterAction = "AfterAction";
     public static string Batch = "Batch";
 }
 
