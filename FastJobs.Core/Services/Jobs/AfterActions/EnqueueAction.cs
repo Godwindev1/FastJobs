@@ -13,6 +13,7 @@ public class EnqueueAfterAction : IAfterAction
         var CurrentJob = job.CurrentJob;
         CurrentJob.Id = null; 
         CurrentJob.RetryCount = 0;
+        CurrentJob.AfterActionId = null;
         JobEnqueueOption = new EnqueueOptions<EnqueueAfterAction>(CurrentJob, ScopeFactory);
     }
 

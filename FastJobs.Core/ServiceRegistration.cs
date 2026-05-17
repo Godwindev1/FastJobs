@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 namespace FastJobs;
 
+using Fastjobs.AfterActions;
 using FastJobs.Dashboard;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.Logging;
@@ -47,6 +48,9 @@ public static  class ServiceCollectionExtensions
         services.AddScoped<RecurringJobService>();
         services.AddScoped<ScheduledJobService>();
         services.AddScoped<WorkerOverviewService>();
+
+        //PRECONFIGURED AFTER ACTIONS
+        services.AddScoped<EnqueueAfterAction>(); 
 
         
 

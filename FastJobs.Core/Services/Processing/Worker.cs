@@ -192,7 +192,15 @@ public partial class Worker
                          {  
                              await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
                          }
+
+                        //Execute After Actions
+                        if(job.AfterActionId != null && job.AfterActionId != 0)
+                        {
+                            await ExecuteAfterActionChainAsync(job.AfterActionId ?? 0, Scope, _shutdownToken);
+                        }
+
                         jobContext.SetJob(null);
+
                     }
                 }
             }
@@ -228,6 +236,61 @@ public partial class Worker
                 await workerRepo.DeleteAsync(_dbWorkerId, CancellationToken.None);
         }
     }
+
+
+    private async Task ExecuteAfterActionChainAsync(
+    long startingActionId,
+    ScopeManager scope,
+    CancellationToken cancellationToken)
+{
+    IAfterActionRepository afterActionRepo = scope.Resolve<IAfterActionRepository>();
+
+    long? currentActionId = startingActionId;
+    const int maxChainDepth = 100; // Guard against infinite loops
+    int depth = 0;
+    var visitedIds = new HashSet<long>(); // Guard against cycles
+
+    while (currentActionId.HasValue)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Cycle detection
+        if (!visitedIds.Add(currentActionId.Value))
+        {
+            throw new InvalidOperationException(
+                $"Cycle detected in after-action chain at ActionId: {currentActionId.Value}");
+        }
+
+        // Depth guard
+        if (++depth > maxChainDepth)
+        {
+            throw new InvalidOperationException(
+                $"After-action chain exceeded maximum depth of {maxChainDepth}.");
+        }
+
+        // Fetch the action model
+        var actionModel = await afterActionRepo.GetByIdAsync(currentActionId.Value);
+        if (actionModel == null)
+        {
+            throw new InvalidOperationException(
+                $"AfterAction with Id {currentActionId.Value} not found.");
+        }
+
+        // Resolve and execute
+        var action = AfterActionsResolver.ResolveAction(actionModel, scope);
+        await action.ExecuteAsync(cancellationToken);
+
+        // Advance to next in chain
+        currentActionId = actionModel.NextActionID;
+
+         // Normalize 0 → null so the loop exits cleanly
+        currentActionId = (actionModel.NextActionID == 0) 
+            ? null 
+            : actionModel.NextActionID;
+    }
+}
+
+
     private async Task RescheduleRecurringJobAsync(long jobId, ScopeManager scope)
     {
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
