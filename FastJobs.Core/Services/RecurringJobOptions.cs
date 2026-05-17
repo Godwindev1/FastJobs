@@ -15,11 +15,23 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     private bool       _isConcurrent     = false;
     private DateTime?  _expiresAt        = null;
 
+    private readonly List<Action<AfterActionBuilder>> _afterActionConfigs = new();
+
+
     private bool _isCronType = false;
     internal RecurringJobOptions(Job job, IServiceScopeFactory factory)
     {
         _job          = job;
         _scopeFactory = factory;
+    }
+
+    /// <summary>
+    /// Sets the After action chain That Runs After the Final Completion.
+    /// </summary>
+    public RecurringJobOptions<TJob> AddAfterAction(Action<AfterActionBuilder> configure)
+    {
+        _afterActionConfigs.Add(configure);
+        return this;
     }
 
 
@@ -152,6 +164,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         var stateHistoryRepository = scope.Resolve<IStateHistoryRepository>();
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
         var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
+        var afterActionRepository   = scope.Resolve<IAfterActionRepository>();
         var processingServer = scope.Resolve<ProcessingServer>();
 
         // Compute first run
@@ -224,6 +237,9 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         await recurringJobRepository.UpdateByIdAsync(recurringJob, cancellationToken);
 
         processingServer.NotifyScheduledJobAdded();
+
+        await BuildAfterActionChainAsync(jobId, afterActionRepository, jobRepository, cancellationToken);
+
     }
 
      /// <summary>Parses a 5- or 6-field cron expression, throwing on invalid input.</summary>
@@ -244,5 +260,45 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
             : CronFormat.Standard;
         var parsed = Cronos.CronExpression.Parse(cronExpression, format);
         return parsed.GetNextOccurrence(from, TimeZoneInfo.Utc);
+    }
+
+
+      private async Task BuildAfterActionChainAsync(
+        long jobId,
+        IAfterActionRepository afterActionRepository,
+        IJobRepository jobRepository,
+        CancellationToken cancellationToken)
+    {
+        if (_afterActionConfigs.Count == 0) return;
+
+        long lastInsertedId = 0;
+
+        for (int i = 0; i < _afterActionConfigs.Count; i++)
+        {
+            var builder = new AfterActionBuilder();
+            _afterActionConfigs[i](builder);
+
+            var model = builder.Build(jobId, chainNo: i, lastActionId: lastInsertedId);
+            var insertedId = await afterActionRepository.InsertAsync(model, cancellationToken);
+
+            // Link the previous action's NextActionId to this one
+            if (lastInsertedId != 0)
+            {
+                await afterActionRepository.UpdateByIdAsync(
+                    lastInsertedId,
+                    "NextActionId = @NextActionId",
+                    new AfterActionModel { NextActionID = insertedId },
+                    cancellationToken);
+            }
+
+            if(i == 0)
+            {
+                //Update Job With First ID
+                await jobRepository.UpdateByIdAsync(jobId, "AfterActionId = @AfterActionId",
+                new Job { AfterActionId = insertedId }, cancellationToken);
+            }
+
+            lastInsertedId = insertedId;
+        }
     }
 }

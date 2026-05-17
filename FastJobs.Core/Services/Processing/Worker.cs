@@ -194,9 +194,21 @@ public partial class Worker
                          }
 
                         //Execute After Actions
-                        if(job.AfterActionId != null && job.AfterActionId != 0)
+                        var JobAfterActionID = job.AfterActionId ?? 0;
+                        if(job.AfterActionId != null && JobAfterActionID != 0)
                         {
-                            await ExecuteAfterActionChainAsync(job.AfterActionId ?? 0, Scope, _shutdownToken);
+                            if(job.JobType != JobTypes.Recurring)
+                            {
+                                await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);
+                            }
+                            else
+                            {
+                                // If the job has expired, do not Run Recurring Jobs After Action on Final Completion
+                                if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+                                {
+                                   await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
+                                } 
+                            }
                         }
 
                         jobContext.SetJob(null);
@@ -237,7 +249,9 @@ public partial class Worker
         }
     }
 
-
+    /// <summary>
+    /// Executes The After Actions Chain For The Just Completed Job 
+    /// </summary>
     private async Task ExecuteAfterActionChainAsync(
     long startingActionId,
     ScopeManager scope,
@@ -291,7 +305,7 @@ public partial class Worker
 }
 
 
-    private async Task RescheduleRecurringJobAsync(long jobId, ScopeManager scope)
+    private async Task RescheduleRecurringJobAsync(long RecurringjobId, ScopeManager scope)
     {
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
         var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
@@ -299,7 +313,7 @@ public partial class Worker
         var jobRepository = scope.Resolve<IJobRepository>();
         var stateHelper = new StateHelpers(jobRepository, scope.Resolve<IStateHistoryRepository>());
 
-        var recurringJob = await recurringJobRepository.GetByIdAsync(jobId);
+        var recurringJob = await recurringJobRepository.GetByIdAsync(RecurringjobId);
         if (recurringJob == null) return;
 
         // Fetch the job to check expiry from Jobs table
@@ -321,7 +335,7 @@ public partial class Worker
         // Insert next scheduled job
         var scheduledJob = new ScheduledJobInfo
         {
-            JobId = jobId,
+            JobId = RecurringjobId,
             ScheduledTo = nextRun.Value
         };
         var scheduledId = await scheduledJobRepository.InsertAsync(scheduledJob);
@@ -331,7 +345,7 @@ public partial class Worker
         recurringJob.NextScheduledTime = nextRun.Value;
         await recurringJobRepository.UpdateByIdAsync(recurringJob);
 
-        await stateHelper.UpdateJobStateAsync(jobId, QueueStateTypes.Scheduled, $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", CancellationToken.None);
+        await stateHelper.UpdateJobStateAsync(RecurringjobId, QueueStateTypes.Scheduled, $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", CancellationToken.None);
 
         processingServer.NotifyScheduledJobAdded();
     }
