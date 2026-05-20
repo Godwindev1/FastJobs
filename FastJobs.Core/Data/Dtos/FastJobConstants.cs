@@ -12,7 +12,7 @@ public static class JobTypes
     public static string Enqueued = "Enqueued";
     public static string Scheduled = "Scheduled";
     public static string Recurring = "Recurring";
-    public static string Chain = "Chain";
+    public static string ChainHead = "Chain";
 }
 
 public enum JobPriority

@@ -13,6 +13,7 @@ public class DeleteAfterAction : IAfterAction
     public DeleteAfterAction(IJobContext job, IServiceScopeFactory ScopeFactory)
     {
         JobID = job.CurrentJob.Id ?? -1;
+        _Repository = new ScopeManager(ScopeFactory).Resolve<IJobRepository>();
     }
 
     public async Task ExecuteAsync(CancellationToken Token)
