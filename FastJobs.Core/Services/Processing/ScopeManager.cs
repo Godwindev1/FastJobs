@@ -27,6 +27,7 @@ internal sealed class ScopeManager : IDisposable
         return ServiceProvider.GetRequiredService<T>();
     }
 
+
     public void Dispose()
     {
         _scope.Dispose();

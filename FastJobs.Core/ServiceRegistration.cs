@@ -39,6 +39,7 @@ public static  class ServiceCollectionExtensions
 
         // Register expression-based job execution services
         services.AddScoped<IJobContext, JobContext>();
+        services.AddScoped<IAfterActionContext, AfterActionContext>();
         services.AddScoped<ExpressionFireAndForgetJob>();
         services.AddScoped<IExpressionResolver, DefaultExpressionResolver>();
 
@@ -51,6 +52,8 @@ public static  class ServiceCollectionExtensions
 
         //PRECONFIGURED AFTER ACTIONS
         services.AddScoped<EnqueueAfterAction>(); 
+        services.AddScoped<DeleteAfterAction>(); 
+        services.AddScoped<ChainAfterAction>(); 
 
         
 

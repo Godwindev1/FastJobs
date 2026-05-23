@@ -1,4 +1,5 @@
-﻿using FastJobs;
+﻿using Fastjobs.AfterActions;
+using FastJobs;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,10 @@ var builder = Host.CreateApplicationBuilder(args);
 
 // Register the ComplexTestJob with the DI container so it can be resolved when the job is executed.
 builder.Services.AddJobService<ComplexTestJob>();
+builder.Services.AddJobService<ValidateOrderJob>();
+builder.Services.AddJobService<ChargePaymentJob>();
+builder.Services.AddJobService<SendConfirmationEmailJob>();
+builder.Services.AddJobService<NotifyWarehouseJob>();
 
 builder.Services.AddFastJobs(
     option => {  option.WorkerCount = 2; },
@@ -28,14 +33,13 @@ app.Services.UseFastJobs();
 await app.StartAsync();
 
 
-//Enqueuing a Concrete Job that implements IBackGroundJob interface
-await FastJobServer.EnqueueJob<ComplexTestJob>()
-.Start();
+await FastJobServer.CreateChain<ValidateOrderJob>()
+.ThenRun<ValidateOrderJob>()
+.ThenRun<ChargePaymentJob>()
+.ThenRun<SendConfirmationEmailJob>()
+.ThenRun<NotifyWarehouseJob>()
+.EnqueueAsync();
 
-//Schdeuling a Concrete Job that implements IBackGroundJob interface to run after a delay of 45 seconds
-await FastJobServer.ScheduleJob<ComplexTestJob>()
-.WaitDelay(TimeSpan.FromSeconds(45))
-.Start();
 
 //Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
 //await FastJobServer.AddRecurringJob<ComplexTestJob>()

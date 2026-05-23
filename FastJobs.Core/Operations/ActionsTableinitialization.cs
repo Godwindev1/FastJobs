@@ -20,7 +20,9 @@ public static class AfterActionTableInitializer
         NextActionId BIGINT NOT NULL DEFAULT 0,
         LastActionId BIGINT NOT NULL DEFAULT 0,
 
-        ChainNo     BIGINT NOT NULL DEFAULT 0
+        ChainNo     BIGINT NOT NULL DEFAULT 0,
+
+        Payload      TEXT  NULL
         
     ) ENGINE=InnoDB;";
 

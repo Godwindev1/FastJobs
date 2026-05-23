@@ -25,9 +25,9 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
         const string sql = @"
             INSERT INTO AfterActions
-                (TypeName, Retries, MaxRetries, JobId, NextActionId, LastActionId, ChainNo)
+                (TypeName, Retries, MaxRetries, JobId, NextActionId, LastActionId, ChainNo, Payload)
             VALUES
-                (@TypeName, @Retries, @MaxRetries, @JobId, @NextActionId, @LastActionId, @ChainNo);
+                (@TypeName, @Retries, @MaxRetries, @JobId, @NextActionId, @LastActionId, @ChainNo, @Payload);
 
             SELECT LAST_INSERT_ID();";
 
@@ -91,7 +91,8 @@ internal sealed class AfterActionRepository : IAfterActionRepository
                 JobId        = @JobId,
                 NextActionId = @NextActionId,
                 LastActionId = @LastActionId,
-                ChainNo      = @ChainNo
+                ChainNo      = @ChainNo,
+                Payload      = @Payload
             WHERE Id = @Id;";
 
         return await connection.ExecuteAsync(

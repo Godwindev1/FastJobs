@@ -11,10 +11,9 @@ public class ChainJobBuilder
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly List<Job>            _steps = new();
 
-    internal ChainJobBuilder(Job firstJob, IServiceScopeFactory scopeFactory)
+    internal ChainJobBuilder(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
-        _steps.Add(firstJob);
     }
 
     // Called by ChainStepOptions to keep ThenRun chains working
@@ -45,9 +44,15 @@ public class ChainJobBuilder
         {
             var action = new AfterActionModel
             {
-                TypeName = nameof(ChainAfterAction),
+                TypeName = typeof(ChainAfterAction).AssemblyQualifiedName!,
                 JobId    = jobIds[i],
-                Payload  = JsonSerializer.Serialize(new ChainAfterActionPayload(jobIds[i + 1]))
+                Payload  = JsonSerializer.Serialize(new ChainAfterActionPayload(jobIds[i + 1])),
+                
+                Retries      = 0,
+                MaxRetries   = 3,
+                ChainNo      = 1,
+                LastActionID = 0,
+                NextActionID = 0
             };
 
             var actionId = await afterActionRepo.InsertAsync(action, cancellationToken);

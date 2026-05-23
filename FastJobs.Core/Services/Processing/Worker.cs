@@ -291,6 +291,9 @@ public partial class Worker
         }
 
         // Resolve and execute
+        var ActionContext = scope.Resolve<IAfterActionContext>() as AfterActionContext;
+        ActionContext.SetAction(actionModel);
+
         var action = AfterActionsResolver.ResolveAction(actionModel, scope);
         await action.ExecuteAsync(cancellationToken);
 

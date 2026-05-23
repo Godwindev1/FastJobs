@@ -5,6 +5,7 @@ namespace FastJobs
 {
     public static class FastJobsConsoleExtensions
     {
+    
         private static void InitializeFastJobsTables(IServiceProvider provider)
         {
             using var scope = provider.CreateScope();
