@@ -23,8 +23,10 @@ var app = builder.Build();
 
 app.Services.UseFastJobs();
 
+
 //start host 
 await app.StartAsync();
+
 
 //Enqueuing a Concrete Job that implements IBackGroundJob interface
 await FastJobServer.EnqueueJob<ComplexTestJob>()

@@ -10,4 +10,6 @@ public class AfterActionModel
     public long NextActionID {get; set;}
     public long LastActionID {get; set;}
     public long ChainNo {get; set; }
+
+    public string? Payload      { get; set; }
 }

@@ -12,6 +12,14 @@ namespace FastJobs {
     {
         _job = job;
         _scopeFactory = factory;
+
+        SetPriority(JobPriority.High);
+    }
+
+    public ScheduledJobOptions<TJob> SetPriority(JobPriority priority)
+    {
+        _job.Priority = (int)priority;
+        return this;
     }
 
     public ScheduledJobOptions<TJob> AddAfterAction(Action<AfterActionBuilder> configure)

@@ -18,31 +18,53 @@ public static class FastJobServer
         _options = scopeFactory.CreateScope().ServiceProvider.GetRequiredService<FastJobsOptions>();
     }
 
+    // ── Job Template Factory (DRY) ────────────────────────────────────────────────
 
-
-    public static EnqueueOptions<ExpressionFireAndForgetJob> EnqueueJob(Expression<Action> actionExpression)
-    {
-        var expressionMetadata = ExtractExpressionMetadata(actionExpression);
-      
-        var job = new Job
+    internal static Job CreateJobTemplate<TJob>() where TJob : class, IBackGroundJob =>
+        new Job
         {
-            TypeName = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
-            MethodName = expressionMetadata.MethodName,
-            MethodDeclaringTypeName = expressionMetadata.MethodDeclaringTypeName,
-            ParameterTypeNamesJson = expressionMetadata.ParameterTypeNamesJson,
-            ArgumentsJson = expressionMetadata.ArgumentsJson,
-            Queue = FastJobConstants.DefaultQueue,
-            stateID = 0,
-            StateName = QueueStateTypes.Enqueued,
-            RetryCount = 0,
-            MaxRetries = _options.DefaultMaxRetries,
-            Priority = (int)JobPriority.Normal,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+            TypeName                = typeof(TJob).AssemblyQualifiedName,
+            Queue                   = FastJobConstants.DefaultQueue,
+            StateName               = QueueStateTypes.Enqueued,
+            RetryCount              = 0,
+            MaxRetries              = _options.DefaultMaxRetries,
+            Priority                = (int)JobPriority.Normal,
+            CreatedAt               = DateTime.UtcNow,
+            MethodName              = string.Empty,
+            MethodDeclaringTypeName = string.Empty,
+            ParameterTypeNamesJson  = string.Empty,
+            ArgumentsJson           = string.Empty,
+            ExpiresAt               = _options.DefaultJobExpiration == TimeSpan.Zero
+                                        ? (DateTime?)null
+                                        : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
         };
 
-        return new EnqueueOptions<ExpressionFireAndForgetJob>(job, _ScopeFactory);
+    internal static Job CreateJobTemplate(Expression<Action> actionExpression)
+    {
+        var metadata = ExtractExpressionMetadata(actionExpression);
+
+        return new Job
+        {
+            TypeName                = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
+            Queue                   = FastJobConstants.DefaultQueue,
+            StateName               = QueueStateTypes.Enqueued,
+            RetryCount              = 0,
+            MaxRetries              = _options.DefaultMaxRetries,
+            Priority                = (int)JobPriority.Normal,
+            CreatedAt               = DateTime.UtcNow,
+            stateID                 = 0,
+            MethodName              = metadata.MethodName,
+            MethodDeclaringTypeName = metadata.MethodDeclaringTypeName,
+            ParameterTypeNamesJson  = metadata.ParameterTypeNamesJson,
+            ArgumentsJson           = metadata.ArgumentsJson,
+            ExpiresAt               = _options.DefaultJobExpiration == TimeSpan.Zero
+                                        ? (DateTime?)null
+                                        : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+        };
     }
+
+
+
 
     private static ExpressionJobMetadata ExtractExpressionMetadata(Expression<Action> actionExpression)
     {
@@ -79,131 +101,28 @@ public static class FastJobServer
     }
 
 
-    public static EnqueueOptions<TJob> EnqueueJob<TJob>() 
-        where TJob : class, IBackGroundJob
-    {
-        var job = new Job
-        {
-            TypeName = typeof(TJob).AssemblyQualifiedName,
-            Queue = FastJobConstants.DefaultQueue,
-            StateName = QueueStateTypes.Enqueued,
-            RetryCount = 0,
-            MaxRetries = _options.DefaultMaxRetries,
-            Priority = (int)JobPriority.Normal,
-            CreatedAt = DateTime.UtcNow,
-            MethodName = string.Empty,
-            MethodDeclaringTypeName = string.Empty,
-            ParameterTypeNamesJson = string.Empty,
-            ArgumentsJson = string.Empty,
-            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
-        };
+ 
+    // ── Fire and Forget ───────────────────────────────────────────────────────────
+    public static EnqueueOptions<ExpressionFireAndForgetJob> EnqueueJob(Expression<Action> actionExpression) =>
+        new EnqueueOptions<ExpressionFireAndForgetJob>(CreateJobTemplate(actionExpression), _ScopeFactory);
 
+    public static EnqueueOptions<TJob> EnqueueJob<TJob>() where TJob : class, IBackGroundJob =>
+        new EnqueueOptions<TJob>(CreateJobTemplate<TJob>(), _ScopeFactory);
 
-        return new EnqueueOptions<TJob>(job, _ScopeFactory);
-    }
+    // ── Scheduled ─────────────────────────────────────────────────────────────────
+    public static ScheduledJobOptions<ExpressionFireAndForgetJob> ScheduleJob(Expression<Action> actionExpression) =>
+        new ScheduledJobOptions<ExpressionFireAndForgetJob>(CreateJobTemplate(actionExpression), _ScopeFactory);
 
+    public static ScheduledJobOptions<TJob> ScheduleJob<TJob>() where TJob : class, IBackGroundJob =>
+        new ScheduledJobOptions<TJob>(CreateJobTemplate<TJob>(), _ScopeFactory);
 
-    //SCHEDULED JOBS 
+    // ── Recurring ─────────────────────────────────────────────────────────────────
+    public static RecurringJobOptions<ExpressionFireAndForgetJob> AddRecurringJob(Expression<Action> actionExpression) =>
+        new RecurringJobOptions<ExpressionFireAndForgetJob>(CreateJobTemplate(actionExpression), _ScopeFactory);
 
-    public static ScheduledJobOptions<ExpressionFireAndForgetJob> ScheduleJob(Expression<Action> actionExpression)
-    {
-        var expressionMetadata = ExtractExpressionMetadata(actionExpression);
-      
-        var job = new Job
-        {
-            TypeName = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
-            MethodName = expressionMetadata.MethodName,
-            MethodDeclaringTypeName = expressionMetadata.MethodDeclaringTypeName,
-            ParameterTypeNamesJson = expressionMetadata.ParameterTypeNamesJson,
-            ArgumentsJson = expressionMetadata.ArgumentsJson,
-            Queue = FastJobConstants.DefaultQueue,
-            stateID = 0,
-            StateName = QueueStateTypes.Enqueued,
-            RetryCount = 0,
-            MaxRetries = _options.DefaultMaxRetries,
-            Priority = (int)JobPriority.Normal,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
-        };
+    public static RecurringJobOptions<TJob> AddRecurringJob<TJob>() where TJob : class, IBackGroundJob =>
+        new RecurringJobOptions<TJob>(CreateJobTemplate<TJob>(), _ScopeFactory);
 
-        return new ScheduledJobOptions<ExpressionFireAndForgetJob>(job, _ScopeFactory);
-    }
-
-
-    public static ScheduledJobOptions<TJob> ScheduleJob<TJob>() 
-        where TJob : class, IBackGroundJob
-    {
-        var job = new Job
-        {
-            TypeName = typeof(TJob).AssemblyQualifiedName,
-            Queue = FastJobConstants.DefaultQueue,
-            StateName = QueueStateTypes.Enqueued,
-            RetryCount = 0,
-            MaxRetries = _options.DefaultMaxRetries,
-            Priority = (int)JobPriority.High,
-            CreatedAt = DateTime.UtcNow,
-            MethodName = string.Empty,
-            MethodDeclaringTypeName = string.Empty,
-            ParameterTypeNamesJson = string.Empty,
-            ArgumentsJson = string.Empty,
-            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
-        };
-
-
-        return new ScheduledJobOptions<TJob>(job, _ScopeFactory);
-    }
-
-
-    //RECURRING JOBS
-
-    public static RecurringJobOptions<ExpressionFireAndForgetJob> AddRecurringJob(Expression<Action> actionExpression)
-    {
-        var expressionMetadata = ExtractExpressionMetadata(actionExpression);
-      
-        var job = new Job
-        {
-            TypeName = typeof(ExpressionFireAndForgetJob).AssemblyQualifiedName,
-            MethodName = expressionMetadata.MethodName,
-            MethodDeclaringTypeName = expressionMetadata.MethodDeclaringTypeName,
-            ParameterTypeNamesJson = expressionMetadata.ParameterTypeNamesJson,
-            ArgumentsJson = expressionMetadata.ArgumentsJson,
-            Queue = FastJobConstants.DefaultQueue,
-            stateID = 0,
-            StateName = QueueStateTypes.Enqueued,
-            RetryCount = 0,
-            MaxRetries = _options.DefaultMaxRetries,
-            Priority = (int)JobPriority.Normal,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
-        };
-
-        return new RecurringJobOptions<ExpressionFireAndForgetJob>(job, _ScopeFactory);
-    }
-
-
-
-    public static RecurringJobOptions<TJob> AddRecurringJob<TJob>() 
-    where TJob : class, IBackGroundJob
-    {
-        var job = new Job
-        {
-            TypeName = typeof(TJob).AssemblyQualifiedName,
-            Queue = FastJobConstants.DefaultQueue,
-            StateName = QueueStateTypes.Enqueued,
-            RetryCount = 0,
-            MaxRetries = _options.DefaultMaxRetries,
-            Priority = (int)JobPriority.High,
-            CreatedAt = DateTime.UtcNow,
-            MethodName = string.Empty,
-            MethodDeclaringTypeName = string.Empty,
-            ParameterTypeNamesJson = string.Empty,
-            ArgumentsJson = string.Empty,
-            ExpiresAt = _options.DefaultJobExpiration == TimeSpan.Zero ? (DateTime?)null : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
-        };
-
-
-        return new RecurringJobOptions<TJob>(job, _ScopeFactory);
-    }
 
     
 

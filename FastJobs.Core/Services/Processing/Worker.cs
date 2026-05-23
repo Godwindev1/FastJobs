@@ -111,7 +111,7 @@ public partial class Worker
 
                     // If the job has expired by the time we got it, skip processing
                     if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
-                        return;
+                        continue;
 
                     var ResolvedJob = JobResolver.ResolveJob(job, Scope);
 

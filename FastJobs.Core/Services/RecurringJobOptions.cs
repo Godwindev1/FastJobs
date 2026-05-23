@@ -23,6 +23,15 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     {
         _job          = job;
         _scopeFactory = factory;
+
+        SetPriority(JobPriority.High);
+        
+    }
+
+    public RecurringJobOptions<TJob> SetPriority(JobPriority priority)
+    {
+        _job.Priority = (int)priority;
+        return this;
     }
 
     /// <summary>
