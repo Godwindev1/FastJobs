@@ -39,7 +39,7 @@ public class ChainStepOptions
     public ChainStepOptions ThenRun<TJob>() where TJob : class, IBackGroundJob =>
         _builder.AddStep<TJob>();
 
-    public ChainStepOptions ThenRunExpression(Expression<Action> actionExpression) => 
+    public ChainStepOptions ThenRun(Expression<Action> actionExpression) => 
         _builder.AddStep(actionExpression);
 
     public Task EnqueueAsync(CancellationToken cancellationToken = default) =>
