@@ -1,5 +1,6 @@
 // ── ChainJobBuilder ───────────────────────────────────────────────────────────
 
+using System.Linq.Expressions;
 using System.Text.Json;
 using Fastjobs.AfterActions;
 using FastJobs;
@@ -16,10 +17,18 @@ public class ChainJobBuilder
         _scopeFactory = scopeFactory;
     }
 
-    // Called by ChainStepOptions to keep ThenRun chains working
-    internal ChainStepOptions AddStep<TJob>() where TJob : class, IBackGroundJob
+    // Called by ChainStepOptions to keep ThenRun chains working And on First Addition 
+    public ChainStepOptions AddStep<TJob>() where TJob : class, IBackGroundJob
     {
         var job = FastJobServer.CreateJobTemplate<TJob>();
+        job.JobType = JobTypes.ChainHead;
+        _steps.Add(job);
+        return new ChainStepOptions(job, this);
+    }
+
+    public ChainStepOptions AddStep(Expression<Action> actionExpression)
+    {
+        var job = FastJobServer.CreateJobTemplate(actionExpression);
         _steps.Add(job);
         return new ChainStepOptions(job, this);
     }
