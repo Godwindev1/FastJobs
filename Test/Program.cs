@@ -33,8 +33,8 @@ app.Services.UseFastJobs();
 await app.StartAsync();
 
 
-await FastJobServer.CreateChain<ValidateOrderJob>()
-.ThenRun<ValidateOrderJob>()
+await FastJobServer.CreateChain()
+.AddStep<ValidateOrderJob>()
 .ThenRun<ChargePaymentJob>()
 .ThenRun<SendConfirmationEmailJob>()
 .ThenRun<NotifyWarehouseJob>()

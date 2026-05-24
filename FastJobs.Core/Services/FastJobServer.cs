@@ -125,15 +125,21 @@ public static class FastJobServer
 
 
     // ── Chained  ─────────────────────────────────────────────────────────────────
-    public static ChainStepOptions CreateChain<TJob>() where TJob : class, IBackGroundJob {
+
+    public static ChainJobBuilder CreateChain() {
+        return  new ChainJobBuilder(_ScopeFactory);
+    }
+
+ /*   public static ChainStepOptions CreateChain<TJob>() where TJob : class, IBackGroundJob {
         var job = CreateJobTemplate<TJob>();
         return new ChainStepOptions(job,  new ChainJobBuilder(_ScopeFactory));
     }
+    */
 
-    public static ChainStepOptions CreateChain(Expression<Action> actionExpression) 
+   /* public static ChainStepOptions CreateChain(Expression<Action> actionExpression) 
     {
         var job = CreateJobTemplate(actionExpression);
         return new ChainStepOptions(job,  new ChainJobBuilder(_ScopeFactory));
-    }
+    } */
 
 }

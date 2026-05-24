@@ -6,14 +6,6 @@ public static class FastJobConstants
     public static string DefaultQueue = "Default";
 }
 
-//REPEATED IN FASTJOBS.SQLSERVER
-public static class JobTypes
-{
-    public static string Enqueued = "Enqueued";
-    public static string Scheduled = "Scheduled";
-    public static string Recurring = "Recurring";
-    public static string ChainHead = "Chain";
-}
 
 public enum JobPriority
 {
