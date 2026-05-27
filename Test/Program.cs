@@ -10,7 +10,7 @@ string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=ro
 var builder = Host.CreateApplicationBuilder(args);
 
 // Register the ComplexTestJob with the DI container so it can be resolved when the job is executed.
-builder.Services.AddJobService<ComplexTestJob>();
+builder.Services.AddJobService<FailTestJob>();
 builder.Services.AddJobService<ValidateOrderJob>();
 builder.Services.AddJobService<ChargePaymentJob>();
 builder.Services.AddJobService<SendConfirmationEmailJob>();
@@ -32,13 +32,18 @@ app.Services.UseFastJobs();
 //start host 
 await app.StartAsync();
 
+await FastJobServer
+.EnqueueJob<FailTestJob>()
+.AddAfterAction( x => x.WithType<DeleteAfterAction>())
+.SetMaxRetryCount(5)
+.Start();
 
-await FastJobServer.CreateChain()
-.AddStep<ValidateOrderJob>()
-.ThenRun<ChargePaymentJob>()
-.ThenRun<SendConfirmationEmailJob>()
-.ThenRun<NotifyWarehouseJob>()
-.EnqueueAsync();
+//await FastJobServer.CreateChain()
+//.AddStep<ValidateOrderJob>()
+//.ThenRun<ChargePaymentJob>()
+//.ThenRun<SendConfirmationEmailJob>()
+//.ThenRun<NotifyWarehouseJob>()
+//.EnqueueAsync();
 
 
 //Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
@@ -71,42 +76,25 @@ await app.WaitForShutdownAsync();
 
 
 //CONCRETE JOBS THAT INHERIT FROM IBackGroundJob INTERFACE
-public class ComplexTestJob : IBackGroundJob
+public class FailTestJob : IBackGroundJob
 {
-    private readonly Logger<ComplexTestJob> _logger;
+    private readonly Logger<FailTestJob> _logger;
 
-    public ComplexTestJob(ILogger<ComplexTestJob> logger)
+    public FailTestJob(ILogger<FailTestJob> logger)
     {
-        _logger = logger as Logger<ComplexTestJob> ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger as Logger<FailTestJob> ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("[{Thread}] Job Started", Thread.CurrentThread.Name);
+        _logger.LogInformation("[{Thread}] Fail Job Started", Thread.CurrentThread.Name);
 
-        // Simulate fetching data
-        _logger.LogInformation("Phase 1: Fetching data...");
-        await Task.Delay(500, cancellationToken);
-        var items = Enumerable.Range(1, 20).ToList();
 
-        // Simulate processing each item with cancellation awareness
-        _logger.LogInformation("Phase 2: Processing {Count} items...", items.Count);
-        foreach (var item in items)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Simulate variable-length work per item
-            var delay = Random.Shared.Next(100, 400);
-            await Task.Delay(delay, cancellationToken);
-
-            _logger.LogInformation("  Processed item {Item} in {Ms}ms on [{Thread}]",
-                item, delay, Thread.CurrentThread.Name);
-        }
 
         // Simulate saving results
-        _logger.LogInformation("Phase 3: Saving results...");
+        _logger.LogInformation("Phase 1: Throwing an Exception To Simulate Failure and Test Backoff Logic");
+        throw new TerminateRetryException("Simulated failure for testing backoff logic.");
         await Task.Delay(300, cancellationToken);
 
-        _logger.LogInformation("[{Thread}] Job Completed", Thread.CurrentThread.Name);
     }
 }

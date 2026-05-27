@@ -1,4 +1,5 @@
 using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
 public class QueueNames
@@ -121,7 +122,7 @@ internal class QueueProcessor
         }
     }
 
-    private async Task FailJobAsync(Job job, string ExceptionMessage)
+    internal async Task FailJobAsync(Job job, string ExceptionMessage)
     {
         //NOTE: Intentionally no CancellationToken — compensating operation must complete
         // Update job state with atomic state history creation and rollback support
@@ -132,11 +133,13 @@ internal class QueueProcessor
             data: ExceptionMessage);
     }
 
-    public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, string ExceptionMessage = "")
+    public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, ScopeManager Scope,  string ExceptionMessage = "")
     {  
+        //TODO: REqueue Would Now Take in A TimeSpan And Use Scheduling to Schedule The JOB with Exponential Backopff Properly 
         //NOTE: Intentionally no CancellationToken — compensating operation must complete to maintain job state consistency
         try {
             var Job = await _JobRepository.GetByIdAsync(JobQueueEntry.JobId);
+            
             if (Job == null)
             {
                 await QueueLock.ReleaseLockAsync();
@@ -144,35 +147,46 @@ internal class QueueProcessor
                 return;
             }
 
-            if(Job.RetryCount > Job.MaxRetries)
+            if(Job.RetryCount >= Job.MaxRetries)
             {
                 await FailJobAsync(Job, ExceptionMessage);
-                await _queueRepo.RemoveAsync(JobQueueEntry.Id);   
+                return;
             }
-            else
-            {
-                // Update job state with atomic state history creation and rollback support
-                await _stateHelpers.UpdateJobStateAsync(
-                    JobQueueEntry.JobId,
-                    QueueStateTypes.Enqueued,
-                    $"Job #{JobQueueEntry.JobId} of type {Job.MethodDeclaringTypeName} is Attempting a Retry",
-                    data: ExceptionMessage);
 
-                // Increment retry count separately
-                Job.RetryCount += 1;
-                await _JobRepository.UpdateByIdAsync(Job);
+            //Remove it Frome The Queue
+            await _queueRepo.RemoveAsync(JobQueueEntry.Id);   
 
-                //make Job Visible again
-                JobQueueEntry.isDequeued = false;
-                await _queueRepo.Update(JobQueueEntry);
-            }
+            FastJobsOptions Options = Scope.Resolve<FastJobsOptions>();
+            var StateRepo = Scope.Resolve<IStateHistoryRepository>();
+            var ScehduledJobRepository = Scope.Resolve<IScheduledJobRepository>();
+
+            var TimeSpan = Math.Min(Options.MaxJobRetryDelay.TotalSeconds, 
+                                Math.Pow(2, Job.RetryCount) * Options.JobRetryDelayBase.TotalSeconds)
+                                + Random.Shared.NextDouble() * Options.Jitter.TotalSeconds;
+            
+            Scope.Resolve<ILogger<QueueProcessor>>().LogInformation("TImespan For Backoff {Time}", TimeSpan);
+
+            await JobRetryScheduler.RescheduleAsync(
+                job: Job,
+                scheduledTime: DateTime.UtcNow.AddSeconds(TimeSpan),
+                jobRepository: _JobRepository,
+                stateHistoryRepository: StateRepo,
+                scheduledJobRepository: ScehduledJobRepository,
+                processingServer: Scope.Resolve<ProcessingServer>()
+            ); 
+
+             await QueueLock.ReleaseLockAsync();
+             QueueLock.Dispose();
+            
+
             
         }
-        finally {
-        
+        finally 
+        {
             await QueueLock.ReleaseLockAsync();
             QueueLock.Dispose();
         }
+
        
     }
 

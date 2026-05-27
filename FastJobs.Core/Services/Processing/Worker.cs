@@ -20,7 +20,7 @@ public partial class Worker
     private string _WorkerName;
 
     private FastJobsOptions _options;
-    public Worker(int workerId, string workerName, IServiceScopeFactory serviceScope, CancellationToken shutdownToken)
+    internal Worker(int workerId, string workerName, IServiceScopeFactory serviceScope, CancellationToken shutdownToken)
     {
         using var Scopemanager = new ScopeManager(serviceScope);
         
@@ -40,13 +40,13 @@ public partial class Worker
         _logger = Scopemanager.Resolve<ILogger<Worker>>();
     }
 
-    public void SetDBWorkerID(long id)
+    internal void SetDBWorkerID(long id)
     {
         _dbWorkerId = (int)id;
     }
 
 
-    public async Task Run()
+    internal async Task Run()
     {
 
         var workerRecord =  await WorkerObservability();
@@ -60,20 +60,9 @@ public partial class Worker
   
                 if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
                 {
-                    using( var scope = new ScopeManager(serviceScopeFactory))
-                    {
-                        IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
-
-                        // Mark sleeping only if we weren't already
-                        if (!workerRecord.isSleeping)
-                        {
-                            workerRecord.isSleeping = true;
-                            await workerRepo.UpdateAsync(workerRecord, _shutdownToken);
-                        }
-
-                        await Task.Delay(200, _shutdownToken);
-                        continue;
-                    }
+                    await RestWorker(workerRecord);
+                    await Task.Delay(300, _shutdownToken); 
+                    continue;
                 }
 
                 // WHen work is likely,  lock and re-check
@@ -97,15 +86,9 @@ public partial class Worker
                     if (JobDetails == null)
                         continue;
 
-                    IWorkerRepository workerRepo = Scope.Resolve<IWorkerRepository>();
+                    await WakeWorker(workerRecord);
 
-                    // Wake up There is  Work to do 
-                    if (workerRecord.isSleeping)
-                    {
-                        workerRecord.isSleeping = false;
-                        await workerRepo.UpdateAsync(workerRecord, _shutdownToken);
-                    }
-
+                    //RESOLVE JOB DETAILS 
                     IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
                     Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
 
@@ -156,10 +139,14 @@ public partial class Worker
                     {
                         // expected during shutdown
                     }
+                    catch (TerminateRetryException ex)
+                    {
+                        await _QueueProcessor.FailJobAsync(job, ex.Message);
+                    }
                     catch (Exception ex)
                     {
                          _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Beginning Retry {RetryCOunt}  ", job.Id, job.MethodDeclaringTypeName, job.RetryCount + 1);
-                        await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, ex.Message);
+                        await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, Scope, ex.Message);
                     }
                     finally
                     {
@@ -176,41 +163,8 @@ public partial class Worker
 
                     if (jobSucceeded)
                     {
-                        try
-                        {
-                            await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log but don't requeue — job work is done, only cleanup failed
-                            _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Failed State Update After Completion ",
-                                job.Id, 
-                                job.MethodDeclaringTypeName                             );
-                        }
-
-                        if (job.JobType == JobTypes.Recurring)
-                         {  
-                             await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
-                         }
-
-                        //Execute After Actions
-                        var JobAfterActionID = job.AfterActionId ?? 0;
-                        if(job.AfterActionId != null && JobAfterActionID != 0)
-                        {
-                            if(job.JobType != JobTypes.Recurring)
-                            {
-                                await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);
-                            }
-                            else
-                            {
-                                // If the job has expired, do not Run Recurring Jobs After Action on Final Completion
-                                if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
-                                {
-                                   await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
-                                } 
-                            }
-                        }
-
+                        await RescheduleOrRunAfterAction(JobDetails, job, Scope);
+                       
                         jobContext.SetJob(null);
 
                     }
@@ -229,8 +183,8 @@ public partial class Worker
             // Unhandled exception with no fallback — mark as crashed
             _logger.LogError(ex, "Worker: {WorkerName} Has Crashed ", _WorkerName);
 
-            workerRecord.isCrashed = true;
-            workerRecord.isSleeping     = false;
+            workerRecord.isCrashed  = true;
+            workerRecord.isSleeping = false;
             await workerRepo.UpdateAsync(workerRecord, CancellationToken.None);
 
             throw; // re-throw so the host knows this worker died
@@ -247,6 +201,76 @@ public partial class Worker
             if (!workerRecord.isCrashed)
                 await workerRepo.DeleteAsync(_dbWorkerId, CancellationToken.None);
         }
+    }
+
+    internal async Task RescheduleOrRunAfterAction(Tuple<Queue, SessionDatabaseLock> JobDetails, Job job, ScopeManager Scope)
+    {
+        try
+        {
+            await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't requeue — job work is done, only cleanup failed
+            _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Failed State Update After Completion ",
+                job.Id, 
+                job.MethodDeclaringTypeName                             );
+        }
+
+        if (job.JobType == JobTypes.Recurring)
+         {  
+             await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
+         }
+        //Execute After Actions
+        var JobAfterActionID = job.AfterActionId ?? 0;
+        if(job.AfterActionId != null && JobAfterActionID != 0)
+        {
+            if(job.JobType != JobTypes.Recurring)
+            {
+                await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);
+            }
+            else
+            {
+                // If the job has expired, do not Run Recurring Jobs After Action on Final Completion
+                if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+                {
+                   await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
+                } 
+            }
+        }
+
+    }
+
+    internal async Task RestWorker(FSTJBS_Worker WorkerRecord)
+    {
+        using( var scope = new ScopeManager(serviceScopeFactory))
+        {
+            IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
+            // Mark sleeping only if we weren't already
+            if (!WorkerRecord.isSleeping)
+            {
+                WorkerRecord.isSleeping = true;
+                await workerRepo.UpdateAsync(WorkerRecord, _shutdownToken);
+            }
+        }
+        
+    }
+
+    internal async Task WakeWorker(FSTJBS_Worker WorkerRecord)
+    {
+        using( var scope = new ScopeManager(serviceScopeFactory))
+        {
+            
+            IWorkerRepository workerRepo = scope.Resolve<IWorkerRepository>();
+
+            // Wake up There is  Work to do 
+            if (WorkerRecord.isSleeping)
+            {
+                WorkerRecord.isSleeping = false;
+                await workerRepo.UpdateAsync(WorkerRecord, _shutdownToken);
+            }
+        }
+        
     }
 
     /// <summary>
