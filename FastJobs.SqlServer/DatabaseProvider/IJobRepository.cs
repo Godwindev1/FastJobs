@@ -27,5 +27,7 @@ public interface IJobRepository
     Task<int> CountFailedSinceAsync(DateTime since, CancellationToken cancellationToken = default);
     Task<int> CountStateBetween(string statename, DateTime from, DateTime to, CancellationToken cancellationToken = default);
 
+    public Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default);
+
 
 }

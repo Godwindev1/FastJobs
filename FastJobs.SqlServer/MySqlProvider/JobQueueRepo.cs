@@ -151,7 +151,17 @@ internal sealed class QueueRepository : IQueueRepository
         
     }
 
+    public async Task<Queue?> GetByJob(long id, CancellationToken cancellationToken = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
-   
+        const string sql = @" 
+            SELECT * FROM Queue WHERE JobId = @JobId;
+        ";  
+
+        var command = new CommandDefinition(sql, new { JobId = id }, cancellationToken: cancellationToken);
+        var value = await _connection.QueryAsync<Queue>(command);
+        return value.FirstOrDefault();
+    }
 
 }

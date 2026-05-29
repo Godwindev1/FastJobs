@@ -25,6 +25,6 @@ public enum MisfirePolicy
     /// Framework decides based on job type and schedule density.
     /// Sparse schedules (>1hr apart) → FireOnce. Dense schedules → Skip.
     /// </summary>
-    //Smart = 3
+    Smart = 3
 }
 

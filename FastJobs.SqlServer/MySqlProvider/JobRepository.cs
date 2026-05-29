@@ -218,4 +218,20 @@ internal sealed class JobRepository : IJobRepository
             new CommandDefinition(sql, new { StateName = statename, From = from, To = to }, cancellationToken: cancellationToken));
     }
 
+    public async Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT * FROM Jobs
+            WHERE CreatedAt <= @Cutoff
+            AND StateName NOT IN (@CompletedState, @FailedState)
+           ";
+
+        var result = await _connection.QueryAsync<Job>(
+            new CommandDefinition(sql, new { Cutoff = cutoff, CompletedState = QueueStateTypes.Completed, FailedState = QueueStateTypes.Failed }, cancellationToken: ct));
+
+        return result.ToList();
+    }
+
 }

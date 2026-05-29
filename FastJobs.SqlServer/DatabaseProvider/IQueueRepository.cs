@@ -3,6 +3,7 @@ public interface IQueueRepository
 {
     Task<long> EnqueueAsync(Queue jobEntry, CancellationToken cancellationToken = default);
     Task<Queue?> GetQueueEntry(long id, CancellationToken cancellationToken = default);
+    Task<Queue?> GetByJob(long id, CancellationToken cancellationToken = default);
 
     Task<List<Queue>> GetAllQueueEntries(CancellationToken cancellationToken = default);
     Task<bool> ExistsAny(CancellationToken cancellationToken = default);
