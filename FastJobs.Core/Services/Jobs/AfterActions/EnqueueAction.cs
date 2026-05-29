@@ -2,7 +2,7 @@
 using FastJobs;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Fastjobs.AfterActions;
+namespace FastJobs.AfterActions;
 
 public class EnqueueAfterAction : IAfterAction
 {

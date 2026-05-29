@@ -16,6 +16,12 @@ namespace FastJobs {
         SetPriority(JobPriority.High);
     }
 
+    public ScheduledJobOptions<TJob> WithMisfirePolicy(MisfirePolicy policy)
+    {
+        _job.misfirePolicy = (int)policy;
+        return this;
+    }
+
     public ScheduledJobOptions<TJob> SetPriority(JobPriority priority)
     {
         _job.Priority = (int)priority;

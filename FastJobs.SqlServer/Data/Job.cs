@@ -11,7 +11,9 @@ public static class JobTypes
 
 
 public sealed class Job
-{
+{   
+    
+
     public long? Id { get; set; }
     public long? AfterActionId {get; set; } = null;
     public string JobType {get; set; } = JobTypes.Enqueued;
@@ -33,6 +35,7 @@ public sealed class Job
     public int MaxRetries { get; set; } = 3;
     public int Priority { get; set; }
 
+    public int misfirePolicy { get; set; } = (int)MisfirePolicy.FireOnce; 
 
     public DateTime CreatedAt { get; set; }
     public DateTime? ExpiresAt {get; set; }

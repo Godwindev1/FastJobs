@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Hosting;
 namespace FastJobs;
 
-using Fastjobs.AfterActions;
+using FastJobs.AfterActions;
 using FastJobs.Dashboard;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.Logging;

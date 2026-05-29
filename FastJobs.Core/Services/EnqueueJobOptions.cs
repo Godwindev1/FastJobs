@@ -15,6 +15,12 @@ public class EnqueueOptions<TJob> where TJob : class, IBackGroundJob
         _scopeFactory = factory;
     }
 
+    public EnqueueOptions<TJob> WithMisfirePolicy(MisfirePolicy policy)
+    {
+        _job.misfirePolicy = (int)policy;
+        return this;
+    }
+
     public EnqueueOptions<TJob> SetPriority(JobPriority priority)
     {
         _job.Priority = (int)priority;

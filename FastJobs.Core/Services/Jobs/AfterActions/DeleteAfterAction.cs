@@ -3,7 +3,7 @@ using FastJobs;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Fastjobs.AfterActions;
+namespace FastJobs.AfterActions;
 
 public class DeleteAfterAction : IAfterAction
 {

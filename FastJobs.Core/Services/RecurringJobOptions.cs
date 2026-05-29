@@ -34,6 +34,12 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         return this;
     }
 
+    public RecurringJobOptions<TJob> WithMisfirePolicy(MisfirePolicy policy)
+    {
+        _job.misfirePolicy = (int)policy;
+        return this;
+    }
+
     /// <summary>
     /// Sets the After action chain That Runs After the Final Completion.
     /// </summary>

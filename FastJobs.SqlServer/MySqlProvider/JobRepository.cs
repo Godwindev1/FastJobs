@@ -29,10 +29,10 @@ internal sealed class JobRepository : IJobRepository
         const string sql = @"
         INSERT INTO Jobs
         (AfterActionId, TypeName, JobType, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
-        Queue, StateName, RetryCount, MaxRetries, CreatedAt)
+        Queue, StateName, RetryCount, MaxRetries, misfirePolicy, CreatedAt)
         VALUES
         (@AfterActionId, @TypeName,@JobType, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
-        @Queue, @StateName, @RetryCount, @MaxRetries, @CreatedAt);
+        @Queue, @StateName, @RetryCount, @MaxRetries, @misfirePolicy, @CreatedAt);
 
         SELECT LAST_INSERT_ID();
         ";
@@ -101,6 +101,7 @@ internal sealed class JobRepository : IJobRepository
             StateName = @StateName,
             RetryCount = @RetryCount,
             MaxRetries = @MaxRetries,
+            misfirePolicy = @misfirePolicy,
             CreatedAt = @CreatedAt
         WHERE Id = @Id;";
 
@@ -119,6 +120,7 @@ internal sealed class JobRepository : IJobRepository
             job.StateName,
             job.RetryCount,
             job.MaxRetries,
+            job.misfirePolicy,
             job.CreatedAt, 
         }, cancellationToken: cancellationToken);
 

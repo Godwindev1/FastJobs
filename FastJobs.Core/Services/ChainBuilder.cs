@@ -2,7 +2,7 @@
 
 using System.Linq.Expressions;
 using System.Text.Json;
-using Fastjobs.AfterActions;
+using FastJobs.AfterActions;
 using FastJobs;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.DependencyInjection;

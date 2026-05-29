@@ -13,4 +13,11 @@ public class FastJobsOptions
 
     public int DefaultMaxRetries {get; set; } = 3;
     public int DefaultWOrkerHeartbeatIntervalSeconds {get; set; } = 30;
+
+    /// <summary>
+    /// How late a job must be before it's considered misfired.
+    /// Jobs within this window are executed normally, not as misfires.
+    /// Default: 60 seconds 
+    /// </summary>
+    public TimeSpan MisfireThreshold { get; set; } = TimeSpan.FromSeconds(60);
 }

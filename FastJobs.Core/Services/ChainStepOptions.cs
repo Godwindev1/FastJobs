@@ -17,6 +17,13 @@ public class ChainStepOptions
         _builder = builder;
     }
 
+    public ChainStepOptions WithMisfirePolicy(MisfirePolicy policy)
+    {
+        _job.misfirePolicy = (int)policy;
+        return this;
+    }
+
+
     public ChainStepOptions SetPriority(JobPriority priority)
     {
         _job.Priority = (int)priority;
