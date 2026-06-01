@@ -20,4 +20,5 @@ public class FastJobsOptions
     /// Default: 60 seconds 
     /// </summary>
     public TimeSpan MisfireThreshold { get; set; } = TimeSpan.FromSeconds(60);
+    public TimeSpan MisfireDetectorInterval { get; set; } = TimeSpan.FromSeconds(60);
 }

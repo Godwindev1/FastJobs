@@ -3,8 +3,8 @@ namespace FastJobs;
 public static class QueueStateTypes
 {
     public static string Enqueued = "Enqueued";
-    public static string Dequeued = "Dequeued";
     public static string Scheduled = "Scheduled";
+    public static string Dequeued = "Dequeued";
     public static string Processing = "Processing";
     public static string Completed = "Completed";
     public static string Failed = "Failed";

@@ -67,8 +67,8 @@ public class EnqueueOptions<TJob> where TJob : class, IBackGroundJob
 
         var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);
 
-        await jobRepository.UpdateByIdAsync(jobId, "stateID = @stateID, StateName = @StateName",
-            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued }, cancellationToken);
+        await jobRepository.UpdateByIdAsync(jobId, "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
+            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTime.UtcNow }, cancellationToken);
 
         await queueRepository.EnqueueAsync(new Queue
         {

@@ -16,6 +16,8 @@ public class Queue
 
     public int Priority { get; set; }
 
+    public bool IsMisfireRecovery { get; set; } = false;
+
     
     [Required]
     public bool isDequeued { get; set; }

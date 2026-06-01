@@ -1,25 +1,46 @@
 using FastJobs;
 using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
 
-public class MisfireDetector
+//For Recurring Jobs Only
+public class RecurringMisfireDetector
 {
     private readonly IJobRepository _repository;
+    private readonly IRecurringJobRepository _recurringJobRepository;
     private readonly IQueueRepository _queueRepository;
     private readonly FastJobsOptions _options;
 
+    private readonly ILogger<RecurringMisfireDetector> _Logger;
+    public RecurringMisfireDetector(
+        IJobRepository repository,
+        IRecurringJobRepository recurringJobRepository,
+        IQueueRepository queueRepository,
+        FastJobsOptions options,
+        ILogger<RecurringMisfireDetector> logger)
+    {
+        _repository = repository;
+        _recurringJobRepository = recurringJobRepository;
+        _queueRepository = queueRepository;
+        _options = options;
+        _Logger = logger;
+    }
+
     public async Task DetectAndHandleAsync(CancellationToken ct)
     {
+        
         var threshold = _options.MisfireThreshold;
         var now = DateTime.UtcNow;
 
-        // Fetch all scheduled/recurring jobs that are overdue beyond threshold
+        //Only Returns Recurring Jobs that have misfired, as Non-Recurring Jobs are handled by the Scheduler directly
         var misfiredJobs = await _repository.GetMisfiredJobsAsync(
-            cutoff: now - threshold, 
+            cutoff: now - threshold,
             ct: ct
         );
 
+        
         foreach (var job in misfiredJobs)
         {
+            _Logger.LogInformation("Handling Misfire For Job with Id #{JobID}", job.Id);
             await HandleMisfireAsync(job, now, ct);
         }
     }
@@ -27,47 +48,50 @@ public class MisfireDetector
     private async Task HandleMisfireAsync(Job job, DateTime now, CancellationToken ct)
     {
         var policy = job.misfirePolicy == (int)MisfirePolicy.Smart
-            ? ResolveSmartPolicy(job, now)
+            ? await ResolveSmartPolicy(job, now)
             : (MisfirePolicy)job.misfirePolicy;
 
-        switch (policy)
+        // For Skip: do nothing—scheduler already handles next run
+        if (policy == MisfirePolicy.Skip)
+            return;
+
+        // For FireOnce: enqueue once if not already in queue
+        if (policy == MisfirePolicy.FireOnce)
         {
-            case MisfirePolicy.Skip:
-                // Just advance the next run time, don't execute
-                if( await _queueRepository.GetByJob(job.Id ?? 0, ct) == null)
-                {
-                    await _queueRepository.EnqueueAsync(new Queue { JobId = job.Id ?? 0, Priority = (int)JobPriority.High, QueueName = QueueNames.Critical  }, ct);
-                }
-                break;
-
-            case MisfirePolicy.FireOnce:
-                // Enqueue a single catch-up execution
-                if( await _queueRepository.GetByJob(job.Id ?? 0, ct) == null)
-                    await _queueRepository.EnqueueAsync(new Queue { JobId = job.Id ?? 0, Priority = (int)JobPriority.High, QueueName = QueueNames.Critical  }, ct);
-               
-                break;
-
-            /*case MisfirePolicy.RunAll:
-                // Reconstruct all missed execution windows and enqueue each
-                var missedTimes = ComputeMissedExecutionTimes(job, now);
-                foreach (var missedTime in missedTimes)
-                {
-                    await _executor.EnqueueAsync(job, scheduledFor: missedTime, isMisfireRecovery: true, ct);
-                }
-                await _repository.UpdateNextRunTimeAsync(job.Id, ComputeNextRun(job, now), ct);
-                break;*/ //TO BE IMPLEMENTED AT A LATER DATE
+            if (await _queueRepository.GetByJob(job.Id ?? 0, ct) == null)
+            {
+                await _queueRepository.EnqueueAsync(
+                    new Queue
+                    {
+                        JobId = job.Id ?? 0,
+                        Priority = (int)JobPriority.High,
+                        QueueName = QueueNames.Critical,
+                        IsMisfireRecovery = true
+                    },
+                    ct
+                );
+            }
         }
+
     }
 
-    private MisfirePolicy ResolveSmartPolicy(Job job, DateTime now)
+    private async Task<MisfirePolicy> ResolveSmartPolicy(Job job, DateTime now)
     {
-        //INTERVALS ARE FOR RECURRING AND SCHEDULED JOBS
-        // Sparse: > 1 hour between executions → FireOnce (missing one matters)
-        // Dense: <= 1 hour → Skip (catch-up flood isn't worth it)
-        //var interval = EstimateInterval(job);
-        var interval = TimeSpan.FromHours(1);
-        return interval > TimeSpan.FromHours(1) 
-            ? MisfirePolicy.FireOnce 
-            : MisfirePolicy.Skip;
+        if(job.JobType == JobTypes.Recurring)
+        {
+            var result = await _recurringJobRepository.GetByJob(job);
+            var interval = EstimateInterval(result, now); // implement this based on job.Cron or job.Interval
+
+            return interval > TimeSpan.FromHours(1)
+            ? MisfirePolicy.FireOnce
+            : MisfirePolicy.Skip;           
+        }
+        
+        return MisfirePolicy.FireOnce; 
+    }
+
+    private TimeSpan EstimateInterval(RecurringJob job, DateTime now)
+    {
+        return job.ComputeNextRun(now) - now ?? TimeSpan.FromHours(1);
     }
 }

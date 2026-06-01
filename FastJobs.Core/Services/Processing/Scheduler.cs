@@ -131,6 +131,10 @@ public class Scheduler
         };
 
         try {
+            //Update Run at Time
+            job.ScheduledRunAt = DateTime.UtcNow;
+            await jobRepo.UpdateByIdAsync(job, ct);
+
             await EnqueueJob(entry, ct, QueueNames.Critical, manager);
             var scheduledInfoRepo = manager.Resolve<IScheduledJobRepository>();
             await scheduledInfoRepo.DeleteByIdAsync(jobInfo.Id);

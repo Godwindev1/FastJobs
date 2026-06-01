@@ -29,10 +29,10 @@ internal sealed class JobRepository : IJobRepository
         const string sql = @"
         INSERT INTO Jobs
         (AfterActionId, TypeName, JobType, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
-        Queue, StateName, RetryCount, MaxRetries, misfirePolicy, CreatedAt)
+        Queue, StateName, RetryCount, MaxRetries, misfirePolicy, CreatedAt, ScheduledRunAt)
         VALUES
         (@AfterActionId, @TypeName,@JobType, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
-        @Queue, @StateName, @RetryCount, @MaxRetries, @misfirePolicy, @CreatedAt);
+        @Queue, @StateName, @RetryCount, @MaxRetries, @misfirePolicy, @CreatedAt, @ScheduledRunAt);
 
         SELECT LAST_INSERT_ID();
         ";
@@ -102,7 +102,8 @@ internal sealed class JobRepository : IJobRepository
             RetryCount = @RetryCount,
             MaxRetries = @MaxRetries,
             misfirePolicy = @misfirePolicy,
-            CreatedAt = @CreatedAt
+            CreatedAt = @CreatedAt,
+            ScheduledRunAt = @ScheduledRunAt
         WHERE Id = @Id;";
 
         var command = new CommandDefinition(sql, new
@@ -122,6 +123,7 @@ internal sealed class JobRepository : IJobRepository
             job.MaxRetries,
             job.misfirePolicy,
             job.CreatedAt, 
+            job.ScheduledRunAt
         }, cancellationToken: cancellationToken);
 
         return await _connection.ExecuteAsync(command);
@@ -218,18 +220,22 @@ internal sealed class JobRepository : IJobRepository
             new CommandDefinition(sql, new { StateName = statename, From = from, To = to }, cancellationToken: cancellationToken));
     }
 
+    
+    //TODO: Select only needed Columns Instead of Whole Job Object
     public async Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default)
     {
+        //Misfired Job Cannot be Completed or Failed 
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT * FROM Jobs
-            WHERE CreatedAt <= @Cutoff
-            AND StateName NOT IN (@CompletedState, @FailedState)
+            WHERE ScheduledRunAt <= @Cutoff
+            AND JobType = @JobType
+            AND StateName IN (@ProcessingState, @DequeuedState)
            ";
 
         var result = await _connection.QueryAsync<Job>(
-            new CommandDefinition(sql, new { Cutoff = cutoff, CompletedState = QueueStateTypes.Completed, FailedState = QueueStateTypes.Failed }, cancellationToken: ct));
+            new CommandDefinition(sql, new { Cutoff = cutoff, JobType = JobTypes.Recurring, ProcessingState = QueueStateTypes.Processing, DequeuedState = QueueStateTypes.Dequeued }, cancellationToken: ct));
 
         return result.ToList();
     }

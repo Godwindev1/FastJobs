@@ -36,6 +36,8 @@ public static  class ServiceCollectionExtensions
 
         services.AddScoped<QueueProcessor>();
         services.AddSingleton<ProcessingServer>();
+        services.AddSingleton<RecurringMisfireDetector>();
+        services.AddHostedService<MisfireDetectorService>();
 
         // Register expression-based job execution services
         services.AddScoped<IJobContext, JobContext>();
