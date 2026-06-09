@@ -227,6 +227,7 @@ internal sealed class JobRepository : IJobRepository
         //Misfired Job Cannot be Completed or Failed 
         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
+        
         const string sql = @"
             SELECT * FROM Jobs
             WHERE ScheduledRunAt <= @Cutoff
