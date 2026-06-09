@@ -161,13 +161,10 @@ public partial class Worker
                         }
                     }
 
-                    if (jobSucceeded)
-                    {
-                        await RescheduleOrRunAfterAction(JobDetails, job, Scope);
-                       
-                        jobContext.SetJob(null);
+            
+                    await RescheduleOrRunAfterAction(JobDetails, job, Scope, jobSucceeded);
+                    jobContext.SetJob(null);
 
-                    }
                 }
             }
         }
@@ -203,7 +200,7 @@ public partial class Worker
         }
     }
 
-    internal async Task RescheduleOrRunAfterAction(Tuple<Queue, SessionDatabaseLock> JobDetails, Job job, ScopeManager Scope)
+    internal async Task RescheduleOrRunAfterAction(Tuple<Queue, SessionDatabaseLock> JobDetails, Job job, ScopeManager Scope, bool JobSuceeded)
     {
         try
         {
@@ -217,15 +214,20 @@ public partial class Worker
                 job.MethodDeclaringTypeName                             );
         }
 
-        if (job.JobType == JobTypes.Recurring)
+        if (job.JobType == JobTypes.Recurring )
          {  
-             await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
+            bool RetriesExhausted = job.RetryCount >= job.MaxRetries;
+            if(RetriesExhausted || JobSuceeded)
+            {
+                await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
+            }
          }
+
         //Execute After Actions
         var JobAfterActionID = job.AfterActionId ?? 0;
         if(job.AfterActionId != null && JobAfterActionID != 0)
         {
-            if(job.JobType != JobTypes.Recurring)
+            if(job.JobType != JobTypes.Recurring && JobSuceeded)
             {
                 await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);
             }
