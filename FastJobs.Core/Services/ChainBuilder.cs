@@ -88,8 +88,8 @@ public class ChainJobBuilder
 
         await jobRepo.UpdateByIdAsync(
             jobIds[0],
-            "stateID = @stateID, StateName = @StateName",
-            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued },
+            "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
+            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTime.UtcNow },
             cancellationToken
         );
 

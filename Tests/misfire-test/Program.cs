@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 
+//This Test Would Reopeat The handling the misfire for #{job.ID} multiple times but thats because the Job Hijacks The Worker Thread and Appears Stuck Ideally it only happens once 
 //
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 
@@ -15,7 +16,8 @@ builder.Services.AddJobService<MisfireTestJob>();
 
 
 builder.Services.AddFastJobs(
-    option => {  option.WorkerCount = 1; option.MisfireDetectorInterval = TimeSpan.FromSeconds(30); },
+    option => {  option.WorkerCount = 1; option.MisfireDetectorInterval = TimeSpan.FromSeconds(4); }, //in Real World Scenario This Interval would be Larger 
+    //Worker Count Would be larger aswell As with Current settings The Misfire System Does Its Work But The WOrker  Gets Overloaded as a Result 
      new FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
 );
 
@@ -32,15 +34,11 @@ await app.StartAsync();
 
 await FastJobServer
 .AddRecurringJob<MisfireTestJob>()
-.WithInterval(TimeSpan.FromMinutes(2), DateTime.Now)
+.WithInterval(TimeSpan.FromMinutes(1), DateTime.Now)
 .SetMaxRetryCount(5)
+.WithMisfirePolicy(MisfirePolicy.FireOnce)
 .Start();
 
-await FastJobServer
-.AddRecurringJob<MisfireTestJob>()
-.WithInterval(TimeSpan.FromMinutes(2), DateTime.Now)
-.SetMaxRetryCount(5)
-.Start();
 
 
 //Schedulng a Recurring  Concrete Job that implements IBackGroundJob interface
@@ -85,7 +83,7 @@ public class MisfireTestJob : IBackGroundJob
     {
         _logger.LogInformation("[{Thread}] Misfire Job Started Delay of 1 minutes", Thread.CurrentThread.Name);
 
-        await Task.Delay(TimeSpan.FromMinutes(1));
+        await Task.Delay(TimeSpan.FromMinutes(2));
 
         // Simulate saving results
         _logger.LogInformation("Phase 1: Misfire Delay Window has Completed");

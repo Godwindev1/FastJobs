@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS Queue
     JobId BIGINT NOT NULL,
     Priority INT NOT NULL DEFAULT 0,
     isDequeued BIT NOT NULL DEFAULT 0,
-    
+    IsMisfireRecovery BIT NOT NULL DEFAULT 0,
+
     CONSTRAINT FK_Queue_Jobs
     FOREIGN KEY (JobId)
     REFERENCES Jobs(Id)

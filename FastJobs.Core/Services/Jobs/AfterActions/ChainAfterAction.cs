@@ -23,7 +23,9 @@ public class ChainAfterAction : IAfterAction
     {
         using var scope = new ScopeManager(_scopeFactory);
         var queueRepo   = scope.Resolve<IQueueRepository>();
+        var JobRepo   = scope.Resolve<IJobRepository>();
 
+        await JobRepo.UpdateByIdAsync(_payload.NextJobId, "ScheduledRunAt = @ScheduledRunAt", new Job { ScheduledRunAt = DateTime.UtcNow });
         await queueRepo.EnqueueAsync(new Queue { QueueName = QueueNames.Default, JobId = _payload.NextJobId, DequeuedAt = DateTime.UtcNow, Priority = (int)JobPriority.Medium });
     }
 }

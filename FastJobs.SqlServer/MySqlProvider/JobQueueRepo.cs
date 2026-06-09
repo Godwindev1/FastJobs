@@ -19,9 +19,9 @@ internal sealed class QueueRepository : IQueueRepository
 
         const string sql = @"
         INSERT INTO Queue
-        (QueueName, JobId, Priority, DequeuedAt, isDequeued)
+        (QueueName, JobId, Priority, DequeuedAt, isDequeued, IsMisfireRecovery)
         VALUES
-        (@QueueName, @JobId, @priority, @DequeuedAt, @isDequeued);
+        (@QueueName, @JobId, @priority, @DequeuedAt, @isDequeued, @IsMisfireRecovery);
 
         SELECT LAST_INSERT_ID()";
 
@@ -31,7 +31,8 @@ internal sealed class QueueRepository : IQueueRepository
             JobId = jobEntry.JobId,
             Priority = jobEntry.Priority,
             DequeuedAt = jobEntry.DequeuedAt,
-            isDequeued = jobEntry.isDequeued
+            isDequeued = jobEntry.isDequeued,
+            IsMisfireRecovery = jobEntry.IsMisfireRecovery
         }, cancellationToken: cancellationToken);
 
         return await _connection.ExecuteScalarAsync<long>(command);
@@ -100,7 +101,8 @@ internal sealed class QueueRepository : IQueueRepository
             isDequeued = @isDequeued,
             DequeuedAt = @DequeuedAt, 
             Priority = @Priority,
-            JobId = @JobId
+            JobId = @JobId,
+            IsMisfireRecovery = @IsMisfireRecovery
         WHERE Id = @Id;";
 
         var command = new CommandDefinition(sql, new
@@ -111,6 +113,7 @@ internal sealed class QueueRepository : IQueueRepository
             queueEntry.DequeuedAt,
             queueEntry.Priority,
             queueEntry.JobId,
+            queueEntry.IsMisfireRecovery
         }, cancellationToken: cancellationToken);
 
         return await _connection.ExecuteAsync(command);
