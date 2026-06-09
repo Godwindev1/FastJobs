@@ -21,4 +21,7 @@ public class FastJobsOptions
     /// </summary>
     public TimeSpan MisfireThreshold { get; set; } = TimeSpan.FromSeconds(60);
     public TimeSpan MisfireDetectorInterval { get; set; } = TimeSpan.FromSeconds(60);
+
+    //CLEANUP OPTIONS
+    public TimeSpan CleanupInterval {get; set; } = TimeSpan.FromSeconds(60);
 }
