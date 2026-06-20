@@ -1,7 +1,7 @@
 namespace FastJobs;
-public class NullStrategy : CleanupStrategy
+public class NullStrategy : ICleanupStrategy
 {
-    public  void  Clean()
+    public  async Task  Clean()
     {   
     } 
 }

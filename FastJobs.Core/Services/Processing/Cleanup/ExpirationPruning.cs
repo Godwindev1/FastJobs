@@ -1,0 +1,22 @@
+using System.Threading.Tasks;
+using FastJobs.SqlServer;
+using Microsoft.Extensions.Logging;
+
+namespace FastJobs;
+internal class ExpiredJobsPruningStrategy : ICleanupStrategy
+{
+    private readonly ILogger<CompletedJobsPruningStrategy> _logger;
+    private readonly IJobRepository _JobRepo;
+
+    public ExpiredJobsPruningStrategy(IJobRepository jobRepository, ILogger<CompletedJobsPruningStrategy> logger)
+    {
+        _JobRepo = jobRepository;
+        _logger = logger;
+    }
+
+    public async Task  Clean()
+    {   
+        var AffectedRows = await _JobRepo.PruneExpiredJobs();
+        _logger.LogInformation("Pruned {AffectedRows} Expired Jobs", AffectedRows);
+    } 
+}

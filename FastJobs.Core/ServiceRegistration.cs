@@ -39,6 +39,9 @@ public static  class ServiceCollectionExtensions
         services.AddSingleton<RecurringMisfireDetector>();
         services.AddHostedService<MisfireDetectorService>();
 
+        services.SetCleanupStrategy<NullStrategy>();//Default Cleanup Strategy For DB tables 
+        services.AddHostedService<JobCleanupManager>();
+
         // Register expression-based job execution services
         services.AddScoped<IJobContext, JobContext>();
         services.AddScoped<IAfterActionContext, AfterActionContext>();
@@ -57,8 +60,14 @@ public static  class ServiceCollectionExtensions
         services.AddScoped<DeleteAfterAction>(); 
         services.AddScoped<ChainAfterAction>(); 
 
-        
 
+        return services;
+    }
+
+    public static IServiceCollection SetCleanupStrategy<TStrategy>( this IServiceCollection services) 
+    where TStrategy : class, ICleanupStrategy
+    {
+        services.AddScoped<ICleanupStrategy, TStrategy>(); //Setting DB Job Table  cleanup Strategy
         return services;
     }
  

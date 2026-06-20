@@ -16,7 +16,7 @@ builder.Services.AddJobService<SendConfirmationEmailJob>();
 builder.Services.AddJobService<NotifyWarehouseJob>();
 
 builder.Services.AddFastJobs(
-    option => {  option.WorkerCount = 2; },
+    option => {  option.WorkerCount = 2;  },
      new FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
 );
 

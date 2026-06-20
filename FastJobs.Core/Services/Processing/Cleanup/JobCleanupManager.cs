@@ -1,14 +1,15 @@
+using FastJobs;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.Hosting;
 
 public class JobCleanupManager : BackgroundService
 {
-    private readonly IJobRepository _JobRepo;
+    private readonly ICleanupStrategy _cleanupStrategy;
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
 
-    public JobCleanupManager(IJobRepository jobRepository, FastJobsOptions options)
+    public JobCleanupManager(ICleanupStrategy cleanupStrategy, FastJobsOptions options)
     {
-        _JobRepo = jobRepository;
+        _cleanupStrategy = cleanupStrategy;
         _interval = options.CleanupInterval;
     }
 
@@ -21,7 +22,7 @@ public class JobCleanupManager : BackgroundService
 
         while (await timer.WaitForNextTickAsync(ct))
         {
-            //Cascade Delete Query
+            _cleanupStrategy.Clean();
         }
     }
 }
