@@ -8,15 +8,15 @@
   </PropertyGroup>
 
 <ItemGroup>
-  <ProjectReference Include="..\FastJobs.Core\FastJobs.csproj" />
+  <ProjectReference Include="..\..\FastJobs.Core\FastJobs.csproj" />
 </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
+  <ProjectReference Include="..\..\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\FastJobs.Dashboard\Fastjobs.Dashboard.csproj" />
+  <ProjectReference Include="..\..\FastJobs.Dashboard\Fastjobs.Dashboard.csproj" />
   </ItemGroup>
 
   <ItemGroup>

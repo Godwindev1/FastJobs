@@ -1,9 +1,8 @@
-﻿using Fastjobs.AfterActions;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using FastJobs;
 using FastJobs.SqlServer;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
+using FastJobs.AfterActions;
 //
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
 

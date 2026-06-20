@@ -29,5 +29,6 @@ public interface IJobRepository
 
     public Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default);
 
-
+    Task<int> PruneCompletedJobs(CancellationToken ct = default);
+    Task<int> PruneExpiredJobs(CancellationToken ct = default);
 }

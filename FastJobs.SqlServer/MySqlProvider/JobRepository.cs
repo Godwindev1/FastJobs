@@ -241,4 +241,34 @@ internal sealed class JobRepository : IJobRepository
         return result.ToList();
     }
 
+
+    //Return Count of jobs deleted
+    public async Task<int> PruneCompletedJobs(CancellationToken ct = default)
+    {
+         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+   
+        const string sql = @"
+            DELETE FROM Jobs
+            WHERE StateName = @CompletedState
+        ";
+
+       var result =  await _connection.ExecuteAsync(sql, new { CompletedState = QueueStateTypes.Completed });
+       return result;
+    }
+
+
+    //Return Count of jobs deleted
+    public async Task<int> PruneExpiredJobs(CancellationToken ct = default)
+    {
+        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+   
+        const string sql = @"
+            DELETE FROM Jobs
+            WHERE UTC_TIMESTAMP() > ExpiresAt;
+        ";
+
+       var result =  await _connection.ExecuteAsync(sql, new { CompletedState = QueueStateTypes.Completed });
+       return result;
+    }
+
 }
