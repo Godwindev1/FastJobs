@@ -35,7 +35,7 @@ public class EnqueueOptions<TJob> where TJob : class, IBackGroundJob
 
     public EnqueueOptions<TJob> SetExpiresAt(DateTime expiresAt)
     {
-        _job.ExpiresAt = expiresAt;
+        _job.ExpiresAt = expiresAt.ToUniversalTime();
         return this;
     }
 

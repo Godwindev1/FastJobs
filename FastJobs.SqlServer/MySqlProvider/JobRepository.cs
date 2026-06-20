@@ -29,10 +29,10 @@ internal sealed class JobRepository : IJobRepository
         const string sql = @"
         INSERT INTO Jobs
         (AfterActionId, TypeName, JobType, MethodName, MethodDeclaringTypeName, StateID, ParameterTypeNamesJson, ArgumentsJson,
-        Queue, StateName, RetryCount, MaxRetries, misfirePolicy, CreatedAt, ScheduledRunAt)
+        Queue, StateName, RetryCount, MaxRetries, misfirePolicy, CreatedAt, ScheduledRunAt, ExpiresAt)
         VALUES
         (@AfterActionId, @TypeName,@JobType, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
-        @Queue, @StateName, @RetryCount, @MaxRetries, @misfirePolicy, @CreatedAt, @ScheduledRunAt);
+        @Queue, @StateName, @RetryCount, @MaxRetries, @misfirePolicy, @CreatedAt, @ScheduledRunAt, @ExpiresAt);
 
         SELECT LAST_INSERT_ID();
         ";
@@ -103,7 +103,8 @@ internal sealed class JobRepository : IJobRepository
             MaxRetries = @MaxRetries,
             misfirePolicy = @misfirePolicy,
             CreatedAt = @CreatedAt,
-            ScheduledRunAt = @ScheduledRunAt
+            ScheduledRunAt = @ScheduledRunAt,
+            ExpiresAt = @ExpiresAt
         WHERE Id = @Id;";
 
         var command = new CommandDefinition(sql, new
@@ -123,7 +124,8 @@ internal sealed class JobRepository : IJobRepository
             job.MaxRetries,
             job.misfirePolicy,
             job.CreatedAt, 
-            job.ScheduledRunAt
+            job.ScheduledRunAt,
+            job.ExpiresAt
         }, cancellationToken: cancellationToken);
 
         return await _connection.ExecuteAsync(command);

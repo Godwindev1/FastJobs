@@ -1,16 +1,20 @@
 using FastJobs;
 using FastJobs.SqlServer;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 public class JobCleanupManager : BackgroundService
 {
     private readonly ICleanupStrategy _cleanupStrategy;
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
 
-    public JobCleanupManager(ICleanupStrategy cleanupStrategy, FastJobsOptions options)
+    private readonly ILogger<JobCleanupManager> _logger;
+
+    public JobCleanupManager(ICleanupStrategy cleanupStrategy, ILogger<JobCleanupManager> logger, FastJobsOptions options)
     {
         _cleanupStrategy = cleanupStrategy;
         _interval = options.CleanupInterval;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken ct)
@@ -22,7 +26,19 @@ public class JobCleanupManager : BackgroundService
 
         while (await timer.WaitForNextTickAsync(ct))
         {
-            _cleanupStrategy.Clean();
+            try
+            {
+                await _cleanupStrategy.Clean();
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // expected during shutdown — just exit the loop
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Cleanup strategy failed during scheduled run");
+            }
         }
     }
 }

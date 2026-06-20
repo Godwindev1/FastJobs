@@ -5,6 +5,7 @@ namespace FastJobs;
 using FastJobs.AfterActions;
 using FastJobs.Dashboard;
 using FastJobs.SqlServer;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 public static  class ServiceCollectionExtensions
@@ -39,7 +40,7 @@ public static  class ServiceCollectionExtensions
         services.AddSingleton<RecurringMisfireDetector>();
         services.AddHostedService<MisfireDetectorService>();
 
-        services.SetCleanupStrategy<NullStrategy>();//Default Cleanup Strategy For DB tables 
+        services.TryAddScoped<ICleanupStrategy, NullStrategy>(); // default, only if nothing registered yet 
         services.AddHostedService<JobCleanupManager>();
 
         // Register expression-based job execution services
@@ -67,7 +68,8 @@ public static  class ServiceCollectionExtensions
     public static IServiceCollection SetCleanupStrategy<TStrategy>( this IServiceCollection services) 
     where TStrategy : class, ICleanupStrategy
     {
-        services.AddScoped<ICleanupStrategy, TStrategy>(); //Setting DB Job Table  cleanup Strategy
+        //Replace The Default strategy if this is Called After AddFastjobs();
+        services.Replace(ServiceDescriptor.Scoped<ICleanupStrategy, TStrategy>()); //Setting DB Job Table  cleanup Strategy
         return services;
     }
  

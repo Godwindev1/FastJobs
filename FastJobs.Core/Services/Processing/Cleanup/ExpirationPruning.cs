@@ -3,7 +3,7 @@ using FastJobs.SqlServer;
 using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
-internal class ExpiredJobsPruningStrategy : ICleanupStrategy
+public class ExpiredJobsPruningStrategy : ICleanupStrategy
 {
     private readonly ILogger<CompletedJobsPruningStrategy> _logger;
     private readonly IJobRepository _JobRepo;

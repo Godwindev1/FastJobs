@@ -63,7 +63,7 @@ namespace FastJobs {
 
     public ScheduledJobOptions<TJob> SetExpiresAt(DateTime expiresAt)
     {
-        _job.ExpiresAt = expiresAt;
+        _job.ExpiresAt = expiresAt.ToUniversalTime();
         return this;
     }
 
