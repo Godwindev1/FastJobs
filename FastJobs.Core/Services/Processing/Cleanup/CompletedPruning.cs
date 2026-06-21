@@ -13,9 +13,9 @@ public class CompletedJobsPruningStrategy : ICleanupStrategy
         _logger = logger;
     }
 
-    public async Task  Clean()
+    public async Task  Clean(CancellationToken cancellationToken)
     {   
-        var AffectedRows = await _JobRepo.PruneCompletedJobs();
+        var AffectedRows = await _JobRepo.PruneCompletedJobs(cancellationToken);
         _logger.LogInformation("Pruned {AffectedRows} Completed Jobs", AffectedRows);
     } 
 }

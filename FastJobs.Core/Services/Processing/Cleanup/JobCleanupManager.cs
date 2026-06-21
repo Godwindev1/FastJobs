@@ -28,7 +28,7 @@ public class JobCleanupManager : BackgroundService
         {
             try
             {
-                await _cleanupStrategy.Clean();
+                await _cleanupStrategy.Clean(ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {

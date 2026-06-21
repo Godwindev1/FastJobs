@@ -14,9 +14,9 @@ public class ExpiredJobsPruningStrategy : ICleanupStrategy
         _logger = logger;
     }
 
-    public async Task  Clean()
+    public async Task  Clean(CancellationToken cancellationToken)
     {   
-        var AffectedRows = await _JobRepo.PruneExpiredJobs();
+        var AffectedRows = await _JobRepo.PruneExpiredJobs(cancellationToken);
         _logger.LogInformation("Pruned {AffectedRows} Expired Jobs", AffectedRows);
     } 
 }

@@ -1,7 +1,7 @@
 namespace FastJobs;
 public class NullStrategy : ICleanupStrategy
 {
-    public  async Task  Clean()
+    public  async Task  Clean(CancellationToken cancellationToken)
     {   
     } 
 }
