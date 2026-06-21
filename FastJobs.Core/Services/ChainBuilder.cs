@@ -12,10 +12,37 @@ public class ChainJobBuilder
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly List<Job>            _steps = new();
 
+    private DateTime  OptionalSchedule;
+    private bool FirstJobisScheduled = false;
+
     internal ChainJobBuilder(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
     }
+
+    public ChainJobBuilder RunAt(DateTime scheduledTime)
+    {
+        if (scheduledTime.ToUniversalTime() <= DateTime.UtcNow)
+        {
+            throw new ArgumentException("Scheduled time must be in the future.", nameof(scheduledTime));
+        }
+
+        OptionalSchedule = scheduledTime;
+        FirstJobisScheduled = true;
+        return this;
+    }
+
+    public ChainJobBuilder WaitDelay(TimeSpan delay)
+    {
+        if (delay <= TimeSpan.Zero)
+        {
+            throw new ArgumentException("Delay must be greater than zero.", nameof(delay));
+        }
+        OptionalSchedule = DateTime.UtcNow.Add(delay);
+        FirstJobisScheduled = true;
+        return this;
+    } 
+
 
     // Called by ChainStepOptions to keep ThenRun chains working And on First Addition 
     public ChainStepOptions AddStep<TJob>() where TJob : class, IBackGroundJob
@@ -39,6 +66,7 @@ public class ChainJobBuilder
 
         var jobRepo          = scope.Resolve<IJobRepository>();
         var queueRepo        = scope.Resolve<IQueueRepository>();
+        var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
         var afterActionRepo  = scope.Resolve<IAfterActionRepository>();
         var stateHistoryRepo = scope.Resolve<IStateHistoryRepository>();
 
@@ -74,31 +102,64 @@ public class ChainJobBuilder
             );
         }
 
-        // ── Step 3: Enqueue only the first job through the normal pipeline ─
-        var state = new State
+
+        if( FirstJobisScheduled )
         {
-            JobID     = jobIds[0],
-            StateName = QueueStateTypes.Enqueued,
-            Reason    = $"Enqueued chain head #{jobIds[0]} of type {_steps[0].TypeName}",
-            data      = "",
-            CreatedAt = DateTime.UtcNow
-        };
+            // ── Step 3: Schedule only the first job through the normal pipeline ─
+            var state = new State
+            {
+                JobID     = jobIds[0],
+                StateName = QueueStateTypes.Scheduled,
+                Reason    = $"Scheduled chain head #{jobIds[0]} of type {_steps[0].TypeName} To Start At { OptionalSchedule }",
+                data      = "",
+                CreatedAt = DateTime.UtcNow
+            };
 
-        var stateId = await stateHistoryRepo.InsertAsync(state, cancellationToken);
+            var stateId = await stateHistoryRepo.InsertAsync(state, cancellationToken);
 
-        await jobRepo.UpdateByIdAsync(
-            jobIds[0],
-            "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
-            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTime.UtcNow },
-            cancellationToken
-        );
+            await jobRepo.UpdateByIdAsync(
+                jobIds[0],
+                "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
+                new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = OptionalSchedule  },
+                cancellationToken
+            );
 
-        await queueRepo.EnqueueAsync(new Queue
+            await scheduledJobRepository.InsertAsync(
+                new ScheduledJobInfo {
+                ScheduledTo = OptionalSchedule, 
+                JobId = jobIds[0]
+            }, cancellationToken);
+
+        }
+        else
         {
-            JobId      = jobIds[0],
-            QueueName  = FastJobConstants.DefaultQueue,
-            Priority   = _steps[0].Priority,
-            DequeuedAt = DateTime.UtcNow
-        }, cancellationToken);
+            // ── Step 3: Enqueue only the first job through the normal pipeline ─
+            var state = new State
+            {
+                JobID     = jobIds[0],
+                StateName = QueueStateTypes.Enqueued,
+                Reason    = $"Enqueued chain head #{jobIds[0]} of type {_steps[0].TypeName}",
+                data      = "",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var stateId = await stateHistoryRepo.InsertAsync(state, cancellationToken);
+
+            await jobRepo.UpdateByIdAsync(
+                jobIds[0],
+                "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
+                new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTime.UtcNow },
+                cancellationToken
+            );
+
+            await queueRepo.EnqueueAsync(new Queue
+            {
+                JobId      = jobIds[0],
+                QueueName  = FastJobConstants.DefaultQueue,
+                Priority   = _steps[0].Priority,
+                DequeuedAt = DateTime.UtcNow
+            }, cancellationToken);
+        }
+       
     }
 }

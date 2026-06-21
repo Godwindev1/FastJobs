@@ -55,7 +55,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// </summary>
     public RecurringJobOptions<TJob> RunAt(DateTime startTime)
     {
-        if (startTime <= DateTime.UtcNow)
+        if (startTime.ToUniversalTime() <= DateTime.UtcNow)
             throw new ArgumentException("Start time must be in the future.", nameof(startTime));
 
         _startTime = startTime.ToUniversalTime();
@@ -79,7 +79,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// </summary>
     public RecurringJobOptions<TJob> WithInterval(TimeSpan interval, DateTime startTime)
     {
-        if (startTime <= DateTime.UtcNow)
+        if (startTime.ToUniversalTime() <= DateTime.UtcNow)
             throw new ArgumentException("Start time must be in the future.", nameof(startTime));
 
         _startTime = startTime.ToUniversalTime();

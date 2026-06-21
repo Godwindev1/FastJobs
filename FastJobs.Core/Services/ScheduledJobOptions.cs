@@ -37,6 +37,8 @@ namespace FastJobs {
 
     public ScheduledJobOptions<TJob> RunAt(DateTime scheduledTime)
     {
+        //Enforce UTC time for DB operations And Storage
+        scheduledTime =  scheduledTime.ToUniversalTime();
         if (scheduledTime <= DateTime.UtcNow)
         {
             throw new ArgumentException("Scheduled time must be in the future.", nameof(scheduledTime));
