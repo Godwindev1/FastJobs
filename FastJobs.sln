@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastJobs", "FastJobs.Core\F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastJobs.Dashboard", "FastJobs.Dashboard\FastJobs.Dashboard.csproj", "{306BBB46-AA9A-42C5-B6D4-0D67E3A27314}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastjobs.Persistence", "Fastjobs.Persistence\Fastjobs.Persistence.csproj", "{E0170DF9-F8B2-4D1A-8FD2-543A59978DB3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastJobs.Persistence", "FastJobs.Persistence\FastJobs.Persistence.csproj", "{E0170DF9-F8B2-4D1A-8FD2-543A59978DB3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{D9007A03-FD03-1159-6598-E081D0A1BEBA}"
 EndProject
