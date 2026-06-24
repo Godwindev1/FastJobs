@@ -1,7 +1,7 @@
 
 using System.Text.Json;
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs.AfterActions;

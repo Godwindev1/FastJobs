@@ -4,7 +4,7 @@
 
 using System.Linq.Expressions;
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 
 public class ChainStepOptions
 {

@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 
 namespace FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.Logging;
 
 internal class RecurringScheduler

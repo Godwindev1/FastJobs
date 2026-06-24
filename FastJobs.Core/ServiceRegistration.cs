@@ -4,7 +4,7 @@ namespace FastJobs;
 
 using FastJobs.AfterActions;
 using FastJobs.Dashboard;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 

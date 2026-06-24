@@ -1,4 +1,4 @@
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

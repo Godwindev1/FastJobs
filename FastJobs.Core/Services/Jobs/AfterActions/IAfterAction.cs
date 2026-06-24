@@ -1,4 +1,4 @@
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 
 namespace FastJobs;
 

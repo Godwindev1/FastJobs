@@ -1,0 +1,57 @@
+using System.Data;
+using System.Threading.Tasks;
+using Dapper;
+using MySqlConnector;
+
+namespace FastJobs.Persistence;
+
+internal class MySqlLockProvider  : LockProvider
+{
+    private readonly DbConnectionFactory dbConnectionFactory;
+
+    public MySqlLockProvider(DbConnectionFactory factory)
+    {
+        dbConnectionFactory = factory;        
+    }
+
+    public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout, CancellationToken cancellationToken)
+    {
+        MySqlConnection dbConnection = (MySqlConnection)dbConnectionFactory.CreateConnection();
+
+        if(dbConnection.State != ConnectionState.Open)
+        {
+            await dbConnection.OpenAsync(cancellationToken);
+        }
+
+        using var cmd = dbConnection.CreateCommand();
+
+        cmd.CommandText = "SELECT GET_LOCK(@resource, @timeout)";
+        cmd.Parameters.AddWithValue("@resource", LockResourceName);
+        cmd.Parameters.AddWithValue("@timeout", (int)Timeout.TotalSeconds);
+
+        var scalarResult = await cmd.ExecuteScalarAsync(cancellationToken);
+        int result = 0;
+
+        if (scalarResult == DBNull.Value || scalarResult == null)
+        {
+            result = 0; // treat as "lock not acquired"
+        }
+        else
+        {
+            result = Convert.ToInt32(scalarResult);
+        }
+
+        if(result == 1)
+        {
+            return new MySqlSessionDBLock(dbConnection, LockResourceName, Timeout);
+        }
+        
+        await dbConnection.DisposeAsync();
+        return null;
+    }
+    public new void ReleaseLock(SessionDatabaseLock Lock)
+    {
+        Lock.ReleaseLock();
+    }
+
+}

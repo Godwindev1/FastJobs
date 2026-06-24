@@ -1,6 +1,6 @@
 using Cronos;
 using Microsoft.Extensions.DependencyInjection;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 
 namespace FastJobs;
 public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob

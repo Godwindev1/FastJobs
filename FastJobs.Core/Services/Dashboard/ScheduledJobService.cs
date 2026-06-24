@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using FastJobs;
 using FastJobs.Dashboard.Models;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 
 namespace FastJobs.Dashboard;
 

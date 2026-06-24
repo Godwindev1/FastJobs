@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 namespace FastJobs {
   public class ScheduledJobOptions<TJob> where TJob : class, IBackGroundJob
 {

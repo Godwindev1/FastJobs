@@ -1,5 +1,5 @@
 namespace FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 
 /// <summary>
 /// Resolves IAfterAction implementation types using Dependency Injection.

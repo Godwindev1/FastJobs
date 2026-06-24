@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using FastJobs.AfterActions;
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 public class ChainJobBuilder

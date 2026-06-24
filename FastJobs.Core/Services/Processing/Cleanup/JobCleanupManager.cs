@@ -1,5 +1,5 @@
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 

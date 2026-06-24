@@ -12,7 +12,7 @@
 </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\..\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
+  <ProjectReference Include="..\..\Providers\FastJobs.MariaDB\Fastjobs.MariaDB.csproj" />
   </ItemGroup>
 
   <ItemGroup>

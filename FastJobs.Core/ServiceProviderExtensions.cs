@@ -1,4 +1,4 @@
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FastJobs

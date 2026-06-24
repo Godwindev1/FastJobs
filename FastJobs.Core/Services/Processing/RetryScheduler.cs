@@ -1,5 +1,5 @@
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 
 internal  static class JobRetryScheduler
 {

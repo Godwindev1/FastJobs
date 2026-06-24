@@ -1,5 +1,5 @@
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.Logging;
 
 //For Recurring Jobs Only

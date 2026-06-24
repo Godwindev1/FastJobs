@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using FastJobs.AfterActions;
 //
 string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
@@ -19,8 +19,6 @@ builder.Services.AddFastJobs(
     option => {  option.WorkerCount = 2; },
      new FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
 );
-
-
 
 var app = builder.Build();
 

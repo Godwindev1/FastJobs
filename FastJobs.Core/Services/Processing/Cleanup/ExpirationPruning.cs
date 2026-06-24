@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
