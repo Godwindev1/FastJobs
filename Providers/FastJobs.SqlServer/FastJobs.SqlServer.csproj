@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.8" />
+    <PackageReference Include="MySqlConnector" Version="2.5.0" />
+    <ProjectReference Include="..\..\Fastjobs.Persistence\FastJobs.Persistence.csproj" />
+
+  </ItemGroup>
+
+
+   <PropertyGroup>
+   
+    <PackageId>FastJobs.SqlServer</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Godwin Oluowho</Authors>
+    <Description>SQL Server data layer for FastJobs.</Description>
+    <RepositoryUrl>https://github.com/Godwindev1/FastJobs</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageTags>aspnetcore;fastjobs;sqlserver;</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+
+    <ItemGroup>
+      <None Include="..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+</Project>
