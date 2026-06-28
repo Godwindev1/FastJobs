@@ -1,10 +1,14 @@
 using System.Data;
 using Dapper;
+ 
+namespace FastJobs.Persistence;
 
 
-
-public static class RecurringJobTableInitializer
+public class MariaDBRecurringJobTableInitializer : ISchemaInitializer
 {
+
+        int ISchemaInitializer.Order => 4 ;
+
     //   IntervalTicks -- stored as TimeSpan.Ticks
     private const string CreateTableSql = @"
     CREATE TABLE IF NOT EXISTS RecurringJobs
@@ -36,7 +40,7 @@ public static class RecurringJobTableInitializer
     CREATE INDEX IF NOT EXISTS IX_RecurringJobs_NextScheduledTime
     ON RecurringJobs (NextScheduledTime ASC);";
 
-    public static async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexJobIdSql);

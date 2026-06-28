@@ -1,10 +1,11 @@
 using System.Data;
 using Dapper;
+namespace FastJobs.Persistence;
 
-namespace FastJobs;
-
-public static class AfterActionTableInitializer
+public  class MariaDBAfterActionTableInitializer : ISchemaInitializer
 {
+        int ISchemaInitializer.Order => 6 ;
+
     private const string CreateTableSql = @"
     CREATE TABLE IF NOT EXISTS AfterActions
     (
@@ -38,7 +39,7 @@ public static class AfterActionTableInitializer
     CREATE INDEX IF NOT EXISTS IX_AfterActions_NextActionId_LastActionId
     ON AfterActions (NextActionId, LastActionId);";
 
-    public static async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexJobIdSql);

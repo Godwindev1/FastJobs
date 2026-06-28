@@ -30,6 +30,19 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
         services.AddScoped<IAfterActionRepository, AfterActionRepository>();
         services.AddScoped<DbConnectionFactory, MySqlDbConnectionFactory>();
         services.AddScoped<LockProvider, MySqlLockProvider>();
+
+        RegisterDbBootstrappers(services);
+    }
+
+    public void RegisterDbBootstrappers(IServiceCollection services)
+    {
+        services.AddSingleton<ISchemaInitializer, MariaDBJobTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MariaDBQueueTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MariaDBScheduledJobTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MariaDBRecurringJobTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MariaDBStateHistoryTableInitialization>();
+        services.AddSingleton<ISchemaInitializer, MariaDBWorkerTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MariaDBAfterActionTableInitializer>();
     }
 
     public void SetupDatabase()  // no parameter needed anymore

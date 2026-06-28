@@ -1,10 +1,11 @@
 using System.Data;
 using Dapper;
 
-namespace FastJobs;
+namespace FastJobs.Persistence;
 
-public static class JobTableInitializer
+public class MariaDBJobTableInitializer : ISchemaInitializer
 {
+    int ISchemaInitializer.Order => 0 ;
     private const string CreateTableSql = @"
     CREATE TABLE IF NOT EXISTS Jobs
     (
@@ -52,7 +53,7 @@ private const string CreateIndexExpiresSql = @"
     CREATE INDEX IF NOT EXISTS IX_Jobs_JobType
     ON Jobs (JobType);";
     
-    public static async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexQueueSql);

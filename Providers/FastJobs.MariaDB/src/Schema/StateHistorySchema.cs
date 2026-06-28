@@ -2,10 +2,12 @@
 using System.Data;
 using Dapper;
 
-namespace FastJobs;
+namespace FastJobs.Persistence;
 
-public class StateHistoryTableInitialization
+public class MariaDBStateHistoryTableInitialization : ISchemaInitializer
 {
+        int ISchemaInitializer.Order => 3 ;
+
      private const string CreateTableSql = @"
     CREATE TABLE IF NOT EXISTS State
     (
@@ -31,7 +33,7 @@ public class StateHistoryTableInitialization
         CREATE INDEX IF NOT EXISTS IX_State_JobId
     ON State (JobId);";
 
-    public static async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexQueueSql);

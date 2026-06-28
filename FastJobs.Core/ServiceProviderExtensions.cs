@@ -9,44 +9,8 @@ namespace FastJobs
         private static void InitializeFastJobsTables(IServiceProvider provider)
         {
             using var scope = provider.CreateScope();
-            var factory = scope.ServiceProvider.GetRequiredService<DbConnectionFactory>();
+            var schemaInitializers = scope.ServiceProvider.GetRequiredService<IEnumerable<ISchemaInitializer>>();           
 
-            var connection  = factory.CreateConnection();
-
-            JobTableInitializer
-            .EnsureCreatedAsync(connection)
-            .GetAwaiter()
-            .GetResult();
-
-             QueueTableInitializer
-             .EnsureCreatedAsync(connection)
-             .GetAwaiter()
-             .GetResult();
-
-             ScheduledJobTableInitializer
-             .EnsureCreatedAsync(connection)
-             .GetAwaiter()
-             .GetResult();
-
-             StateHistoryTableInitialization
-             .EnsureCreatedAsync(connection)
-             .GetAwaiter()
-             .GetResult();
-
-             RecurringJobTableInitializer
-             .EnsureCreatedAsync(connection)
-             .GetAwaiter()
-             .GetResult();
-
-             WorkerTableInitializer
-             .EnsureCreatedAsync(connection)
-             .GetAwaiter()
-             .GetResult();
-
-             AfterActionTableInitializer
-             .EnsureCreatedAsync(connection)
-             .GetAwaiter()
-             .GetResult();
         }
 
         private static void InitializeJobServerAbstraction(IServiceProvider provider)

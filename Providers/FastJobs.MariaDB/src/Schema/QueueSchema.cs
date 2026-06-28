@@ -2,8 +2,12 @@
 using System.Data;
 using Dapper;
 
-public static class QueueTableInitializer
+namespace FastJobs.Persistence;
+public class MariaDBQueueTableInitializer : ISchemaInitializer
 {
+
+    int ISchemaInitializer.Order => 1 ;
+
    private const string CreateTableSql = @"
 CREATE TABLE IF NOT EXISTS Queue
 (
@@ -29,7 +33,7 @@ CREATE TABLE IF NOT EXISTS Queue
     ON Queue (JobId);";
 
     
-    public static async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexQueueSql);

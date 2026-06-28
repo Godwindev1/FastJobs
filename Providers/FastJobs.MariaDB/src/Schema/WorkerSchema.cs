@@ -1,8 +1,12 @@
 using System.Data;
 using Dapper;
 
-public static class WorkerTableInitializer
+namespace FastJobs.Persistence;
+public  class MariaDBWorkerTableInitializer : ISchemaInitializer
 {
+
+        int ISchemaInitializer.Order => 5 ;
+
     private const string CreateTableSql = @"
 CREATE TABLE IF NOT EXISTS Workers
 (
@@ -23,7 +27,7 @@ ON Workers (isSleeping);";
 CREATE INDEX IF NOT EXISTS IX_Workers_isCrashed
 ON Workers (isCrashed);";
 
-    public static async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(IDbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexSleepingSql);
