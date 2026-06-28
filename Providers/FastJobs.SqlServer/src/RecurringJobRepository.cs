@@ -23,7 +23,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         VALUES
             (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalTicks, @NextScheduledTime, @IsConcurrent, @isCron, @ExecutingInstances, @ExecutedInstances);
 
-        SELECT LAST_INSERT_ID();";
+        SELECT SCOPE_IDENTITY();";
 
         var command = new CommandDefinition(sql, new
         {
@@ -89,9 +89,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         SELECT r.* FROM RecurringJobs r
         LEFT JOIN ScheduledJobs s ON r.NextScheduledID = s.Id
         LEFT JOIN Jobs j ON r.JobId = j.Id
-        WHERE (j.ExpiresAt IS NULL OR j.ExpiresAt > UTC_TIMESTAMP())
+        WHERE (j.ExpiresAt IS NULL OR j.ExpiresAt > GETUTCDATE())
         AND (r.NextScheduledID IS NULL OR s.Id IS NULL)
-        AND r.NextScheduledTime < UTC_TIMESTAMP();";
+        AND r.NextScheduledTime < GETUTCDATE();";
 
         var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
 
@@ -121,10 +121,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
-            SELECT * FROM RecurringJobs
+            SELECT TOP 1 * FROM RecurringJobs
             WHERE NextScheduledTime > @CurrentTime
-            ORDER BY NextScheduledTime ASC
-            LIMIT 1;";
+            ORDER BY NextScheduledTime ASC;";
 
         var command = new CommandDefinition(sql,
             new { CurrentTime = DateTime.UtcNow },

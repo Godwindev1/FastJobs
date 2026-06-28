@@ -23,7 +23,7 @@ internal sealed class QueueRepository : IQueueRepository
         VALUES
         (@QueueName, @JobId, @priority, @DequeuedAt, @isDequeued, @IsMisfireRecovery);
 
-        SELECT LAST_INSERT_ID()";
+        SELECT SCOPE_IDENTITY()";
 
         var command = new CommandDefinition(sql, new
         {
@@ -69,7 +69,7 @@ internal sealed class QueueRepository : IQueueRepository
     {
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
-        const string sql = "SELECT 1 FROM Queue LIMIT 1";
+        const string sql = "SELECT TOP 1 1 FROM Queue";
 
         var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
         var result = await _connection.QueryFirstOrDefaultAsync(command);
@@ -128,20 +128,28 @@ internal sealed class QueueRepository : IQueueRepository
 
         try
         {
-            string sql = @"
-                SELECT *
-                FROM Queue
+            string sqlSelect = @"
+                SELECT TOP 1 *
+                FROM Queue WITH (XLOCK, ROWLOCK)
                 WHERE QueueName = @_queuename 
-                AND isDequeued = false 
+                AND isDequeued = 0 
                 ORDER BY Priority DESC, Id ASC
-                LIMIT 1
             ";
 
-            CommandDefinition command = new CommandDefinition(sql, new { _queuename = queueName }, transaction: transaction, cancellationToken: cancellationToken);
+            CommandDefinition selectCommand = new CommandDefinition(sqlSelect, new { _queuename = queueName }, transaction: transaction, cancellationToken: cancellationToken);
 
-            var job = await _connection.QueryFirstOrDefaultAsync<Queue>(
-             command
-            );
+            var job = await _connection.QueryFirstOrDefaultAsync<Queue>(selectCommand);
+
+            if (job != null)
+            {
+                string sqlUpdate = @"
+                    UPDATE Queue
+                    SET isDequeued = 1
+                    WHERE Id = @Id
+                ";
+                CommandDefinition updateCommand = new CommandDefinition(sqlUpdate, new { Id = job.Id }, transaction: transaction, cancellationToken: cancellationToken);
+                await _connection.ExecuteAsync(updateCommand);
+            }
 
             transaction.Commit();
             return job;

@@ -29,7 +29,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
             VALUES
                 (@TypeName, @Retries, @MaxRetries, @JobId, @NextActionId, @LastActionId, @ChainNo, @Payload);
 
-            SELECT LAST_INSERT_ID();";
+            SELECT SCOPE_IDENTITY();";
 
         return await connection.ExecuteScalarAsync<long>(
             new CommandDefinition(sql, action, cancellationToken: cancellationToken));

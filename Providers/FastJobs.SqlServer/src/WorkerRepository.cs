@@ -20,7 +20,7 @@ internal sealed class WorkerRepository : IWorkerRepository
             INSERT INTO Workers (WorkerName, ThreadName, StartedAt, isSleeping, isCrashed, LastHeartbeat)
             VALUES (@WorkerName, @ThreadName, @StartedAt, @isSleeping, @isCrashed, @LastHeartbeat);
 
-            SELECT LAST_INSERT_ID();";
+            SELECT SCOPE_IDENTITY();";
 
         return await connection.ExecuteScalarAsync<long>(
             new CommandDefinition(sql, worker, cancellationToken: cancellationToken));

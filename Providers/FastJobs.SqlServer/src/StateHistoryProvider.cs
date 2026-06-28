@@ -24,7 +24,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
         VALUES
         (@StateName, @data, @Reason, @JobId, @CreatedAt);
 
-        SELECT LAST_INSERT_ID()";
+        SELECT SCOPE_IDENTITY()";
         
         var result = await _connection.ExecuteScalarAsync<long>(new CommandDefinition(sql, job, cancellationToken: cancellationToken));
         return result;   
@@ -48,11 +48,11 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
     {
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
-        string sql  = $@"
-            SELECT * FROM State WHERE Id = {id} AND DeletedAt IS NULL
+        const string sql = @"
+            SELECT * FROM State WHERE Id = @Id AND DeletedAt IS NULL
         ";
 
-        return await _connection.QuerySingleOrDefaultAsync(new CommandDefinition(sql, cancellationToken: cancellationToken));
+        return await _connection.QuerySingleOrDefaultAsync(new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
     }
 
 

@@ -34,7 +34,7 @@ internal sealed class JobRepository : IJobRepository
         (@AfterActionId, @TypeName,@JobType, @MethodName, @MethodDeclaringTypeName,  @StateID, @ParameterTypeNamesJson, @ArgumentsJson,
         @Queue, @StateName, @RetryCount, @MaxRetries, @misfirePolicy, @CreatedAt, @ScheduledRunAt, @ExpiresAt);
 
-        SELECT LAST_INSERT_ID();
+        SELECT SCOPE_IDENTITY();
         ";
 
         var id = await _connection.ExecuteScalarAsync<long>(new CommandDefinition (sql, job, cancellationToken: cancellationToken));
@@ -69,11 +69,11 @@ internal sealed class JobRepository : IJobRepository
     {
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
-        string sql  = $@"
-            DELETE FROM Jobs WHERE Id = {id} 
+        const string sql = @"
+            DELETE FROM Jobs WHERE Id = @Id
         ";
 
-        return await _connection.ExecuteAsync(new CommandDefinition (sql, cancellationToken: cancellationToken) );
+        return await _connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
     }
 
     /// <summary>
@@ -146,9 +146,9 @@ internal sealed class JobRepository : IJobRepository
         UPDATE Jobs
         SET 
           {SqlValues}
-        WHERE Id = {id}";
+        WHERE Id = @Id";
 
-        return await _connection.ExecuteAsync(new CommandDefinition(sql, job, cancellationToken: cancellationToken));
+        return await _connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id, job }, cancellationToken: cancellationToken));
 
     }
 
@@ -266,7 +266,7 @@ internal sealed class JobRepository : IJobRepository
    
         const string sql = @"
             DELETE FROM Jobs
-            WHERE UTC_TIMESTAMP() > ExpiresAt;
+            WHERE GETUTCDATE() > ExpiresAt;
         ";
 
        var result =  await _connection.ExecuteAsync(sql, new { CompletedState = QueueStateTypes.Completed });

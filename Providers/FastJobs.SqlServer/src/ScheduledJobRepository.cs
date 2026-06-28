@@ -27,7 +27,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
         VALUES 
         (@JobId, @ScheduledTo);
 
-        SELECT LAST_INSERT_ID();";
+        SELECT SCOPE_IDENTITY();";
 
         var command = new CommandDefinition(sql, new
         {
@@ -145,10 +145,9 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
         using var connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
-            SELECT * FROM ScheduledJobs
+            SELECT TOP 1 * FROM ScheduledJobs
             WHERE ScheduledTo > @CurrentTime
-            ORDER BY ScheduledTo ASC
-            LIMIT 1;";
+            ORDER BY ScheduledTo ASC;";
 
         return await connection.QueryFirstOrDefaultAsync<ScheduledJobInfo>(
             new CommandDefinition(sql, 
