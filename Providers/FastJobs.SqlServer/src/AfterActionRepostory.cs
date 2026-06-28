@@ -1,5 +1,5 @@
 using Dapper;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 
 namespace FastJobs.Persistence;
 
@@ -21,7 +21,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
     /// </summary>
     public async Task<long> InsertAsync(AfterActionModel action, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             INSERT INTO AfterActions
@@ -37,7 +37,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<AfterActionModel?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM AfterActions WHERE Id = @Id;";
 
@@ -47,7 +47,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<List<AfterActionModel>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM AfterActions ORDER BY JobId, ChainNo;";
 
@@ -62,7 +62,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
     /// </summary>
     public async Task<List<AfterActionModel>> GetByJobIdAsync(long jobId, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT * FROM AfterActions
@@ -80,7 +80,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
     /// </summary>
     public async Task<int> UpdateByIdAsync(AfterActionModel action, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             UPDATE AfterActions
@@ -108,7 +108,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
         AfterActionModel action,
         CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         string sql = $@"
             UPDATE AfterActions
@@ -121,7 +121,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "DELETE FROM AfterActions WHERE Id = @Id;";
 
@@ -134,7 +134,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
     /// </summary>
     public async Task<int> DeleteByJobIdAsync(long jobId, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "DELETE FROM AfterActions WHERE JobId = @JobId;";
 
@@ -148,7 +148,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<int> CountAllAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT COUNT(*) FROM AfterActions;";
 
@@ -158,7 +158,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<int> CountRetryingAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM AfterActions
@@ -171,7 +171,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<int> CountExhaustedAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM AfterActions
@@ -183,7 +183,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<int> CountSucceededFirstAttemptAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM AfterActions
@@ -195,7 +195,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<int> CountByJobIdAsync(long jobId, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM AfterActions
@@ -207,7 +207,7 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
     public async Task<double> AverageActionsPerJobAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT AVG(action_count) FROM (

@@ -1,6 +1,6 @@
 using System.Data;
 using Dapper;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 
 
 namespace FastJobs.Persistence;
@@ -16,7 +16,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<long> InsertAsync(State job, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         INSERT INTO State
@@ -32,7 +32,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task InsertAsync(IEnumerable<State> states, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             INSERT INTO State
@@ -46,7 +46,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
     }
     public async Task<State?> GetByIdAsync(long id, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         string sql  = $@"
             SELECT * FROM State WHERE Id = {id} AND DeletedAt IS NULL
@@ -58,7 +58,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<int> SoftDeleteByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             UPDATE State
@@ -77,7 +77,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<JobTimestamps?> GetTimestampsByJobIdAsync(long jobId, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT

@@ -1,6 +1,6 @@
 using Dapper;
 using FastJobs;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace FastJobs.Persistence;
@@ -15,7 +15,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<long> EnqueueAsync(Queue jobEntry, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         INSERT INTO Queue
@@ -40,7 +40,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<Queue?> GetQueueEntry(long id, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @" 
             SELECT * FROM Queue WHERE Id = @Id;
@@ -54,7 +54,7 @@ internal sealed class QueueRepository : IQueueRepository
 
       public async Task <List<Queue>> GetAllQueueEntries(CancellationToken cancellationToken = default)
       {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @" 
             SELECT * FROM Queue;
@@ -67,7 +67,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<bool> ExistsAny(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT 1 FROM Queue LIMIT 1";
 
@@ -79,7 +79,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<bool> RemoveAsync(long id, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         DELETE FROM Queue
@@ -92,7 +92,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<int> Update(Queue queueEntry, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         UPDATE Queue
@@ -122,7 +122,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<Queue?> Dequeue(string queueName, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         using var transaction = _connection.BeginTransaction();
 
@@ -156,7 +156,7 @@ internal sealed class QueueRepository : IQueueRepository
 
     public async Task<Queue?> GetByJob(long id, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @" 
             SELECT * FROM Queue WHERE JobId = @JobId;

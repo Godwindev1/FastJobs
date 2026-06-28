@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using FastJobs;
 using Dapper;
 using System.Security.Cryptography;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 
 namespace FastJobs.Persistence;
 internal sealed class JobRepository : IJobRepository
@@ -24,7 +24,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns>Returns Id of inserted Job</returns>
     public async Task<long> InsertAsync(Job job, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         INSERT INTO Jobs
@@ -46,7 +46,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<List<Job>> GetAllAsync(CancellationToken cancellationToken)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Jobs ORDER BY CreatedAt DESC;"; //WHERE DeletedAt IS NULL
 
@@ -57,7 +57,7 @@ internal sealed class JobRepository : IJobRepository
     }
     public async Task<Job?> GetByIdAsync(long id, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Jobs WHERE Id = @Id";
 
@@ -67,7 +67,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         string sql  = $@"
             DELETE FROM Jobs WHERE Id = {id} 
@@ -84,7 +84,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns> returns affected rows</returns>
     public async Task<int> UpdateByIdAsync(Job job, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
         UPDATE Jobs
@@ -140,7 +140,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns></returns>
     public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job, CancellationToken cancellationToken )
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         string sql = $@"
         UPDATE Jobs
@@ -154,7 +154,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountByStateAsync(string stateName, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs 
@@ -167,7 +167,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountRetryingAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs 
@@ -181,7 +181,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountCompletedSinceAsync(DateTime since, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -195,7 +195,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountFailedSinceAsync(DateTime since, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -209,7 +209,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountStateBetween( string statename, DateTime from, DateTime to, CancellationToken cancellationToken = default)
         {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -227,7 +227,7 @@ internal sealed class JobRepository : IJobRepository
     public async Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default)
     {
         //Misfired Job Cannot be Completed or Failed 
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         
         const string sql = @"
@@ -247,7 +247,7 @@ internal sealed class JobRepository : IJobRepository
     //Return Count of jobs deleted
     public async Task<int> PruneCompletedJobs(CancellationToken ct = default)
     {
-         using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
    
         const string sql = @"
             DELETE FROM Jobs
@@ -262,7 +262,7 @@ internal sealed class JobRepository : IJobRepository
     //Return Count of jobs deleted
     public async Task<int> PruneExpiredJobs(CancellationToken ct = default)
     {
-        using MySqlConnection _connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
    
         const string sql = @"
             DELETE FROM Jobs

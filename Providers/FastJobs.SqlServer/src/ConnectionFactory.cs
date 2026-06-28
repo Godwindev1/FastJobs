@@ -1,14 +1,14 @@
 using System.Data;
 using System.Data.Common;
 using Microsoft.Extensions.Options;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 
 namespace FastJobs.Persistence;
 
 
-internal class MySqlDbConnectionFactory : DbConnectionFactory
+internal class SqlServerDbCinnectionFactory : DbConnectionFactory
 {
-    public MySqlDbConnectionFactory(FastJobsSqlStorageOptions jobsOptions)
+    public SqlServerDbCinnectionFactory(FastJobsSqlStorageOptions jobsOptions)
         :base(jobsOptions)
     {
     }
@@ -21,6 +21,6 @@ internal class MySqlDbConnectionFactory : DbConnectionFactory
 
     protected override IDbConnection GetConnection()
     {
-        return new MySqlConnection(_jobsOptions.ConnectionString);
+        return new SqlConnection(_jobsOptions.ConnectionString);
     }
 }

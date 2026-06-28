@@ -1,42 +1,44 @@
 
-
 using System.Data;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
+
 namespace FastJobs.Persistence;
 
-internal class MySqlSessionDBLock : SessionDatabaseLock
+internal class MSSQLSessionDBLock : SessionDatabaseLock
 {
-    public MySqlSessionDBLock(IDbConnection connection, string resource, TimeSpan ttl)
-    :base(connection, resource, ttl)
+    public MSSQLSessionDBLock(IDbConnection connection, string resource, TimeSpan ttl)
+        : base(connection, resource, ttl)
     {
     }
-
 
     public override void ReleaseLock()
     {
         if (_lockReleased) return;
         _lockReleased = true;
 
-        MySqlConnection connection = (MySqlConnection)this._connection;
-        var Command = connection.CreateCommand();
+        SqlConnection connection = (SqlConnection)this._connection;
+        using var command = connection.CreateCommand();
 
-        Command.CommandText = "SELECT RELEASE_LOCK(@ResourceName)";
-        Command.Parameters.AddWithValue("@ResourceName", this._LockResourceName);
-        
-        Command.ExecuteScalar();
+        command.CommandText = "EXEC sp_releaseapplock @Resource, @LockOwner";
+        command.Parameters.AddWithValue("@Resource", this._LockResourceName);
+        command.Parameters.AddWithValue("@LockOwner", "Session");
+
+        command.ExecuteScalar();
     }
+
     public override async Task ReleaseLockAsync()
     {
         if (_lockReleased) return;
         _lockReleased = true;
 
-        MySqlConnection connection = (MySqlConnection)this._connection;
-        var Command = connection.CreateCommand();
+        SqlConnection connection = (SqlConnection)this._connection;
+        using var command = connection.CreateCommand();
 
-        Command.CommandText = "SELECT RELEASE_LOCK(@ResourceName)";
-        Command.Parameters.AddWithValue("@ResourceName", this._LockResourceName);
-        
-        await Command.ExecuteScalarAsync();
+        command.CommandText = "EXEC sp_releaseapplock @Resource, @LockOwner";
+        command.Parameters.AddWithValue("@Resource", this._LockResourceName);
+        command.Parameters.AddWithValue("@LockOwner", "Session");
+
+        await command.ExecuteScalarAsync();
     }
 
     public override void Dispose()
@@ -45,6 +47,7 @@ internal class MySqlSessionDBLock : SessionDatabaseLock
         {
             ReleaseLock();
         }
+
         base.Dispose();
     }
 }

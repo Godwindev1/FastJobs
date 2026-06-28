@@ -1,5 +1,5 @@
 using Dapper;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 
 namespace FastJobs.Persistence;
 
@@ -14,7 +14,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<long> InsertAsync(FSTJBS_Worker worker, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             INSERT INTO Workers (WorkerName, ThreadName, StartedAt, isSleeping, isCrashed, LastHeartbeat)
@@ -28,7 +28,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<int> DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "DELETE FROM Workers WHERE Id = @Id";
 
@@ -38,7 +38,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<int> UpdateAsync(FSTJBS_Worker worker, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = @"
             UPDATE Workers
@@ -56,7 +56,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<List<FSTJBS_Worker>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Workers";
 
@@ -68,7 +68,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<List<FSTJBS_Worker>> GetSleepingAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Workers WHERE isSleeping = 1 AND isCrashed = 0";
 
@@ -80,7 +80,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<List<FSTJBS_Worker>> GetActiveAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Workers WHERE isSleeping = 0 AND isCrashed = 0";
 
@@ -92,7 +92,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<List<FSTJBS_Worker>> GetDeadWorkersAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Workers WHERE isCrashed = 1";
 
@@ -104,7 +104,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task<FSTJBS_Worker?> GetByID(long id, CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT * FROM Workers WHERE Id = @Id";
 
@@ -114,7 +114,7 @@ internal sealed class WorkerRepository : IWorkerRepository
 
     public async Task TruncateAsync(CancellationToken cancellationToken = default)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "TRUNCATE TABLE Workers";
 

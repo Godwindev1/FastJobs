@@ -1,18 +1,18 @@
 using System.Data;
 using System.Data.Common;
 using Microsoft.Extensions.DependencyInjection;
-using MySqlConnector;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Dapper;
 using Microsoft.Extensions.Logging;
 
 namespace FastJobs.Persistence;
 
-public class FastJobMysqlDependencies : IDatabaseProviderDependencies
+public class FastJobMSSQLDependencies : IDatabaseProviderDependencies
 {
     private readonly FastJobsSqlStorageOptions _options;
 
-    public FastJobMysqlDependencies(Action<FastJobsSqlStorageOptions> configure)
+    public FastJobMSSQLDependencies(Action<FastJobsSqlStorageOptions> configure)
     {
         _options = new FastJobsSqlStorageOptions();
         configure(_options);
@@ -28,8 +28,8 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
         services.AddScoped<IStateHistoryRepository, StateHistoryRepository>();
         services.AddScoped<IWorkerRepository, WorkerRepository>();
         services.AddScoped<IAfterActionRepository, AfterActionRepository>();
-        services.AddScoped<DbConnectionFactory, MySqlDbConnectionFactory>();
-        services.AddScoped<LockProvider, MySqlLockProvider>();
+        services.AddScoped<DbConnectionFactory, SqlServerDbCinnectionFactory>();
+        services.AddScoped<LockProvider, MSSQLLockProvider>();
     }
 
     public void SetupDatabase()  // no parameter needed anymore
@@ -57,19 +57,19 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
         try {
             _Logger.LogInformation("Connecting To Database {DBName} {DateTime}", DBName, DateTime.UtcNow);
 
-            using IDbConnection db = new MySqlConnection(ConnectionString);
+            using IDbConnection db = new SqlConnection(ConnectionString);
             db.Open();
         }
         catch(Exception ex)
         {
             _Logger.LogError(ex, "Connection Failed Attemting to Create Database");
 
-            if(ex is MySqlException)
+            if(ex is SqlException)
             {
                 Console.WriteLine(ex.Message);
 
                 stringBuilder.Remove("Database");
-                using IDbConnection db = new MySqlConnection(stringBuilder.ConnectionString);
+                using IDbConnection db = new SqlConnection(stringBuilder.ConnectionString);
                 db.Execute($"CREATE DATABASE IF NOT EXISTS {DBName};");   
             }   
             else
