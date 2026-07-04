@@ -9,8 +9,9 @@ namespace FastJobs
         private static void InitializeFastJobsTables(IServiceProvider provider)
         {
             using var scope = provider.CreateScope();
-            var schemaInitializers = scope.ServiceProvider.GetRequiredService<IEnumerable<ISchemaInitializer>>();           
-
+            
+            var bootstrapper = scope.ServiceProvider.GetRequiredService<FastJobsDatabaseBootstrapper>();
+            bootstrapper.InitializeAsync().GetAwaiter().GetResult();
         }
 
         private static void InitializeJobServerAbstraction(IServiceProvider provider)

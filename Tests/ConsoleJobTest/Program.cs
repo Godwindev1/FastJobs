@@ -4,7 +4,8 @@ using FastJobs;
 using FastJobs.Persistence;
 using FastJobs.AfterActions;
 //
-string connectionString = "Server=ppmpdb;Database=FastJobs;User=root;Password=rootpassword;";
+string connectionstring = "Server=(localdb)\\FastjobsDBServer;Database=FastJobs;Trusted_Connection=True;MultipleActiveResultSets=true";
+//string connectionString = "Server=ppmpdb;Database=FastJobs;User ID=root;Password=rootpassword;";
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -16,8 +17,8 @@ builder.Services.AddJobService<SendConfirmationEmailJob>();
 builder.Services.AddJobService<NotifyWarehouseJob>();
 
 builder.Services.AddFastJobs(
-    option => {  option.WorkerCount = 2; },
-     new FastJobMysqlDependencies(options => options.ConnectionString = connectionString)
+    option => {  option.WorkerCount = 10; },
+     new FastJobMSSQLDependencies(options => options.ConnectionString = connectionstring)
 );
 
 var app = builder.Build();

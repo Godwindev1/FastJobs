@@ -146,9 +146,9 @@ internal sealed class JobRepository : IJobRepository
         UPDATE Jobs
         SET 
           {SqlValues}
-        WHERE Id = @Id";
+        WHERE Id = {id}";
 
-        return await _connection.ExecuteAsync(new CommandDefinition(sql, new { Id = id, job }, cancellationToken: cancellationToken));
+        return await _connection.ExecuteAsync(new CommandDefinition(sql, job, cancellationToken: cancellationToken));
 
     }
 

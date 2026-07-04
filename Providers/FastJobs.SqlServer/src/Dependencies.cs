@@ -20,7 +20,7 @@ public class FastJobMSSQLDependencies : IDatabaseProviderDependencies
 
     public void RegisterDependencies(IServiceCollection services)
     {
-        services.AddSingleton(_options); // MySqlDbConnectionFactory injects this
+        services.AddSingleton(_options); 
         services.AddScoped<IJobRepository, JobRepository>();
         services.AddScoped<IQueueRepository, QueueRepository>();
         services.AddScoped<IScheduledJobRepository, ScheduledJobRepository>();
@@ -30,7 +30,21 @@ public class FastJobMSSQLDependencies : IDatabaseProviderDependencies
         services.AddScoped<IAfterActionRepository, AfterActionRepository>();
         services.AddScoped<DbConnectionFactory, SqlServerDbCinnectionFactory>();
         services.AddScoped<LockProvider, MSSQLLockProvider>();
+        
+        RegisterDbBootstrappers(services);
     }
+
+    public void RegisterDbBootstrappers(IServiceCollection services)
+    {
+        services.AddSingleton<ISchemaInitializer, MSSQLJobTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MSSQLQueueTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MSSQLScheduledJobTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MSSQLRecurringJobTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MSSQLStateHistoryTableInitialization>();
+        services.AddSingleton<ISchemaInitializer, MSSQLWorkerTableInitializer>();
+        services.AddSingleton<ISchemaInitializer, MSSQLAfterActionTableInitializer>();
+    }
+
 
     public void SetupDatabase()  // no parameter needed anymore
     {
@@ -70,7 +84,12 @@ public class FastJobMSSQLDependencies : IDatabaseProviderDependencies
 
                 stringBuilder.Remove("Database");
                 using IDbConnection db = new SqlConnection(stringBuilder.ConnectionString);
-                db.Execute($"CREATE DATABASE IF NOT EXISTS {DBName};");   
+                var safeDbName = DBName.Replace("'", "''");
+                db.Execute($@"IF DB_ID(N'{safeDbName}') IS NULL
+                BEGIN
+                    EXEC('CREATE DATABASE [{safeDbName}]');
+                END;"
+                );
             }   
             else
             {

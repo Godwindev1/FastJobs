@@ -35,6 +35,7 @@ public static  class ServiceCollectionExtensions
         databaseProvider.SetupDatabase();
         databaseProvider.RegisterDependencies(services);
 
+        services.AddSingleton<FastJobsDatabaseBootstrapper>(); //USED TO INITIALIZED DATABASE TABLES
         services.AddScoped<QueueProcessor>();
         services.AddSingleton<ProcessingServer>();
         services.AddSingleton<RecurringMisfireDetector>();
