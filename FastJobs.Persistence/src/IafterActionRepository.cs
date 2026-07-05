@@ -1,6 +1,6 @@
-using FastJobs.Persistence;
 
-namespace FastJobs;
+
+namespace FastJobs.Persistence;
 
 public interface IAfterActionRepository
 {
