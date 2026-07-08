@@ -21,3 +21,10 @@ public class FastJobsHostFixture : IAsyncLifetime
 
     public async Task DisposeAsync() => await Host.StopAsync();
 }
+
+
+[CollectionDefinition("FastjobsCollection")]
+public class FastjobsSetupCollection : ICollectionFixture<FastJobsHostFixture>
+{
+    // Intentionally empty. Just glues fixture + collection name together.
+}

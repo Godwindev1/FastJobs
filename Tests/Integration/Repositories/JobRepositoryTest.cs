@@ -3,7 +3,8 @@ using FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
-public class JobRepositoryTest : IClassFixture<FastJobsHostFixture>
+[Collection("FastjobsCollection")]
+public class JobRepositoryTest 
 {
     private readonly FastJobsHostFixture _fixture;
     private readonly IJobRepository _repository;
