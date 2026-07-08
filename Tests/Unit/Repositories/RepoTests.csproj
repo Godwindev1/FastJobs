@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\..\..\..\..\FastJobs.Core\FastJobs.csproj" />
+  <ProjectReference Include="..\..\..\FastJobs.Core\FastJobs.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\..\..\..\..\Providers\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
+  <ProjectReference Include="..\..\..\Providers\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
   </ItemGroup>
 
 
