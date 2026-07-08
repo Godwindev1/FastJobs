@@ -52,7 +52,8 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
             SELECT * FROM State WHERE Id = @Id AND DeletedAt IS NULL
         ";
 
-        return await _connection.QuerySingleOrDefaultAsync(new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
+        return await _connection.QuerySingleOrDefaultAsync<State>(
+            new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken));
     }
 
 
