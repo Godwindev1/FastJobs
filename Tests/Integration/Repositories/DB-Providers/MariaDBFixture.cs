@@ -44,3 +44,5 @@ public class MariaDBFixture :  IDatabaseFixture
         await _mariaDbContainer.StopAsync();
     }
 }
+
+

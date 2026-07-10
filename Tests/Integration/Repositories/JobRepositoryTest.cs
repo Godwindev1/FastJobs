@@ -3,13 +3,12 @@ using FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
-[Collection("FastjobsCollection")]
-public class JobRepositoryTest 
+public abstract class JobRepositoryTest<TFixture> where TFixture : FastJobsHostFixtureBase  
 {
-    private readonly FastJobsHostFixture _fixture;
+    protected readonly TFixture _fixture;
     private readonly IJobRepository _repository;
 
-    public JobRepositoryTest(FastJobsHostFixture fixture)
+    public JobRepositoryTest(TFixture fixture)
     {
         _fixture = fixture;
         _repository = fixture.Host.Services.GetRequiredService<IJobRepository>();
@@ -248,4 +247,19 @@ public class JobRepositoryTest
             ExpiresAt = expiresAt
         };
     }
+}
+
+
+[Collection("MSSQLHostFixture_Collection")]
+[Trait("Provider", "MSSQL")]
+public class MsSql_Jobs_repositoryTest : JobRepositoryTest<MsSqlFastJobsHostFixture>
+{
+   public MsSql_Jobs_repositoryTest(MsSqlFastJobsHostFixture fixture) : base(fixture) { }
+}
+
+[Collection("MariaDBHostFixture_Collection")]
+[Trait("Provider", "MariaDB")]
+public class MariaDB_Jobs_repositoryTest : JobRepositoryTest<MariaDbFastJobsHostFixture>
+{
+    public MariaDB_Jobs_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }

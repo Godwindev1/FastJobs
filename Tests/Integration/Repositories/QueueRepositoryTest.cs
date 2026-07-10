@@ -3,13 +3,13 @@ using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 [Collection("FastjobsCollection")]
-public class QueueRepositoryTest
+public abstract class QueueRepositoryTest<TFixture> where TFixture : FastJobsHostFixtureBase  
 {
-    private readonly FastJobsHostFixture _fixture;
+    private readonly TFixture _fixture;
     private readonly IQueueRepository _repository;
     private readonly IJobRepository _jobRepository;
 
-    public QueueRepositoryTest(FastJobsHostFixture fixture)
+    public QueueRepositoryTest(TFixture fixture)
     {
         _fixture = fixture;
         _repository = fixture.Host.Services.GetRequiredService<IQueueRepository>();
@@ -130,4 +130,18 @@ public class QueueRepositoryTest
             DequeuedAt = DateTime.UtcNow
         };
     }
+}
+
+[Collection("MSSQLHostFixture_Collection")]
+[Trait("Provider", "MSSQL")]
+public class MsSql_Queue_repositoryTest : QueueRepositoryTest<MsSqlFastJobsHostFixture>
+{
+    public MsSql_Queue_repositoryTest(MsSqlFastJobsHostFixture fixture) : base(fixture) { }
+}
+
+[Collection("MariaDBHostFixture_Collection")]
+[Trait("Provider", "MariaDB")]
+public class MariaDB_Queue_repositoryTest : QueueRepositoryTest<MariaDbFastJobsHostFixture>
+{
+    public MariaDB_Queue_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }

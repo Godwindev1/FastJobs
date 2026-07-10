@@ -3,13 +3,13 @@ using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 [Collection("FastjobsCollection")]
-public class StateHistoryRepositoryTest
+public abstract  class StateHistoryRepositoryTest<TFixture>  where TFixture : FastJobsHostFixtureBase 
 {
-    private readonly FastJobsHostFixture _fixture;
+    private readonly TFixture _fixture;
     private readonly IStateHistoryRepository _repository;
     private readonly IJobRepository _jobRepository;
 
-    public StateHistoryRepositoryTest(FastJobsHostFixture fixture)
+    public StateHistoryRepositoryTest(TFixture fixture)
     {
         _fixture = fixture;
         _repository = fixture.Host.Services.GetRequiredService<IStateHistoryRepository>();
@@ -90,4 +90,18 @@ public class StateHistoryRepositoryTest
             ExpiresAt = null
         };
     }
+}
+
+[Collection("MSSQLHostFixture_Collection")]
+[Trait("Provider", "MSSQL")]
+public class MsSql_StateHistory_repositoryTest : StateHistoryRepositoryTest<MsSqlFastJobsHostFixture>
+{
+    public MsSql_StateHistory_repositoryTest(MsSqlFastJobsHostFixture fixture) : base(fixture) { }
+}
+
+[Collection("MariaDBHostFixture_Collection")]
+[Trait("Provider", "MariaDB")]
+public class MariaDB_StateHistory_repositoryTest : StateHistoryRepositoryTest<MariaDbFastJobsHostFixture>
+{
+    public MariaDB_StateHistory_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }

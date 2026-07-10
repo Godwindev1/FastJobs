@@ -2,12 +2,12 @@ using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 [Collection("FastjobsCollection")]
-public class WorkerRepositoryTest
+public abstract class WorkerRepositoryTest<TFixture>  where TFixture : FastJobsHostFixtureBase 
 {
-    private readonly FastJobsHostFixture _fixture;
+    private readonly TFixture _fixture;
     private readonly IWorkerRepository _repository;
 
-    public WorkerRepositoryTest(FastJobsHostFixture fixture)
+    public WorkerRepositoryTest(TFixture fixture)
     {
         _fixture = fixture;
         _repository = fixture.Host.Services.GetRequiredService<IWorkerRepository>();
@@ -72,4 +72,18 @@ public class WorkerRepositoryTest
             LastHeartbeat = DateTime.UtcNow
         };
     }
+}
+
+[Collection("MSSQLHostFixture_Collection")]
+[Trait("Provider", "MSSQL")]
+public class MsSql_Worker_repositoryTest : WorkerRepositoryTest<MsSqlFastJobsHostFixture>
+{
+    public MsSql_Worker_repositoryTest(MsSqlFastJobsHostFixture fixture) : base(fixture) { }
+}
+
+[Collection("MariaDBHostFixture_Collection")]
+[Trait("Provider", "MariaDB")]
+public class MariaDB_Worker_repositoryTest : WorkerRepositoryTest<MariaDbFastJobsHostFixture>
+{
+    public MariaDB_Worker_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }

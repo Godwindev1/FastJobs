@@ -3,13 +3,13 @@ using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
 [Collection("FastjobsCollection")]
-public class RecurringJobRepositoryTest
+public abstract class RecurringJobRepositoryTest<TFixture>  where TFixture : FastJobsHostFixtureBase  
 {
-    private readonly FastJobsHostFixture _fixture;
+    private readonly TFixture _fixture;
     private readonly IRecurringJobRepository _repository;
     private readonly IJobRepository _jobRepository;
 
-    public RecurringJobRepositoryTest(FastJobsHostFixture fixture)
+    public RecurringJobRepositoryTest(TFixture fixture)
     {
         _fixture = fixture;
         _repository = fixture.Host.Services.GetRequiredService<IRecurringJobRepository>();
@@ -123,4 +123,18 @@ public class RecurringJobRepositoryTest
             ExecutedInstances = 0
         };
     }
+}
+
+[Collection("MSSQLHostFixture_Collection")]
+[Trait("Provider", "MSSQL")]
+public class MsSql_Recurring_repositoryTest : RecurringJobRepositoryTest<MsSqlFastJobsHostFixture>
+{
+    public MsSql_Recurring_repositoryTest(MsSqlFastJobsHostFixture fixture) : base(fixture) { }
+}
+
+[Collection("MariaDBHostFixture_Collection")]
+[Trait("Provider", "MariaDB")]
+public class MariaDB_Recurring_repositoryTest : RecurringJobRepositoryTest<MariaDbFastJobsHostFixture>
+{
+    public MariaDB_Recurring_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
