@@ -9,6 +9,7 @@ public class FastJobsHostFixture : IAsyncLifetime
     public IJobRepository Repository { get; private set; } = default!;
 
     private readonly MsSqlFixture _msSqlFixture = new();
+    private readonly MariaDBFixture _mariaDbFixture = new();
 
     //string connectionstring = "Server=(localdb)\\FastjobsDBServer;Database=FastJobs;Trusted_Connection=True;MultipleActiveResultSets=true";
 
@@ -17,12 +18,17 @@ public class FastJobsHostFixture : IAsyncLifetime
         Env.Load();
         Console.WriteLine($"DOCKER_HOST resolved to: {Environment.GetEnvironmentVariable("DOCKER_HOST")}");
 
-        await _msSqlFixture.InitializeAsync();
+        //await _msSqlFixture.InitializeAsync();
+        await _mariaDbFixture.InitializeAsync();
 
-        string connectionstring = _msSqlFixture.ConnectionString;
+        //string connectionstring = _msSqlFixture.ConnectionString;
+        string connectionstring = _mariaDbFixture.connectionString;
 
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
-        builder.Services.AddFastJobs(o => o.WorkerCount = 1, new FastJobMSSQLDependencies(x =>{  x.ConnectionString = connectionstring; x.SchemaName = "FastjobsDB"; } ));
+        
+        //builder.Services.AddFastJobs(o => o.WorkerCount = 1, new FastJobMSSQLDependencies(x =>{  x.ConnectionString = connectionstring; x.SchemaName = "FastjobsDB"; } ));
+        builder.Services.AddFastJobs(o => o.WorkerCount = 1, new FastJobMysqlDependencies(x =>{  x.ConnectionString = connectionstring; x.SchemaName = "FastjobsDB"; } ));
+        
         Host = builder.Build();
         await Host.StartAsync();
 
