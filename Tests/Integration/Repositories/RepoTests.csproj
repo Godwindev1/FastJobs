@@ -27,15 +27,15 @@
 </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\..\..\FastJobs.Core\FastJobs.csproj" />
+  <ProjectReference Include="..\..\..\src\FastJobs.Core\FastJobs.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\..\..\Providers\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
+  <ProjectReference Include="..\..\..\src\Providers\FastJobs.SqlServer\Fastjobs.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-  <ProjectReference Include="..\..\..\Providers\FastJobs.MariaDB\Fastjobs.MariaDB.csproj" />
+  <ProjectReference Include="..\..\..\src\Providers\FastJobs.MariaDB\Fastjobs.MariaDB.csproj" />
   </ItemGroup>
 
 
