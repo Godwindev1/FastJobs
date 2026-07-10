@@ -1,10 +1,10 @@
 using Testcontainers.MsSql;
 
-public class MsSqlFixture : IAsyncLifetime
+public class MsSqlFixture :  IDatabaseFixture
 {
     private MsSqlContainer _container ;
 
-    public string ConnectionString => _container.GetConnectionString();
+    public string ConnectionString  => _container.GetConnectionString();
 
     public async Task InitializeAsync()
     {

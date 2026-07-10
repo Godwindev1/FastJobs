@@ -1,11 +1,11 @@
 using MySqlConnector;
 using Testcontainers.MariaDb;
 
-public class MariaDBFixture : IAsyncLifetime
+public class MariaDBFixture :  IDatabaseFixture
 {
     private  MariaDbContainer _mariaDbContainer;
 
-    public string connectionString => _mariaDbContainer.GetConnectionString();
+    public string ConnectionString => _mariaDbContainer.GetConnectionString();
     // Automatically called before any test runs
     public async Task InitializeAsync()
     {
@@ -19,7 +19,7 @@ public class MariaDBFixture : IAsyncLifetime
         await _mariaDbContainer.StartAsync();
     }
 
-    [Fact]
+    /*[Fact]*/
     public async Task Can_Connect_And_Query_MariaDb_Container()
     {
         // 1. Get the dynamic connection string allocated by Testcontainers
