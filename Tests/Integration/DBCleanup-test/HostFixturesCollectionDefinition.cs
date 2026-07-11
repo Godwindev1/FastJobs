@@ -21,7 +21,7 @@ public class ExpiryStrategyMariaDbFastJobsHostFixture : FastJobsHostFixtureBase
         services.SetCleanupStrategy<ExpiredJobsPruningStrategy>();
 
         services.AddFastJobs(
-            option => {  option.WorkerCount = 2;  option.CleanupInterval = TimeSpan.FromSeconds(5); },
+            option => {  option.WorkerCount = 2;  option.CleanupInterval = TimeSpan.FromSeconds(3);  option.InitialCleanupDelay = TimeSpan.FromSeconds(2);},
             new FastJobMysqlDependencies(x =>
             {
                 x.ConnectionString = connectionString;
@@ -44,7 +44,7 @@ public class CompletedStrategyMariaDbFastJobsHostFixture : FastJobsHostFixtureBa
         services.SetCleanupStrategy<CompletedJobsPruningStrategy>();
 
         services.AddFastJobs(
-            option => {  option.WorkerCount = 2;  option.CleanupInterval = TimeSpan.FromSeconds(5); },
+            option => {  option.WorkerCount = 2;  option.CleanupInterval = TimeSpan.FromSeconds(3); option.InitialCleanupDelay = TimeSpan.FromSeconds(2); },
             new FastJobMysqlDependencies(x =>
             {
                 x.ConnectionString = connectionString;

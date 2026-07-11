@@ -2,15 +2,18 @@ using System.Diagnostics;
 using FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 [Collection("FastJobServerTests")]
-public class CompletedJobsStrategyTest : IClassFixture<ExpiryStrategyMariaDbFastJobsHostFixture>
+public class CompletedJobsStrategyTest : IClassFixture<CompletedStrategyMariaDbFastJobsHostFixture>
 {
-    public ExpiryStrategyMariaDbFastJobsHostFixture _fixture;
+    public CompletedStrategyMariaDbFastJobsHostFixture _fixture;
     public IJobRepository JobRepository;
 
-    public CompletedJobsStrategyTest(ExpiryStrategyMariaDbFastJobsHostFixture fixture)
+    public ITestOutputHelper Output;
+    public CompletedJobsStrategyTest(CompletedStrategyMariaDbFastJobsHostFixture fixture, ITestOutputHelper output)
     {
+        Output = output;
         _fixture = fixture;
         JobRepository = fixture.Host.Services.GetService<IJobRepository>();
     }
@@ -46,6 +49,15 @@ public class CompletedJobsStrategyTest : IClassFixture<ExpiryStrategyMariaDbFast
             }
 
             await Task.Delay(pollInterval);
+        }
+
+        var res = await JobRepository.GetAllAsync();
+
+        Output.WriteLine($"Number of Jobs Returned {res.Count}");
+
+        foreach(var Job in res  )
+        {
+             Output.WriteLine($"Job {Job.Id} state  {Job.StateName}");
         }
 
         // Then

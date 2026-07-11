@@ -5,6 +5,7 @@ using System.Diagnostics;
 using FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit.Abstractions;
 
 [Collection("FastJobServerTests")]
 public class ExpiredJobsPruningStrategyTests : IClassFixture<ExpiryStrategyMariaDbFastJobsHostFixture>
@@ -12,8 +13,10 @@ public class ExpiredJobsPruningStrategyTests : IClassFixture<ExpiryStrategyMaria
     public ExpiryStrategyMariaDbFastJobsHostFixture _fixture;
     public IJobRepository JobRepository;
 
-    public ExpiredJobsPruningStrategyTests(ExpiryStrategyMariaDbFastJobsHostFixture fixture)
+    public ITestOutputHelper Output;
+    public ExpiredJobsPruningStrategyTests(ExpiryStrategyMariaDbFastJobsHostFixture fixture, ITestOutputHelper output)
     {
+        Output = output;
         _fixture = fixture;
         JobRepository = fixture.Host.Services.GetService<IJobRepository>();
     }   
@@ -50,6 +53,9 @@ public class ExpiredJobsPruningStrategyTests : IClassFixture<ExpiryStrategyMaria
 
             await Task.Delay(pollInterval);
         }
+
+        var res = await JobRepository.GetAllAsync();
+        Output.WriteLine($"Number of Jobs Returned {res.Count}");
 
         // Then
         Assert.True(allPruned,
