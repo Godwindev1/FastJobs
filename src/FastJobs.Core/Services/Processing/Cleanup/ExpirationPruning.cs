@@ -5,10 +5,10 @@ using Microsoft.Extensions.Logging;
 namespace FastJobs;
 public class ExpiredJobsPruningStrategy : ICleanupStrategy
 {
-    private readonly ILogger<CompletedJobsPruningStrategy> _logger;
+    private readonly ILogger<ExpiredJobsPruningStrategy> _logger;
     private readonly IJobRepository _JobRepo;
 
-    public ExpiredJobsPruningStrategy(IJobRepository jobRepository, ILogger<CompletedJobsPruningStrategy> logger)
+    public ExpiredJobsPruningStrategy(IJobRepository jobRepository, ILogger<ExpiredJobsPruningStrategy> logger)
     {
         _JobRepo = jobRepository;
         _logger = logger;
