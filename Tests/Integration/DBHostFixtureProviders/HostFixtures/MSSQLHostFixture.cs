@@ -2,6 +2,8 @@ using FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
+namespace HostFixtureProviders;
+
 public class MsSqlFastJobsHostFixture : FastJobsHostFixtureBase
 {
     public MsSqlFastJobsHostFixture() : base(new MsSqlFixture()) { }
@@ -15,10 +17,4 @@ public class MsSqlFastJobsHostFixture : FastJobsHostFixtureBase
                 x.SchemaName = "FastjobsDB";
             }));
     }
-}
-
-[CollectionDefinition("MSSQLHostFixture_Collection")]
-public class MSSQLCollectionDefinition : ICollectionFixture<MsSqlFastJobsHostFixture>
-{
-    
 }

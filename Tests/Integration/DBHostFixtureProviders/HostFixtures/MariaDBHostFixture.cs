@@ -2,6 +2,8 @@ using FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
+namespace HostFixtureProviders;
+
 public class MariaDbFastJobsHostFixture : FastJobsHostFixtureBase
 {
     public MariaDbFastJobsHostFixture() : base(new MariaDBFixture()) { }
@@ -17,8 +19,3 @@ public class MariaDbFastJobsHostFixture : FastJobsHostFixtureBase
     }
 }
 
-[CollectionDefinition("MariaDBHostFixture_Collection")]
-public class MariaDBCollectionDefinition : ICollectionFixture<MariaDbFastJobsHostFixture>
-{
-    
-}

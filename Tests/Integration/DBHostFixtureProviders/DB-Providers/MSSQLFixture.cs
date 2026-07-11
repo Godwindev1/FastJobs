@@ -1,5 +1,7 @@
 using Testcontainers.MsSql;
 
+namespace HostFixtureProviders;
+
 public class MsSqlFixture :  IDatabaseFixture
 {
     private MsSqlContainer _container ;

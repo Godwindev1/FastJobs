@@ -5,6 +5,8 @@ using DotNetEnv;
 using Microsoft.Extensions.DependencyInjection;
 
 
+namespace HostFixtureProviders;
+
 public abstract class FastJobsHostFixtureBase : IAsyncLifetime
 {
     public IHost Host { get; private set; } = default!;

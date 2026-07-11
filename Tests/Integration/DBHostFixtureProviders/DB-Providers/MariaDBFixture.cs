@@ -1,6 +1,8 @@
 using MySqlConnector;
 using Testcontainers.MariaDb;
 
+namespace HostFixtureProviders;
+
 public class MariaDBFixture :  IDatabaseFixture
 {
     private  MariaDbContainer _mariaDbContainer;
