@@ -24,4 +24,5 @@ public class FastJobsOptions
 
     //CLEANUP OPTIONS
     public TimeSpan CleanupInterval {get; set; } = TimeSpan.FromSeconds(60);
+    public TimeSpan InitialCleanupDelay {get; set; } = TimeSpan.FromSeconds(5);
 }

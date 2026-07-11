@@ -7,12 +7,14 @@ public class JobCleanupManager : BackgroundService
 {
     private readonly ICleanupStrategy _cleanupStrategy;
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _CleanupStartDelay = TimeSpan.FromMinutes(15);
 
     private readonly ILogger<JobCleanupManager> _logger;
 
     public JobCleanupManager(ICleanupStrategy cleanupStrategy, ILogger<JobCleanupManager> logger, FastJobsOptions options)
     {
         _cleanupStrategy = cleanupStrategy;
+        _CleanupStartDelay = options.InitialCleanupDelay;
         _interval = options.CleanupInterval;
         _logger = logger;
     }
@@ -20,7 +22,7 @@ public class JobCleanupManager : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         //initial Delay To make Sure all other Systems Are Running Before this Starts 
-         await Task.Delay(TimeSpan.FromSeconds(15), ct);
+         await Task.Delay(_CleanupStartDelay, ct);
 
         using var timer = new PeriodicTimer(_interval);
 
