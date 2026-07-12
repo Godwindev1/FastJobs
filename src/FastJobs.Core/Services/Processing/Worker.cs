@@ -139,7 +139,7 @@ public partial class Worker
                     {
                         // expected during shutdown
                     }
-                    catch (TerminateRetryException ex)
+                    catch (TerminateJobException ex)
                     {
                         await _QueueProcessor.FailJobAsync(job, ex.Message);
                     }
