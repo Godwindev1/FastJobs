@@ -46,10 +46,16 @@ public class JobChainTest : IClassFixture<JobChainTestFixture>
         var entries = _recorder.GetEntries().OrderBy(e => e.Start).ToList();
         foreach (var e in entries)
             _output.WriteLine($"{e.Step}: {e.Start:O} -> {e.End:O}");
+        foreach (var e in expectedOrder)
+            _output.WriteLine($"ExpectedOrder: {e}");
+
+        var result = entries.Select(e => e.Step);
+        foreach (var e in result)
+            _output.WriteLine($"SelectedEntries: {e}");
 
         // Then
         Assert.Equal(expectedOrder.Length, entries.Count);
-        Assert.Equal(expectedOrder, entries.Select(e => e.Step));
+        Assert.Equal(expectedOrder, result);
 
         for (int i = 1; i < entries.Count; i++)
         {
