@@ -129,7 +129,7 @@ internal class QueueProcessor
         await _stateHelpers.UpdateJobStateAsync(
             job.Id ?? 0,
             QueueStateTypes.Failed,
-            $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Failed As Many As {job.MaxRetries} Times",
+            $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Failed As Many As {job.MaxRetries} Times Or Was Intentionally Terminated",
             data: ExceptionMessage);
     }
 
