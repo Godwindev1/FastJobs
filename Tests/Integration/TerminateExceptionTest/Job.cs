@@ -7,7 +7,7 @@ public class TerminateExceptionJob : IBackGroundJob
 
     public TerminateExceptionJob(ILogger<TerminateExceptionJob> logger)
     {
-        _logger = logger as ILogger<TerminateExceptionJob> ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger;
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -15,5 +15,7 @@ public class TerminateExceptionJob : IBackGroundJob
         _logger.LogInformation("[{Thread}] Exception Termination Test Started Processing", Thread.CurrentThread.Name);
 
         throw new TerminateJobException ("Test for intentional job Termination by TerminateRetryException ");
+
+        _logger.LogInformation("[{Thread}] Processing Should Never reach this point", Thread.CurrentThread.Name);
     }
 }
