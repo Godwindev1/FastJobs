@@ -55,7 +55,7 @@ public partial class Worker
         {
             while (!_shutdownToken.IsCancellationRequested)
             {
-                Tuple<Queue, SessionDatabaseLock>? JobDetails = null;
+                Tuple<Queue, SessionDatabaseLock>? JobQueueDetails = null;
 
   
                 if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
@@ -74,7 +74,7 @@ public partial class Worker
                     if (await _QueueProcessor.AllQueuesEmpty(_shutdownToken))
                         continue;
 
-                    JobDetails = await _QueueProcessor.Dequeue(_shutdownToken);
+                    JobQueueDetails = await _QueueProcessor.Dequeue(_shutdownToken);
                 }
                 finally
                 {
@@ -83,14 +83,14 @@ public partial class Worker
 
                 using (var Scope = new ScopeManager(serviceScopeFactory))
                 {
-                    if (JobDetails == null)
+                    if (JobQueueDetails == null)
                         continue;
 
                     await WakeWorker(workerRecord);
 
                     //RESOLVE JOB DETAILS 
                     IJobRepository JobRepo = Scope.Resolve<IJobRepository>();
-                    Job job = await JobRepo.GetByIdAsync(JobDetails.Item1.JobId);
+                    Job job = await JobRepo.GetByIdAsync(JobQueueDetails.Item1.JobId);
 
                     // If the job has expired by the time we got it, skip processing
                     if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
@@ -145,8 +145,17 @@ public partial class Worker
                     }
                     catch (Exception ex)
                     {
-                         _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Beginning Retry {RetryCOunt}  ", job.Id, job.MethodDeclaringTypeName, job.RetryCount + 1);
-                        await _QueueProcessor.RequeueJobAsync(JobDetails.Item1, JobDetails.Item2, Scope, ex.Message);
+                        //if Job has Exceeded its retry Limit Fail the job
+                        if( !(job.RetryCount >= 3))
+                        {
+                            _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Beginning Retry {RetryCOunt}  ", job.Id, job.MethodDeclaringTypeName, job.RetryCount + 1);
+                            await _QueueProcessor.RequeueJobAsync(JobQueueDetails.Item1, JobQueueDetails.Item2, Scope, ex.Message);
+                        }
+                        else
+                        {
+                            await _QueueProcessor.FailJobAsync(job, ex.Message);
+                        }
+
                     }
                     finally
                     {
@@ -161,8 +170,23 @@ public partial class Worker
                         }
                     }
 
+                    try
+                    {
+                        if(jobSucceeded)
+                        {
+                           await _QueueProcessor.CompleteJobAsync(JobQueueDetails.Item1, JobQueueDetails.Item2);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log but don't requeue — job work is done, only cleanup failed
+                        _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Failed State Update After Completion ",
+                            job.Id, 
+                            job.MethodDeclaringTypeName                             );
+                    }
+
             
-                    await RescheduleOrRunAfterAction(JobDetails, job, Scope, jobSucceeded);
+                    await RescheduleOrRunAfterAction(job, Scope, jobSucceeded);
                     jobContext.SetJob(null);
 
                 }
@@ -200,20 +224,9 @@ public partial class Worker
         }
     }
 
-    internal async Task RescheduleOrRunAfterAction(Tuple<Queue, SessionDatabaseLock> JobDetails, Job job, ScopeManager Scope, bool JobSuceeded)
+    internal async Task RescheduleOrRunAfterAction(Job job, ScopeManager Scope, bool JobSuceeded)
     {
-        try
-        {
-            await _QueueProcessor.CompleteJobAsync(JobDetails.Item1, JobDetails.Item2);
-        }
-        catch (Exception ex)
-        {
-            // Log but don't requeue — job work is done, only cleanup failed
-            _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Failed State Update After Completion ",
-                job.Id, 
-                job.MethodDeclaringTypeName                             );
-        }
-
+        //Reschedule Recurring Job Types
         if (job.JobType == JobTypes.Recurring )
          {  
             bool RetriesExhausted = job.RetryCount >= job.MaxRetries;
