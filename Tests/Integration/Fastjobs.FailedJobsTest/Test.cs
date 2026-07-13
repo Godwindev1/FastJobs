@@ -39,7 +39,7 @@ public class FailedJobTest : IClassFixture<FailedJobFixtureTest>
     }
 
     [Fact]
-    public async Task Job_Throwing_TerminateJobException_Should_Be_Deleted_By_AfterAction()
+    public async Task Job_Should_Exhaust_Retries_and_Then_FAIL()
     {
         // Arrange
         var since = DateTime.UtcNow;
