@@ -8,13 +8,13 @@ using Xunit.Abstractions;
 public class ServerCollectionDefinition { }
 
 [Collection("FastJobServerTests")]
-public class AfterActionTest : IClassFixture<AfterActionJobTestFixture>
+public class FailedJobTest : IClassFixture<FailedJobFixtureTest>
 {
-    private readonly AfterActionJobTestFixture _fixture;
+    private readonly FailedJobFixtureTest _fixture;
     private readonly ITestOutputHelper _output;
     private readonly IJobRepository _repo;
 
-    public AfterActionTest(AfterActionJobTestFixture fixture, ITestOutputHelper output)
+    public FailedJobTest(FailedJobFixtureTest fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
         _repo = fixture.Host.Services.GetService<IJobRepository>();
@@ -45,14 +45,13 @@ public class AfterActionTest : IClassFixture<AfterActionJobTestFixture>
         var since = DateTime.UtcNow;
 
         // Act
-        await FastJobServer.EnqueueJob<DeleteAfterActionTestJob>()
-            .AddAfterAction(x => x.WithType<DeleteAfterAction>())
+        await FastJobServer.EnqueueJob<FailJob>()
             .Start();
 
         await WaitUntilAsync(
-            condition: async () => (await _repo.GetAllAsync()).Count,
-            expected: 0,
-            timeout: TimeSpan.FromSeconds(50));
+            condition: () => _repo.CountFailedSinceAsync(since),
+            expected: 1,
+            timeout: TimeSpan.FromSeconds(70));
 
         var allEntries = await _repo.GetAllAsync();
 
@@ -62,8 +61,8 @@ public class AfterActionTest : IClassFixture<AfterActionJobTestFixture>
         }
 
         // Assert
-        var All = await _repo.GetAllAsync();
-        var count = All.Count;
-        Assert.Equal(0, count);
+        var single = allEntries.Where(x => x.StateName == QueueStateTypes.Failed).SingleOrDefault();
+        Assert.NotNull(single);
+        Assert.Equal(single.MaxRetries, single.RetryCount);
     }
 }
