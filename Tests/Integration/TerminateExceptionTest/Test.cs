@@ -56,7 +56,7 @@ public class TerminateExceptionJobTests : IClassFixture<TerminateJobTestFixture>
 
         var allEntries = await _repo.GetAllAsync();
         var failedJob = allEntries
-        .Where(e => e.StateName == QueueStateTypes.Failed) // or whatever enum value marks it failed
+        .Where(e => e.StateName == QueueStateTypes.Failed) 
         .SingleOrDefault();
 
         foreach (var e in allEntries)
