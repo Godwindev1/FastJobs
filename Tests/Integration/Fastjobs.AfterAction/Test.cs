@@ -39,7 +39,7 @@ public class AfterActionTest : IClassFixture<AfterActionJobTestFixture>
     }
 
     [Fact]
-    public async Task Job_Throwing_TerminateJobException_Should_Be_Deleted_By_AfterAction()
+    public async Task Job_Should_Be_Completed_And_Then_Deleted_By_AfterAction()
     {
         // Arrange
         var since = DateTime.UtcNow;
