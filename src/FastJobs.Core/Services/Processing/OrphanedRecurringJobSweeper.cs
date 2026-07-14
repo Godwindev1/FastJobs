@@ -5,22 +5,22 @@ namespace FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.Logging;
 
-internal class RecurringScheduler
+internal class OrphanedRecurringJobSweeper 
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
     private readonly TimeSpan _idleWait;
     private readonly Action _notifyScheduledJobAdded;
 
-    private readonly ILogger<RecurringScheduler> _logger;
+    private readonly ILogger<OrphanedRecurringJobSweeper > _logger;
 
-    public RecurringScheduler(IServiceScopeFactory scopeFactory, Action notifyScheduledJobAdded)
+    public OrphanedRecurringJobSweeper (IServiceScopeFactory scopeFactory, Action notifyScheduledJobAdded)
     {
         _scopeFactory = scopeFactory;
         _notifyScheduledJobAdded = notifyScheduledJobAdded;
 
         using var scope = new ScopeManager(scopeFactory);
-        _logger = scope.Resolve<ILogger<RecurringScheduler>>();
+        _logger = scope.Resolve<ILogger<OrphanedRecurringJobSweeper >>();
         var options = scope.Resolve<FastJobsOptions>();
         _idleWait = options.IdleWaitPeriod;
     }

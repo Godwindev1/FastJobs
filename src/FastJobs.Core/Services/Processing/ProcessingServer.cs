@@ -8,11 +8,11 @@ internal class ProcessingServer
     private WorkerManager? _workerManager;
 
     private Scheduler? SchedulerProcess; 
-    private RecurringScheduler? RecurringSchedulerProcess;
+    private OrphanedRecurringJobSweeper ? RecurringSchedulerProcess;
     private CancellationTokenSource _shutdownCts;
 
     private Task SchedulerTask;
-    private Task RecurringSchedulerTask;
+    private Task OrphanedRecurringJobSweeperTask;
     
     private int WorkerCount; 
 
@@ -22,7 +22,7 @@ internal class ProcessingServer
         _shutdownCts = shutdownCts;
         WorkerCount = options.WorkerCount;
         SchedulerProcess = new Scheduler(serviceScopeFactory);
-        RecurringSchedulerProcess = new RecurringScheduler(serviceScopeFactory, NotifyScheduledJobAdded);
+        RecurringSchedulerProcess = new OrphanedRecurringJobSweeper (serviceScopeFactory, NotifyScheduledJobAdded);
     }
 
     public void StartProcessingJobs()
@@ -36,7 +36,7 @@ internal class ProcessingServer
             await SchedulerProcess.StartScheduler(_shutdownCts.Token);
         });
 
-       RecurringSchedulerTask = Task.Run(async () => {
+       OrphanedRecurringJobSweeperTask = Task.Run(async () => {
             await RecurringSchedulerProcess.StartAsync(_shutdownCts.Token);
        });
     }
