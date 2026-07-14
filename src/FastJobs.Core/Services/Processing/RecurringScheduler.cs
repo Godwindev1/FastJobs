@@ -56,33 +56,18 @@ internal class RecurringScheduler
     {
         using var scope = new ScopeManager(_scopeFactory);
         var recurringRepo = scope.Resolve<IRecurringJobRepository>();
-        var scheduledRepo = scope.Resolve<IScheduledJobRepository>();
 
-        // Query for orphaned recurring jobs
         var orphanedJobs = await recurringRepo.GetOrphanedRecurringJobsAsync(ct);
+
+        var anyScheduled = false;
         foreach (var recurringJob in orphanedJobs)
         {
-            // Compute next run from now
-            var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
-            if (nextRun == null) continue;
-
-            var scheduledJobInfo = new ScheduledJobInfo
-            {
-                JobId = recurringJob.JobId,
-                ScheduledTo = nextRun.Value
-            };
-
-            var scheduledId = await scheduledRepo.InsertAsync(scheduledJobInfo, ct);
-            recurringJob.NextScheduledID = scheduledId;
-            recurringJob.NextScheduledTime = nextRun.Value;
-
-            await recurringRepo.UpdateByIdAsync(recurringJob, ct);
+            if (await RecurringJobScheduling.ScheduleNextOccurrenceAsync(recurringJob, scope, ct))
+                anyScheduled = true;
         }
 
-        if (orphanedJobs.Any())
-        {
+        if (anyScheduled)
             _notifyScheduledJobAdded();
-        }
     }
 
   

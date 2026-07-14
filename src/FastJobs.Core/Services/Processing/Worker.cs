@@ -232,7 +232,7 @@ public partial class Worker
             bool RetriesExhausted = job.RetryCount >= job.MaxRetries;
             if(RetriesExhausted || JobSuceeded)
             {
-                await RescheduleRecurringJobAsync(job.Id ?? 0, Scope);
+                await RescheduleRecurringJobAsync(job.Id ?? 0, Scope, _shutdownToken);
             }
          }
 
@@ -347,48 +347,16 @@ public partial class Worker
 }
 
 
-    private async Task RescheduleRecurringJobAsync(long RecurringjobId, ScopeManager scope)
+    private async Task RescheduleRecurringJobAsync(long RecurringjobId, ScopeManager scope, CancellationToken ct)
     {
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
-        var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
         var processingServer = scope.Resolve<ProcessingServer>();
-        var jobRepository = scope.Resolve<IJobRepository>();
-        var stateHelper = new StateHelpers(jobRepository, scope.Resolve<IStateHistoryRepository>());
 
         var recurringJob = await recurringJobRepository.GetByIdAsync(RecurringjobId);
         if (recurringJob == null) return;
 
-        // Fetch the job to check expiry from Jobs table
-        var job = await jobRepository.GetByIdAsync(recurringJob.JobId);
-        if (job == null) return;
-
-        // If the job has expired, do not reschedule
-        if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
-            return; 
-
-        // Check concurrency if not concurrent
-        if (!recurringJob.IsConcurrent && recurringJob.ExecutingInstances > 0)
-            return; // Skip this cycle
-
-        // Compute next run
-        var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
-        if (nextRun == null) return; // No more occurrences
-
-        // Insert next scheduled job
-        var scheduledJob = new ScheduledJobInfo
-        {
-            JobId = recurringJob.JobId,
-            ScheduledTo = nextRun.Value
-        };
-        var scheduledId = await scheduledJobRepository.InsertAsync(scheduledJob);
-
-        // Update recurring job
-        recurringJob.NextScheduledID = scheduledId;
-        recurringJob.NextScheduledTime = nextRun.Value;
-        await recurringJobRepository.UpdateByIdAsync(recurringJob);
-
-        await stateHelper.UpdateJobStateAsync(recurringJob.JobId, QueueStateTypes.Scheduled, $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", CancellationToken.None);
-
-        processingServer.NotifyScheduledJobAdded();
+        var scheduled = await RecurringJobScheduling.ScheduleNextOccurrenceAsync(recurringJob, scope, ct);
+        if (scheduled)
+            processingServer.NotifyScheduledJobAdded();
     }
 }
