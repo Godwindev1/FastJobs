@@ -377,7 +377,7 @@ public partial class Worker
         // Insert next scheduled job
         var scheduledJob = new ScheduledJobInfo
         {
-            JobId = RecurringjobId,
+            JobId = recurringJob.JobId,
             ScheduledTo = nextRun.Value
         };
         var scheduledId = await scheduledJobRepository.InsertAsync(scheduledJob);
@@ -387,7 +387,7 @@ public partial class Worker
         recurringJob.NextScheduledTime = nextRun.Value;
         await recurringJobRepository.UpdateByIdAsync(recurringJob);
 
-        await stateHelper.UpdateJobStateAsync(RecurringjobId, QueueStateTypes.Scheduled, $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", CancellationToken.None);
+        await stateHelper.UpdateJobStateAsync(recurringJob.JobId, QueueStateTypes.Scheduled, $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", CancellationToken.None);
 
         processingServer.NotifyScheduledJobAdded();
     }
