@@ -185,8 +185,12 @@ public partial class Worker
                             job.MethodDeclaringTypeName                             );
                     }
 
-            
-                    await RescheduleOrRunAfterAction(job, Scope, jobSucceeded);
+
+                    //TODO: Resolve The Order for these Two Functions 
+                    //currently this is fine because recurring jobs after actions only run on final completion
+                    await RunAfterAction(job, Scope, jobSucceeded);
+                    await Reschedule(job, Scope, jobSucceeded);
+                    
                     jobContext.SetJob(null);
 
                 }
@@ -224,7 +228,7 @@ public partial class Worker
         }
     }
 
-    internal async Task RescheduleOrRunAfterAction(Job job, ScopeManager Scope, bool JobSuceeded)
+    internal async Task Reschedule(Job job, ScopeManager Scope, bool JobSuceeded)
     {
         //Reschedule Recurring Job Types
         if (job.JobType == JobTypes.Recurring )
@@ -235,7 +239,9 @@ public partial class Worker
                 await RescheduleRecurringJobAsync(job.Id ?? 0, Scope, _shutdownToken);
             }
          }
-
+    }
+    internal async Task RunAfterAction(Job job, ScopeManager Scope, bool JobSuceeded)
+    {
         //Execute After Actions
         var JobAfterActionID = job.AfterActionId ?? 0;
         if(job.AfterActionId != null && JobAfterActionID != 0)
@@ -246,7 +252,7 @@ public partial class Worker
             }
             else
             {
-                // If the job has expired, do not Run Recurring Jobs After Action on Final Completion
+                // Run Recurring Jobs After action on final completion if Job has not expired 
                 if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
                 {
                    await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
