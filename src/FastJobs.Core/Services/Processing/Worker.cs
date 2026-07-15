@@ -95,9 +95,7 @@ public partial class Worker
                     // If the job has expired by the time we got it, skip processing And Change the Jobs State 
                     if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
                     {
-                        StateHelpers StateHelper = new StateHelpers(JobRepo, Scope.Resolve<IStateHistoryRepository>());
-                        await StateHelper.UpdateJobStateAsync(job.Id ?? 0, QueueStateTypes.Expired, $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} is Expired", "", _shutdownToken);
-
+                        await _QueueProcessor.ExpireJobAsync(JobQueueDetails.Item1, JobQueueDetails.Item2);
                         continue;
                     }
                         

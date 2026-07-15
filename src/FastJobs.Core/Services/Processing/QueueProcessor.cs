@@ -99,6 +99,28 @@ internal class QueueProcessor
         return null;
     }
 
+    public async Task ExpireJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock)
+    {
+        //NOTE: Intentionally no CancellationToken — finalisation operation must complete to avoid orphaned locks
+        try
+        {
+            
+            // Update job state with atomic state history creation and rollback support
+            await _stateHelpers.UpdateJobStateAsync(
+                JobQueueEntry.JobId,
+                QueueStateTypes.Expired,
+                 $"Job #{JobQueueEntry.JobId} Has Expired",
+                data: "");
+
+            await _queueRepo.RemoveAsync(JobQueueEntry.Id);
+        }
+        finally
+        {
+            await QueueLock.ReleaseLockAsync();
+            QueueLock.Dispose();
+        }
+                        
+    }
 
     public async Task CompleteJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock)
     {
@@ -122,6 +144,9 @@ internal class QueueProcessor
         }
     }
 
+
+
+
     internal async Task FailJobAsync(Job job, string ExceptionMessage)
     {
         //NOTE: Intentionally no CancellationToken — compensating operation must complete
@@ -131,6 +156,8 @@ internal class QueueProcessor
             QueueStateTypes.Failed,
             $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Failed As Many As {job.MaxRetries} Times Or Was Intentionally Terminated",
             data: ExceptionMessage);
+
+        //Might need to remove Dequeues
     }
 
     public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, ScopeManager Scope,  string ExceptionMessage = "")
