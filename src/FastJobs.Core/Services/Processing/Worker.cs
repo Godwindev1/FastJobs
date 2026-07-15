@@ -145,7 +145,7 @@ public partial class Worker
                     }
                     catch (TerminateJobException ex)
                     {
-                        await _QueueProcessor.FailJobAsync(job, ex.Message);
+                        await _QueueProcessor.FailJobAsync(job, JobQueueDetails.Item1, JobQueueDetails.Item2, ex.Message);
                     }
                     catch (Exception ex)
                     {
@@ -157,7 +157,7 @@ public partial class Worker
                         }
                         else
                         {
-                            await _QueueProcessor.FailJobAsync(job, ex.Message);
+                            await _QueueProcessor.FailJobAsync(job, JobQueueDetails.Item1, JobQueueDetails.Item2, ex.Message);
                         }
 
                     }

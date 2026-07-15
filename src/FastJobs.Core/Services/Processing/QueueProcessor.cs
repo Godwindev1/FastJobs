@@ -147,17 +147,26 @@ internal class QueueProcessor
 
 
 
-    internal async Task FailJobAsync(Job job, string ExceptionMessage)
+    internal async Task FailJobAsync(Job job, Queue QueueEntry, SessionDatabaseLock QueueLock, string ExceptionMessage)
     {
         //NOTE: Intentionally no CancellationToken — compensating operation must complete
         // Update job state with atomic state history creation and rollback support
+        try {
         await _stateHelpers.UpdateJobStateAsync(
             job.Id ?? 0,
             QueueStateTypes.Failed,
             $"Job #{job.Id} of Type {job.MethodDeclaringTypeName} Has Failed As Many As {job.MaxRetries} Times Or Was Intentionally Terminated",
             data: ExceptionMessage);
 
-        //Might need to remove Dequeues
+        
+            await _queueRepo.RemoveAsync(QueueEntry.Id);
+        }
+        finally
+        {
+            await QueueLock.ReleaseLockAsync();
+            QueueLock.Dispose();
+        }
+            
     }
 
     public async Task RequeueJobAsync(Queue JobQueueEntry, SessionDatabaseLock QueueLock, ScopeManager Scope,  string ExceptionMessage = "")
@@ -176,7 +185,7 @@ internal class QueueProcessor
 
             if(Job.RetryCount >= Job.MaxRetries)
             {
-                await FailJobAsync(Job, ExceptionMessage);
+                await FailJobAsync(Job, JobQueueEntry, QueueLock,  ExceptionMessage);
                 return;
             }
 
