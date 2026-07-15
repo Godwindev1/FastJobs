@@ -6,6 +6,9 @@ public static class QueueStateTypes
     public static string Dequeued = "Dequeued";
     public static string Processing = "Processing";
     public static string Completed = "Completed";
+
+    //NEW STATE TYPE
+    public static string Expired = "Expired";
     public static string Failed = "Failed";
 }
 
