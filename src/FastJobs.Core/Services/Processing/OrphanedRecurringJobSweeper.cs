@@ -5,22 +5,22 @@ namespace FastJobs;
 using FastJobs.Persistence;
 using Microsoft.Extensions.Logging;
 
-internal class RecurringScheduler
+internal class OrphanedRecurringJobSweeper 
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
     private readonly TimeSpan _idleWait;
     private readonly Action _notifyScheduledJobAdded;
 
-    private readonly ILogger<RecurringScheduler> _logger;
+    private readonly ILogger<OrphanedRecurringJobSweeper > _logger;
 
-    public RecurringScheduler(IServiceScopeFactory scopeFactory, Action notifyScheduledJobAdded)
+    public OrphanedRecurringJobSweeper (IServiceScopeFactory scopeFactory, Action notifyScheduledJobAdded)
     {
         _scopeFactory = scopeFactory;
         _notifyScheduledJobAdded = notifyScheduledJobAdded;
 
         using var scope = new ScopeManager(scopeFactory);
-        _logger = scope.Resolve<ILogger<RecurringScheduler>>();
+        _logger = scope.Resolve<ILogger<OrphanedRecurringJobSweeper >>();
         var options = scope.Resolve<FastJobsOptions>();
         _idleWait = options.IdleWaitPeriod;
     }
@@ -56,33 +56,18 @@ internal class RecurringScheduler
     {
         using var scope = new ScopeManager(_scopeFactory);
         var recurringRepo = scope.Resolve<IRecurringJobRepository>();
-        var scheduledRepo = scope.Resolve<IScheduledJobRepository>();
 
-        // Query for orphaned recurring jobs
         var orphanedJobs = await recurringRepo.GetOrphanedRecurringJobsAsync(ct);
+
+        var anyScheduled = false;
         foreach (var recurringJob in orphanedJobs)
         {
-            // Compute next run from now
-            var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
-            if (nextRun == null) continue;
-
-            var scheduledJobInfo = new ScheduledJobInfo
-            {
-                JobId = recurringJob.JobId,
-                ScheduledTo = nextRun.Value
-            };
-
-            var scheduledId = await scheduledRepo.InsertAsync(scheduledJobInfo, ct);
-            recurringJob.NextScheduledID = scheduledId;
-            recurringJob.NextScheduledTime = nextRun.Value;
-
-            await recurringRepo.UpdateByIdAsync(recurringJob, ct);
+            if (await RecurringJobScheduling.ScheduleNextOccurrenceAsync(recurringJob, scope, ct))
+                anyScheduled = true;
         }
 
-        if (orphanedJobs.Any())
-        {
+        if (anyScheduled)
             _notifyScheduledJobAdded();
-        }
     }
 
   
