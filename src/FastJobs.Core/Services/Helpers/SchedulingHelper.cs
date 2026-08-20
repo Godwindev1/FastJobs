@@ -41,6 +41,11 @@ internal static class RecurringJobScheduling
 
         if (!recurringJob.IsConcurrent && recurringJob.ExecutingInstances > 0)
         {
+            Logger.LogInformation(
+                "[IN ScheduleNextOccurrenceAsync]: Recurring job #{RecurringJobId} (Job #{JobId}) skipped — non-concurrent and {ExecutingInstances} instance(s) still executing",
+                recurringJob.id, recurringJob.JobId, recurringJob.ExecutingInstances
+            );
+            
             return false;
         }
 
