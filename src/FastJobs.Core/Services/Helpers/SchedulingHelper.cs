@@ -1,4 +1,5 @@
 using FastJobs.Persistence;
+using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
 
@@ -14,6 +15,7 @@ internal static class RecurringJobScheduling
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
         var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
         var stateHelper = new StateHelpers(jobRepository, scope.Resolve<IStateHistoryRepository>());
+        var Logger =  scope.Resolve<ILogger>();
 
         var job = await jobRepository.GetByIdAsync(recurringJob.JobId);
         if (job == null) return false;
@@ -21,6 +23,19 @@ internal static class RecurringJobScheduling
 
         if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
         {
+            try
+            {
+                // Update job state with atomic state history creation and rollback support
+                await stateHelper.UpdateJobStateAsync(
+                    job.Id ?? -1,
+                    QueueStateTypes.Expired,
+                    $"Job #{job.Id} Has Expired",
+                    data: "");
+            }
+            catch(Exception ex)
+            {
+                Logger.LogError(ex, "[IN ScheduleNextOccurrenceAsync]: Job #{JobID} Failed While setting Expired State", job.Id);
+            }
             return false;
         } 
 
