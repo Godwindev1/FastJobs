@@ -47,6 +47,24 @@ internal static class RecurringJobScheduling
         var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
         if (nextRun == null) return false;
 
+        //If Next run would Be Expired optimistically handle it Here
+        if (job.ExpiresAt.HasValue && nextRun.Value >= job.ExpiresAt.Value)
+        {
+            try
+            {
+                await stateHelper.UpdateJobStateAsync(
+                    job.Id ?? -1,
+                    QueueStateTypes.Expired,
+                    $"Job #{job.Id} next occurrence would exceed expiration",
+                    data: "");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "[IN ScheduleNextOccurrenceAsync]: Job #{JobID} Failed While setting Expired State", job.Id);
+            }
+            return false;
+        }
+
         var scheduledJobInfo = new ScheduledJobInfo
         {
             JobId = recurringJob.JobId, // underlying job, not the recurring job's own id
