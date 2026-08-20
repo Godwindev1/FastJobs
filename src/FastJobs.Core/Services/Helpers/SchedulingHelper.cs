@@ -9,6 +9,7 @@ internal static class RecurringJobScheduling
         ScopeManager scope,
         CancellationToken ct)
     {
+        //NOTE IN THIS FILE recurringJob.jobId and job.id are interchangeable the RecurringJob Table Column JobId references the Job Table Primary key Id
         var jobRepository = scope.Resolve<IJobRepository>();
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
         var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
@@ -17,11 +18,16 @@ internal static class RecurringJobScheduling
         var job = await jobRepository.GetByIdAsync(recurringJob.JobId);
         if (job == null) return false;
 
+
         if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+        {
             return false;
+        } 
 
         if (!recurringJob.IsConcurrent && recurringJob.ExecutingInstances > 0)
+        {
             return false;
+        }
 
         var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
         if (nextRun == null) return false;
@@ -39,7 +45,7 @@ internal static class RecurringJobScheduling
         await recurringJobRepository.UpdateByIdAsync(recurringJob, ct);
 
         await stateHelper.UpdateJobStateAsync(
-            recurringJob.id, QueueStateTypes.Scheduled,
+            recurringJob.JobId, QueueStateTypes.Scheduled,
             $"Recurring job #{recurringJob.id} rescheduled for {nextRun:O}", "", ct);
 
         return true;

@@ -191,8 +191,9 @@ public partial class Worker
 
 
                     //TODO: Resolve The Order for these Two Functions 
-                    //currently this is fine because recurring jobs after actions only run on final completion
-                    await RunAfterAction(job, Scope, jobSucceeded);
+                    //AFTER ACTIONS FOR RECURRING JOBS NEED TO RUN BEFORE A RESCHEDULE IS DONE
+                    await RunAfterAction(job, Scope, jobSucceeded); 
+                    //COOULD CAUSE MISFIRES IN SITUATIONS WHERE AFTER ACTIONS DO HEAVY LOGIC THAT TAKES MORE TIME THAN THE NEXT SCHEDULE
                     await Reschedule(job, Scope, jobSucceeded);
                     
                     jobContext.SetJob(null);
