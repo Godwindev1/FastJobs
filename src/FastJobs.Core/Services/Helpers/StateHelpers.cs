@@ -98,7 +98,7 @@ public class StateHelpers
             catch (Exception jobUpdateEx)
             {
                 throw new InvalidOperationException(
-                    $"Failed to update job {jobId} with new state. Created StateHistory ID: {createdStateHistoryId}. Manual cleanup may be required.",
+                    $"Failed to update job {jobId} with new state {newStateName}. Created StateHistory ID: {createdStateHistoryId}. Manual cleanup may be required.",
                     jobUpdateEx);
             }
 

@@ -23,7 +23,7 @@ public interface IRecurringJobRepository
     Task<IEnumerable<RecurringJob>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves orphaned recurring jobs that need recovery sweep.
+    /// Retrieves orphaned recurring jobs that need recovery sweep. Criteria (Job has Not Expired, it Does not have A Next Schedule or NextScheduledID, and it has passed it ScheduledTime to run (called NextScheduledTime in repo))
     /// </summary>
     Task<IEnumerable<RecurringJob>> GetOrphanedRecurringJobsAsync(CancellationToken cancellationToken = default);
 

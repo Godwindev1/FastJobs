@@ -3,6 +3,11 @@ using Microsoft.Extensions.Logging;
 
 namespace FastJobs;
 
+public class RecurringSchedulingLogContainer
+{
+
+}
+
 internal static class RecurringJobScheduling
 {
     public static async Task<bool> ScheduleNextOccurrenceAsync(
@@ -15,7 +20,7 @@ internal static class RecurringJobScheduling
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
         var scheduledJobRepository = scope.Resolve<IScheduledJobRepository>();
         var stateHelper = new StateHelpers(jobRepository, scope.Resolve<IStateHistoryRepository>());
-        var Logger =  scope.Resolve<ILogger>();
+        var Logger =  scope.Resolve<ILogger<RecurringSchedulingLogContainer>>();
 
         var job = await jobRepository.GetByIdAsync(recurringJob.JobId);
         if (job == null) return false;

@@ -9,6 +9,7 @@ public class FastJobsOptions
     public TimeSpan MaxJobRetryDelay {get; set; } = TimeSpan.FromSeconds(300);
     public TimeSpan Jitter {get; set; } = TimeSpan.FromSeconds(5);
 
+    //IDLE WAIT PERIOD IS USED FOR RECURRING JOBS RECOVERY SWEEP
     public TimeSpan IdleWaitPeriod {get; set; }  = TimeSpan.FromSeconds(30);
     public TimeSpan  MaxSleep  {get; set; }  = TimeSpan.FromMinutes(5);
 
