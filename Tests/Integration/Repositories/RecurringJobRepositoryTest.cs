@@ -66,6 +66,7 @@ public abstract class RecurringJobRepositoryTest<TFixture>  where TFixture : Fas
         Assert.Contains(all, item => item.id == dueId);
         Assert.Contains(all, item => item.id == futureId);
 
+        //Tests new expired state filtrt of the function
         var orphaned = await _repository.GetOrphanedRecurringJobsAsync();
         Assert.Contains(orphaned, item => item.id == dueId);
 
