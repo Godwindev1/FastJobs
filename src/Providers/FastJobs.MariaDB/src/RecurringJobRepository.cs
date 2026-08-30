@@ -85,11 +85,11 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
     {
         using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
 
-        const string sql = @"
+        string sql = $@"
         SELECT r.* FROM RecurringJobs r
         LEFT JOIN ScheduledJobs s ON r.NextScheduledID = s.Id
         LEFT JOIN Jobs j ON r.JobId = j.Id
-        WHERE (j.ExpiresAt IS NULL OR j.ExpiresAt > UTC_TIMESTAMP())
+        WHERE (j.StateName IS {QueueStateTypes.Expired})
         AND (r.NextScheduledID IS NULL OR s.Id IS NULL)
         AND r.NextScheduledTime < UTC_TIMESTAMP();";
 
