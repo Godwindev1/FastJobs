@@ -89,7 +89,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         SELECT r.* FROM RecurringJobs r
         LEFT JOIN ScheduledJobs s ON r.NextScheduledID = s.Id
         LEFT JOIN Jobs j ON r.JobId = j.Id
-        WHERE (j.StateName IS {QueueStateTypes.Expired})
+        WHERE (j.StateName NOT IN ('{QueueStateTypes.Expired}'))
         AND (r.NextScheduledID IS NULL OR s.Id IS NULL)
         AND r.NextScheduledTime < GETUTCDATE();";
 
