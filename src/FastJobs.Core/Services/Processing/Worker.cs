@@ -150,7 +150,7 @@ public partial class Worker
                     catch (Exception ex)
                     {
                         //if Job has Exceeded its retry Limit Fail the job
-                        if( !(job.RetryCount >= 3))
+                        if( !(job.RetryCount >= job.MaxRetries))
                         {
                             _logger.LogError(ex, "Job #{JobID} of type {DeclaringTypeName} Beginning Retry {RetryCOunt}  ", job.Id, job.MethodDeclaringTypeName, job.RetryCount + 1);
                             await _QueueProcessor.RequeueJobAsync(JobQueueDetails.Item1, JobQueueDetails.Item2, Scope, ex.Message);
