@@ -4,6 +4,30 @@
 Welcome to the Quick Start Guide for Getting up and running with **FastJobs** .
 
 FastJobs is a lightweight .NET background job processing library built for simplicity and speed.
+
+## Features
+- **Job types:** fire-and-forget (enqueued), delayed/scheduled, and recurring jobs (interval or cron), defined from lambda expressions or `IBackGroundJob` classes
+- **Chained jobs:** run jobs in sequence with `CreateChain(...)` and `ThenRun(...)`
+- **After actions:** run follow-up actions once a job finishes
+- **Retries:** configurable max retries with exponential backoff and jitter, plus `TerminateJobException` to fail a job immediately without retrying
+- **Expiration:** jobs, including recurring jobs, move to an `Expired` state once they pass their expiry, which releases their queue entry and resource lock
+- **Misfire handling:** `Skip`, `FireOnce` and `Smart` misfire policies for recurring jobs, with a background misfire detector
+- **Orphaned recurring job recovery:** a sweeper reschedules recurring jobs that are no longer tracked by the scheduling pipeline
+- **Database cleanup:** pluggable pruning strategies for completed and expired jobs (off by default)
+- **Worker observability:** worker heartbeats and state tracking
+- **Web dashboard:** optional Blazor dashboard for jobs, workers and summary metrics
+- **Pluggable persistence:** storage is provider based (see below), with automatic schema initialization
+
+## Supported Databases
+| Database | Package | Dependency class |
+|---|---|---|
+| MariaDB / MySQL | `FastJobs.MariaDB` | `FastJobMysqlDependencies` |
+| Microsoft SQL Server | `FastJobs.SqlServer` | `FastJobMSSQLDependencies` |
+
+More providers are planned. Both providers are covered by integration tests that run against real databases using Testcontainers.
+
+Full documentation lives in the [docs](docs/index.md) folder (quickstart, configuration, enqueued/delayed/recurring jobs, after actions, monitoring).
+
 As you read this guide, expect to see details of:
 - Fastjobs Installation
 - Configuration & Setup
@@ -33,11 +57,22 @@ FastJobs is split into focused packages so you only install what you need.
 
 `FastJobs`  Core engine already discussed above and required for all setups 
 
-`FastJobs.SqlServer`  Sql Server  Required for Persistance persistence for recurring jobs *Currently Supports only My Sql* 
+`FastJobs.Persistence`  Shared persistence abstractions and models used by the core engine and the providers (pulled in by the providers)
+
+`FastJobs.MariaDB`  Persistence provider for MariaDB / MySQL
+
+```bash
+dotnet add package FastJobs.MariaDB
+```
+
+`FastJobs.SqlServer`  Persistence provider for Microsoft SQL Server
 
 ```bash
 dotnet add package FastJobs.SqlServer
 ```
+
+Install one persistence provider alongside the core package.
+
 `FastJobs.Dashboard` Optional RCL dashboard for monitoring and  observability 
 
 ```bash
@@ -48,26 +83,34 @@ dotnet add package FastJobs.Dashboard
 ---
 
 ## Configuration & Setup
-Fastjobs Is Very Easy To Setup And Get Going. The main job scheduling services you will be interacting with live in `Fastjobs` namespace and the persistence layer for sql in `Fastjobs.sqlServer` namespace.
+Fastjobs Is Very Easy To Setup And Get Going. The main job scheduling services you will be interacting with live in the `FastJobs` namespace and the database providers in the `FastJobs.Persistence` namespace.
 
 To use Fastjobs Add the following using statements 
 ``` csharp
 using FastJobs;
-using FastJobs.SqlServer;
+using FastJobs.Persistence;
 ```
 
 Next Call `builder.Services.AddFastJobs()` with Options for extra config info like so 
 
 ```csharp 
 string connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+// MariaDB / MySQL (FastJobs.MariaDB)
 builder.Services.AddFastJobs(
     option => {  option.WorkerCount = 4; },
-
-    //Fastjobs.sqlServer only has mysql / mariadb provider as of april 2026
-     new FastJobs.SqlServer.FastJobMysqlDependencies(
-        options => options.ConnectionString =  connectionString
+    new FastJobMysqlDependencies(
+        options => options.ConnectionString = connectionString
     )
 );
+
+// ...or Microsoft SQL Server (FastJobs.SqlServer)
+// builder.Services.AddFastJobs(
+//     option => {  option.WorkerCount = 4; },
+//     new FastJobMSSQLDependencies(
+//         options => options.ConnectionString = connectionString
+//     )
+// );
 
 //TO INCLUDE THE WEB DASHBOARD
 builder.Services.AddFastjobsDashboard();
