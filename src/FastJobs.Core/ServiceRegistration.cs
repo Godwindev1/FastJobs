@@ -33,6 +33,7 @@ public static  class ServiceCollectionExtensions
         _Logger.LogInformation("Starting Fastjobs.NET Core At {DateTime}", DateTime.UtcNow);
         //TODO: Use A options Or Descriptor For Parameters
         databaseProvider.SetupDatabase();
+        databaseProvider.RegisterMandatoryDependencies();
         databaseProvider.RegisterDependencies(services);
 
         services.AddSingleton<FastJobsDatabaseBootstrapper>(); //USED TO INITIALIZED DATABASE TABLES

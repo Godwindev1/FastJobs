@@ -4,15 +4,16 @@ using Dapper;
 namespace FastJobs.Persistence;
 
 /// <summary>
-/// MariaDB/MySQL has no native DATETIMEOFFSET column type, and MySqlConnector does not support
+/// For all Databases ,
 /// binding DateTimeOffset parameters directly through Dapper. This handler stores/reads DateTimeOffset
-/// values as UTC DATETIME(6), keeping the storage column type unchanged while the app-level type is DateTimeOffset.
+/// values as UTC DATETIME2(6), keeping the storage column type unchanged while the app-level type is DateTimeOffset.
+/// MSSQL also follows this even though it has DATETIMEOFFSET
 /// </summary>
 internal sealed class DateTimeOffsetTypeHandler : SqlMapper.TypeHandler<DateTimeOffset>
 {
     public override void SetValue(IDbDataParameter parameter, DateTimeOffset value)
     {
-        parameter.DbType = DbType.DateTime;
+        parameter.DbType = DbType.DateTime2;
         parameter.Value = value.UtcDateTime;
     }
 
@@ -26,7 +27,7 @@ internal sealed class NullableDateTimeOffsetTypeHandler : SqlMapper.TypeHandler<
 {
     public override void SetValue(IDbDataParameter parameter, DateTimeOffset? value)
     {
-        parameter.DbType = DbType.DateTime;
+        parameter.DbType = DbType.DateTime2;
         parameter.Value = value.HasValue ? (object)value.Value.UtcDateTime : DBNull.Value;
     }
 
