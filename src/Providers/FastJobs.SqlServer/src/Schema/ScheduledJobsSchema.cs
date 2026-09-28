@@ -12,7 +12,7 @@ CREATE TABLE dbo.ScheduledJobs
 (
     Id BIGINT IDENTITY(1,1) PRIMARY KEY,
     JobId BIGINT NOT NULL,
-    ScheduledTo DATETIMEOFFSET(6) NOT NULL,
+    ScheduledTo DATETIME2(6) NOT NULL,
     CONSTRAINT FK_ScheduledJobs_Jobs FOREIGN KEY (JobId)
         REFERENCES dbo.Jobs(Id)
         ON DELETE CASCADE

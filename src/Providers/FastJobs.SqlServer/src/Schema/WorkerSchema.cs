@@ -14,8 +14,8 @@ CREATE TABLE dbo.Workers
     Id BIGINT IDENTITY(1,1) PRIMARY KEY,
     WorkerName VARCHAR(500) NOT NULL,
     ThreadName VARCHAR(500) NOT NULL,
-    StartedAt DATETIMEOFFSET(6) NOT NULL,
-    LastHeartbeat DATETIMEOFFSET(6) NOT NULL,
+    StartedAt DATETIME2(6) NOT NULL,
+    LastHeartbeat DATETIME2(6) NOT NULL,
     isSleeping BIT NOT NULL DEFAULT 0,
     isCrashed BIT NOT NULL DEFAULT 0
 );";

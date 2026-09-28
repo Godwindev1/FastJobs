@@ -33,7 +33,7 @@ public class MariaDBJobTableInitializer : ISchemaInitializer
         Priority INT NOT NULL DEFAULT 0,
 
         misfirePolicy INT NOT NULL DEFAULT 0,
-        ScheduledRunAt DATETIME(6) NULL,
+        ScheduledRunAt DATETIME2(6) NULL,
         CreatedAt DATETIME(6) NOT NULL,
         ExpiresAt DATETIME(6) NULL,
 
