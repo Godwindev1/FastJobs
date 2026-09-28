@@ -9,11 +9,11 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     private readonly IServiceScopeFactory _scopeFactory;
 
     // Recurring-specific state
-    private DateTime ? _startTime        = null;
-    private long?      _intervalTicks    = null;
-    private string?    _cronExpression   = null;
-    private bool       _isConcurrent     = false;
-    private DateTime?  _expiresAt        = null;
+    private DateTimeOffset? _startTime        = null;
+    private long?           _intervalTicks    = null;
+    private string?         _cronExpression   = null;
+    private bool            _isConcurrent     = false;
+    private DateTimeOffset? _expiresAt        = null;
 
     private readonly List<Action<AfterActionBuilder>> _afterActionConfigs = new();
 
@@ -55,10 +55,11 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// </summary>
     public RecurringJobOptions<TJob> RunAt(DateTime startTime)
     {
-        if (startTime.ToUniversalTime() <= DateTime.UtcNow)
+        var startOffset = startTime.ToUtcOffsetStrict();
+        if (startOffset <= DateTimeOffset.UtcNow)
             throw new ArgumentException("Start time must be in the future.", nameof(startTime));
 
-        _startTime = startTime.ToUniversalTime();
+        _startTime = startOffset;
         return this;
     }
 
@@ -70,7 +71,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         if (delay <= TimeSpan.Zero)
             throw new ArgumentException("Delay must be greater than zero.", nameof(delay));
 
-        _startTime = DateTime.UtcNow.Add(delay);
+        _startTime = DateTimeOffset.UtcNow.Add(delay);
         return this;
     }
 
@@ -79,10 +80,11 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// </summary>
     public RecurringJobOptions<TJob> WithInterval(TimeSpan interval, DateTime startTime)
     {
-        if (startTime.ToUniversalTime() <= DateTime.UtcNow)
+        var startOffset = startTime.ToUtcOffsetStrict();
+        if (startOffset <= DateTimeOffset.UtcNow)
             throw new ArgumentException("Start time must be in the future.", nameof(startTime));
 
-        _startTime = startTime.ToUniversalTime();
+        _startTime = startOffset;
 
         _isCronType = false;
         if (interval <= TimeSpan.Zero)
@@ -127,10 +129,11 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     /// </summary>
     public RecurringJobOptions<TJob> SetExpiresAt(DateTime expiresAt)
     {
-        if (expiresAt <= _startTime)
+        var expiresOffset = expiresAt.ToUtcOffsetStrict();
+        if (expiresOffset <= _startTime)
             throw new ArgumentException("Expiry must be after the job start time.", nameof(expiresAt));
 
-        _expiresAt = expiresAt.ToUniversalTime();
+        _expiresAt = expiresOffset;
         return this;
     }
 
@@ -164,12 +167,13 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
         {
             if (_isCronType)
             {
-                _startTime = ComputeNextOccurrence(_cronExpression!, DateTime.UtcNow)
+                var nextOccurrence = ComputeNextOccurrence(_cronExpression!, DateTime.UtcNow)
                     ?? throw new InvalidOperationException($"Cron expression '{_cronExpression}' produces no occurrences.");
+                _startTime = nextOccurrence.ToUtcOffsetStrict();
             }
             else
             {
-                _startTime = DateTime.UtcNow;
+                _startTime = DateTimeOffset.UtcNow;
             }
         }
 

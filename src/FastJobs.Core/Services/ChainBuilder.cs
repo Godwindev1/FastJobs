@@ -22,12 +22,13 @@ public class ChainJobBuilder
 
     public ChainJobBuilder RunAt(DateTime scheduledTime)
     {
-        if (scheduledTime.ToUniversalTime() <= DateTime.UtcNow)
+        var scheduledOffset = scheduledTime.ToUtcOffsetStrict();
+        if (scheduledOffset <= DateTimeOffset.UtcNow)
         {
             throw new ArgumentException("Scheduled time must be in the future.", nameof(scheduledTime));
         }
 
-        OptionalSchedule = scheduledTime.ToUniversalTime();
+        OptionalSchedule = scheduledOffset;
         FirstJobisScheduled = true;
         return this;
     }

@@ -38,7 +38,7 @@ public class ChainStepOptions
 
     public ChainStepOptions SetExpiresAt(DateTime expiresAt)
     {
-        _job.ExpiresAt = expiresAt.ToUniversalTime();
+        _job.ExpiresAt = expiresAt.ToUtcOffsetStrict();
         return this;
     }
 
