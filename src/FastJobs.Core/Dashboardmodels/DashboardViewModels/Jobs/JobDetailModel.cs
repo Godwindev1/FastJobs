@@ -8,10 +8,10 @@ public sealed class JobDetailModel
     public string JobName              { get; init; } = string.Empty;
     public string QueueName            { get; init; } = string.Empty;
     public JobState State              { get; init; }
-    public DateTime CreatedAt          { get; init; }
-    public DateTime? EnqueuedAt        { get; init; }
-    public DateTime? StartedAt         { get; init; }
-    public DateTime? CompletedAt       { get; init; }
+    public DateTimeOffset CreatedAt          { get; init; }
+    public DateTimeOffset? EnqueuedAt        { get; init; }
+    public DateTimeOffset? StartedAt         { get; init; }
+    public DateTimeOffset? CompletedAt       { get; init; }
     public TimeSpan? Duration          { get; init; }
     public int AttemptCount            { get; init; }
 

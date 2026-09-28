@@ -12,6 +12,12 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
 {
     private readonly FastJobsSqlStorageOptions _options;
 
+    static FastJobMysqlDependencies()
+    {
+        SqlMapper.AddTypeHandler(new DateTimeOffsetTypeHandler());
+        SqlMapper.AddTypeHandler(new NullableDateTimeOffsetTypeHandler());
+    }
+
     public FastJobMysqlDependencies(Action<FastJobsSqlStorageOptions> configure)
     {
         _options = new FastJobsSqlStorageOptions();

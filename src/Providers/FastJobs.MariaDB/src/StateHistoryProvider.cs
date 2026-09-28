@@ -68,7 +68,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
         ";
 
         var result = await _connection.ExecuteAsync(
-            new CommandDefinition(sql, new { DeletedAt = DateTime.UtcNow, Id = id }, cancellationToken: cancellationToken)
+            new CommandDefinition(sql, new { DeletedAt = DateTimeOffset.UtcNow, Id = id }, cancellationToken: cancellationToken)
         );
 
         return result;

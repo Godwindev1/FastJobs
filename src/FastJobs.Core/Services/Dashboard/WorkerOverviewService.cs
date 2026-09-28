@@ -37,7 +37,7 @@ public class WorkerOverviewService
             WorkerName = worker.WorkerName,
             State = state,
             StartedAt = worker.StartedAt,
-            LastHeartbeatAt = worker.LastHeartbeat ?? DateTime.Now, // Fallback to now if null  
+            LastHeartbeatAt = worker.LastHeartbeat ?? DateTimeOffset.UtcNow, // Fallback to now if null
           
         };
     }

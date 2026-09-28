@@ -4,7 +4,7 @@ namespace FastJobs.Persistence;
 
 public  class MariaDBAfterActionTableInitializer : ISchemaInitializer
 {
-        int ISchemaInitializer.Order => 6 ;
+    int ISchemaInitializer.Order => 6 ;
 
     private const string CreateTableSql = @"
     CREATE TABLE IF NOT EXISTS AfterActions

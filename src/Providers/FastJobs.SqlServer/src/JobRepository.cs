@@ -179,7 +179,7 @@ internal sealed class JobRepository : IJobRepository
             new CommandDefinition(sql, new { StateName = QueueStateTypes.Processing }, cancellationToken: cancellationToken));
     }
 
-    public async Task<int> CountCompletedSinceAsync(DateTime since, CancellationToken cancellationToken = default)
+    public async Task<int> CountCompletedSinceAsync(DateTimeOffset since, CancellationToken cancellationToken = default)
     {
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
@@ -193,7 +193,7 @@ internal sealed class JobRepository : IJobRepository
             new CommandDefinition(sql, new { StateName = QueueStateTypes.Completed, Since = since }, cancellationToken: cancellationToken));
     }
 
-    public async Task<int> CountFailedSinceAsync(DateTime since, CancellationToken cancellationToken = default)
+    public async Task<int> CountFailedSinceAsync(DateTimeOffset since, CancellationToken cancellationToken = default)
     {
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
@@ -207,7 +207,7 @@ internal sealed class JobRepository : IJobRepository
             new CommandDefinition(sql, new { StateName = QueueStateTypes.Failed, Since = since }, cancellationToken: cancellationToken));
     }
 
-    public async Task<int> CountStateBetween( string statename, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    public async Task<int> CountStateBetween( string statename, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
         {
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();
 
@@ -224,7 +224,7 @@ internal sealed class JobRepository : IJobRepository
 
     
     //TODO: Select only needed Columns Instead of Whole Job Object
-    public async Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default)
+    public async Task<List<Job>> GetMisfiredJobsAsync(DateTimeOffset cutoff, CancellationToken ct = default)
     {
         //Misfired Job Cannot be Completed or Failed 
         using SqlConnection _connection = (SqlConnection)_connectionFactory.CreateConnection();

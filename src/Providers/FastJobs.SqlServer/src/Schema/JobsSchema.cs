@@ -24,9 +24,9 @@ CREATE TABLE dbo.Jobs
     MaxRetries INT NOT NULL DEFAULT 3,
     Priority INT NOT NULL DEFAULT 0,
     misfirePolicy INT NOT NULL DEFAULT 0,
-    ScheduledRunAt DATETIME2(6) NULL,
-    CreatedAt DATETIME2(6) NOT NULL,
-    ExpiresAt DATETIME2(6) NULL,
+    ScheduledRunAt DATETIMEOFFSET(6) NULL,
+    CreatedAt DATETIMEOFFSET(6) NOT NULL,
+    ExpiresAt DATETIMEOFFSET(6) NULL,
     StateId BIGINT NOT NULL
 );";
 
