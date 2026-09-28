@@ -1,7 +1,7 @@
 namespace FastJobs.Persistence;
 public sealed class JobTimestamps
 {
-    public DateTime? EnqueuedAt   { get; init; }
-    public DateTime? StartedAt    { get; init; }
-    public DateTime? CompletedAt  { get; init; }
+    public DateTimeOffset? EnqueuedAt   { get; init; }
+    public DateTimeOffset? StartedAt    { get; init; }
+    public DateTimeOffset? CompletedAt  { get; init; }
 }

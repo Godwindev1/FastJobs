@@ -23,5 +23,5 @@ public class Queue
     public bool isDequeued { get; set; }
 
     // Scheduling
-    public DateTime? DequeuedAt { get; set; }
+    public DateTimeOffset? DequeuedAt { get; set; }
 }
