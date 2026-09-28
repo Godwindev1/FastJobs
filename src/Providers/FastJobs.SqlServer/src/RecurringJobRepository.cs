@@ -109,7 +109,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             ORDER BY NextScheduledTime ASC;";
 
         var command = new CommandDefinition(sql,
-            new { CurrentTime = DateTime.UtcNow },
+            new { CurrentTime = DateTimeOffset.UtcNow },
             cancellationToken: cancellationToken);
 
         var rows = await connection.QueryAsync<RecurringJobRow>(command);
@@ -126,7 +126,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             ORDER BY NextScheduledTime ASC;";
 
         var command = new CommandDefinition(sql,
-            new { CurrentTime = DateTime.UtcNow },
+            new { CurrentTime = DateTimeOffset.UtcNow },
             cancellationToken: cancellationToken);
 
         var row = await connection.QuerySingleOrDefaultAsync<RecurringJobRow>(command);
@@ -195,9 +195,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         public long     JobId             { get; init; }
         public long?    NextScheduledID   { get; init; }
         public string   CronExpression    { get; init; } = string.Empty;
-        public DateTime StartTime         { get; init; }
+        public DateTimeOffset StartTime         { get; init; }
         public long?    IntervalTicks     { get; init; }  // ticks
-        public DateTime NextScheduledTime { get; init; }
+        public DateTimeOffset NextScheduledTime { get; init; }
         public bool     IsConcurrent      { get; init; }
         public int ExecutedInstances {get; set; } = 0;
         public int ExecutingInstances {get; set; } = 0; 

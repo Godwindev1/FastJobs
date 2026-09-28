@@ -113,7 +113,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
         ORDER BY ScheduledTo ASC;";
 
         var command = new CommandDefinition(sql, 
-            new { CurrentTime = DateTime.UtcNow }, 
+            new { CurrentTime = DateTimeOffset.UtcNow }, 
             cancellationToken: cancellationToken);
 
         var result = await connection.QueryAsync<ScheduledJobInfo>(command);
@@ -151,7 +151,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
         return await connection.QueryFirstOrDefaultAsync<ScheduledJobInfo>(
             new CommandDefinition(sql, 
-                new { CurrentTime = DateTime.UtcNow }, 
+                new { CurrentTime = DateTimeOffset.UtcNow }, 
                 cancellationToken: ct));
 
     }

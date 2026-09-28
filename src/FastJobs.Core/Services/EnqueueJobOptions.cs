@@ -35,7 +35,7 @@ public class EnqueueOptions<TJob> where TJob : class, IBackGroundJob
 
     public EnqueueOptions<TJob> SetExpiresAt(DateTime expiresAt)
     {
-        _job.ExpiresAt = expiresAt.ToUniversalTime();
+        _job.ExpiresAt = expiresAt.ToUtcOffsetStrict();
         return this;
     }
 
@@ -62,20 +62,20 @@ public class EnqueueOptions<TJob> where TJob : class, IBackGroundJob
             StateName = QueueStateTypes.Enqueued,
             Reason    = $"Enqueued New Job #{jobId} of type {_job.MethodDeclaringTypeName}",
             data      = "",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);
 
         await jobRepository.UpdateByIdAsync(jobId, "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
-            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTime.UtcNow }, cancellationToken);
+            new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTimeOffset.UtcNow }, cancellationToken);
 
         await queueRepository.EnqueueAsync(new Queue
         {
             JobId      = jobId,
             QueueName  = FastJobConstants.DefaultQueue,
             Priority   = _job.Priority,
-            DequeuedAt = DateTime.UtcNow
+            DequeuedAt = DateTimeOffset.UtcNow
         }, cancellationToken);
 
         await BuildAfterActionChainAsync(jobId, afterActionRepository, jobRepository, cancellationToken);

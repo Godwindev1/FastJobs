@@ -103,9 +103,9 @@
                             <td>
                                 <span class="table-cell-queue">@job.QueueName</span>
                             </td>
-                            <td class="table-cell-time">@job.EnqueueAt.ToString("HH:mm:ss")</td>
+                            <td class="table-cell-time">@TimeDisplay.Utc(job.EnqueueAt, "HH:mm:ss")</td>
                             <td class="table-cell-until @GetUrgencyClass(job.TimeTillScheduledrun)">@FormatTimeUntil(job.TimeTillScheduledrun)</td>
-                            <td class="table-cell-created">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                            <td class="table-cell-created">@TimeDisplay.Utc(job.CreatedAt, "MMM dd, HH:mm")</td>
                             <td>
                                 @if (job.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase))
                                 {

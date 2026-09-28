@@ -23,11 +23,11 @@ public interface IJobRepository
     Task<int> CountRetryingAsync(CancellationToken cancellationToken = default);
 
     // Interface
-    Task<int> CountCompletedSinceAsync(DateTime since, CancellationToken cancellationToken = default);
-    Task<int> CountFailedSinceAsync(DateTime since, CancellationToken cancellationToken = default);
-    Task<int> CountStateBetween(string statename, DateTime from, DateTime to, CancellationToken cancellationToken = default);
+    Task<int> CountCompletedSinceAsync(DateTimeOffset since, CancellationToken cancellationToken = default);
+    Task<int> CountFailedSinceAsync(DateTimeOffset since, CancellationToken cancellationToken = default);
+    Task<int> CountStateBetween(string statename, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default);
 
-    public Task<List<Job>> GetMisfiredJobsAsync(DateTime cutoff, CancellationToken ct = default);
+    public Task<List<Job>> GetMisfiredJobsAsync(DateTimeOffset cutoff, CancellationToken ct = default);
 
     Task<int> PruneCompletedJobs(CancellationToken ct = default);
     Task<int> PruneExpiredJobs(CancellationToken ct = default);

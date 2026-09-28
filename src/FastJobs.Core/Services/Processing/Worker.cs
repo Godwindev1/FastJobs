@@ -93,7 +93,7 @@ public partial class Worker
                     Job job = await JobRepo.GetByIdAsync(JobQueueDetails.Item1.JobId);
 
                     // If the job has expired by the time we got it, skip processing And Change the Jobs State 
-                    if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+                    if (job.ExpiresAt.HasValue && DateTimeOffset.UtcNow >= job.ExpiresAt.Value)
                     {
                         await _QueueProcessor.ExpireJobAsync(JobQueueDetails.Item1, JobQueueDetails.Item2);
                         continue;
@@ -258,7 +258,7 @@ public partial class Worker
             else
             {
                 // Run Recurring Jobs After action on final completion if Job has not expired 
-                if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+                if (job.ExpiresAt.HasValue && DateTimeOffset.UtcNow >= job.ExpiresAt.Value)
                 {
                    await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
                 } 

@@ -204,7 +204,7 @@ internal class QueueProcessor
 
             await JobRetryScheduler.RescheduleAsync(
                 job: Job,
-                scheduledTime: DateTime.UtcNow.AddSeconds(TimeSpan),
+                scheduledTime: DateTimeOffset.UtcNow.AddSeconds(TimeSpan),
                 jobRepository: _JobRepository,
                 stateHistoryRepository: StateRepo,
                 scheduledJobRepository: ScehduledJobRepository,

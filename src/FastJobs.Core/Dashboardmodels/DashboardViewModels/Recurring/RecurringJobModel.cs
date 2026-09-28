@@ -15,12 +15,12 @@ public sealed class RecurringJobModel
     public TimeSpan? Interval               { get; init; }
     public string TimeZoneId                { get; init; } = "UTC";
     public RecurringJobStatus Status        { get; init; }
-    public DateTime? NextRunAt              { get; init; }
-    public DateTime? LastRunAt              { get; init; }
-    
+    public DateTimeOffset? NextRunAt              { get; init; }
+    public DateTimeOffset? LastRunAt              { get; init; }
+
     //Uses Default Values For Now Until This Data is Tracked Properly in the DB
     public int SucceededCount                { get; init; } = -1;
     public int FailedCount                   { get; init; } = -1;
 
-    public DateTime RegisteredAt            { get; init; }
+    public DateTimeOffset RegisteredAt            { get; init; }
 }

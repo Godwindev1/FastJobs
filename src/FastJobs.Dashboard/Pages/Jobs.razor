@@ -118,8 +118,8 @@
                             <td class="table-cell-name">@job.JobName</td>
                             <td><span class="table-cell-queue">@job.QueueName</span></td>
                             <td><span class="table-cell-state @GetStatePillClass(job.State)">@if (job.State == JobState.Processing) {<span class="dot green pulse" style="margin-right:5px"></span>} @job.State</span></td>
-                            <td class="table-cell-time">@job.CreatedAt.ToString("MMM dd, HH:mm")</td>
-                            <td class="table-cell-time">@(job.StartedAt?.ToString("HH:mm:ss") ?? "—")</td>
+                            <td class="table-cell-time">@TimeDisplay.Utc(job.CreatedAt, "MMM dd, HH:mm")</td>
+                            <td class="table-cell-time">@TimeDisplay.Utc(job.StartedAt, "HH:mm:ss")</td>
                             <td class="table-cell-duration">@FormatDuration(job.Duration)</td>
                             <td class="table-cell-attempts">@job.AttemptCount</td>
                             <td class="table-cell-actions">

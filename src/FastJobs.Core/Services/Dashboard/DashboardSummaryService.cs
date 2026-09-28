@@ -33,8 +33,8 @@ public class DashboardSummaryService
             ActiveWorkers = (await _workerRepository.GetActiveAsync()).Count,
             SleepingWorkers = (await _workerRepository.GetSleepingAsync()).Count,
             DeadWorkers = (await _workerRepository.GetDeadWorkersAsync()).Count,
-            SucceededLastHour = await _jobRepository.CountCompletedSinceAsync(DateTime.UtcNow.AddHours(-1)),
-            FailedLastHour = await _jobRepository.CountFailedSinceAsync(DateTime.UtcNow.AddHours(-1)),
+            SucceededLastHour = await _jobRepository.CountCompletedSinceAsync(DateTimeOffset.UtcNow.AddHours(-1)),
+            FailedLastHour = await _jobRepository.CountFailedSinceAsync(DateTimeOffset.UtcNow.AddHours(-1)),
             ThroughputPerMinute = await CalculateThroughputPerMinuteAsync(),
             HourlyTrend = await CalculateHourlyTrendAsync(),
             DefaultMaxRetries = _options.DefaultMaxRetries
@@ -45,19 +45,19 @@ public class DashboardSummaryService
 
     private async Task<double> CalculateThroughputPerMinuteAsync()
     {
-        int completedLastHour = await _jobRepository.CountCompletedSinceAsync(DateTime.UtcNow.AddHours(-1));
+        int completedLastHour = await _jobRepository.CountCompletedSinceAsync(DateTimeOffset.UtcNow.AddHours(-1));
         return completedLastHour / 60.0; // Average per minute
     }
 
     private async Task<IReadOnlyList<ThroughputBucketModel>> CalculateHourlyTrendAsync()
     {
         var buckets = new List<ThroughputBucketModel>();
-        DateTime now = DateTime.UtcNow;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
 
         for (int i = 0; i < 24; i++)
         {
-            DateTime hourStart = now.AddHours(-i - 1);
-            DateTime hourEnd   = now.AddHours(-i);
+            DateTimeOffset hourStart = now.AddHours(-i - 1);
+            DateTimeOffset hourEnd   = now.AddHours(-i);
 
             int succeededCount = await _jobRepository.CountStateBetween(QueueStateTypes.Completed, hourStart, hourEnd);
             int failedCount    = await _jobRepository.CountStateBetween(QueueStateTypes.Failed, hourStart, hourEnd);
@@ -65,7 +65,7 @@ public class DashboardSummaryService
 
             buckets.Add(new ThroughputBucketModel
             {
-                HourStart  = hourStart,
+                HourStart  = hourStart.UtcDateTime,
                 SucceededCount  = succeededCount,
                 FailedCount     = failedCount,
                 EnqueuedCount = EnqueuedCount

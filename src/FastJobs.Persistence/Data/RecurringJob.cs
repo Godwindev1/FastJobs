@@ -8,9 +8,9 @@ public class RecurringJob
      public long? NextScheduledID {get; set; }
      public string? CronExpression {get;set;}
 
-     public DateTime StartTime {get; set; }
+     public DateTimeOffset StartTime {get; set; }
      public long? IntervalTicks {get; set; }
-     public DateTime NextScheduledTime {get; set;}
+     public DateTimeOffset NextScheduledTime {get; set;}
 
      public bool IsConcurrent {get; set;}= true;
 
@@ -19,7 +19,7 @@ public class RecurringJob
 
      public bool IsCron {get; set; } = false;
 
-     public DateTime? ComputeNextRun(DateTime from)
+     public DateTimeOffset? ComputeNextRun(DateTimeOffset from)
      {
          if (IsCron && !string.IsNullOrWhiteSpace(CronExpression))
          {

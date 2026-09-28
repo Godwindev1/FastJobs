@@ -5,7 +5,7 @@ namespace FastJobs {
 {
     private readonly Job _job;
     private readonly IServiceScopeFactory _scopeFactory;
-    private DateTime _scheduledTime = DateTime.UtcNow.AddHours(1); // Default: 1 hour from now
+    private DateTimeOffset _scheduledTime = DateTimeOffset.UtcNow.AddHours(1); // Default: 1 hour from now
     private readonly List<Action<AfterActionBuilder>> _afterActionConfigs = new();
 
     internal ScheduledJobOptions(Job job, IServiceScopeFactory factory)
@@ -37,13 +37,12 @@ namespace FastJobs {
 
     public ScheduledJobOptions<TJob> RunAt(DateTime scheduledTime)
     {
-        //Enforce UTC time for DB operations And Storage
-        scheduledTime =  scheduledTime.ToUniversalTime();
-        if (scheduledTime <= DateTime.UtcNow)
+        var scheduledOffset = scheduledTime.ToUtcOffsetStrict();
+        if (scheduledOffset <= DateTimeOffset.UtcNow)
         {
             throw new ArgumentException("Scheduled time must be in the future.", nameof(scheduledTime));
         }
-        _scheduledTime = scheduledTime;
+        _scheduledTime = scheduledOffset;
         return this;
     }
 
@@ -53,7 +52,7 @@ namespace FastJobs {
         {
             throw new ArgumentException("Delay must be greater than zero.", nameof(delay));
         }
-        _scheduledTime = DateTime.UtcNow.Add(delay);
+        _scheduledTime = DateTimeOffset.UtcNow.Add(delay);
         return this;
     } 
 
@@ -65,7 +64,7 @@ namespace FastJobs {
 
     public ScheduledJobOptions<TJob> SetExpiresAt(DateTime expiresAt)
     {
-        _job.ExpiresAt = expiresAt.ToUniversalTime();
+        _job.ExpiresAt = expiresAt.ToUtcOffsetStrict();
         return this;
     }
 
@@ -93,7 +92,7 @@ namespace FastJobs {
             StateName = QueueStateTypes.Scheduled,
             Reason    = $"Scheduled Job #{_job.Id} for execution at {_scheduledTime:O}",
             data      = $"Scheduled to {_scheduledTime:O}",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);

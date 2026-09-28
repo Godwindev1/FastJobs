@@ -37,7 +37,7 @@ public sealed class Job
 
     public int misfirePolicy { get; set; } = (int)MisfirePolicy.FireOnce; 
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ScheduledRunAt { get; set; }
-    public DateTime? ExpiresAt {get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ScheduledRunAt { get; set; }
+    public DateTimeOffset? ExpiresAt {get; set; }
 }

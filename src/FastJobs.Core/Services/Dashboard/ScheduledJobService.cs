@@ -44,10 +44,10 @@ public class ScheduledJobService
             QueueName = job.Queue,
             TypeName = job.TypeName,
             MethodName = job.MethodName,
-            EnqueueAt = timestamps.EnqueuedAt ?? DateTime.Now, // Fallback to now if null
+            EnqueueAt = timestamps.EnqueuedAt ?? DateTimeOffset.UtcNow, // Fallback to now if null
             CreatedAt = job.CreatedAt,
             JobType = job.JobType,
-            TimeTillScheduledrun = scheduledJob.ScheduledTo - DateTime.UtcNow
+            TimeTillScheduledrun = scheduledJob.ScheduledTo - DateTimeOffset.UtcNow
         };
     }
 }

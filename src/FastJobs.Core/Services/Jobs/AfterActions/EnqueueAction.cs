@@ -14,7 +14,7 @@ public class EnqueueAfterAction : IAfterAction
         CurrentJob.Id = null; 
         CurrentJob.RetryCount = 0;
         CurrentJob.AfterActionId = null;
-        CurrentJob.ScheduledRunAt = DateTime.UtcNow;
+        CurrentJob.ScheduledRunAt = DateTimeOffset.UtcNow;
         JobEnqueueOption = new EnqueueOptions<EnqueueAfterAction>(CurrentJob, ScopeFactory);
     }
 

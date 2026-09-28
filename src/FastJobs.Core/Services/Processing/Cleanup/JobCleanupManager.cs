@@ -1,19 +1,20 @@
 using FastJobs;
 using FastJobs.Persistence;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 public class JobCleanupManager : BackgroundService
 {
-    private readonly ICleanupStrategy _cleanupStrategy;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
     private readonly TimeSpan _CleanupStartDelay = TimeSpan.FromMinutes(15);
 
     private readonly ILogger<JobCleanupManager> _logger;
 
-    public JobCleanupManager(ICleanupStrategy cleanupStrategy, ILogger<JobCleanupManager> logger, FastJobsOptions options)
+    public JobCleanupManager(IServiceScopeFactory scopeFactory, ILogger<JobCleanupManager> logger, FastJobsOptions options)
     {
-        _cleanupStrategy = cleanupStrategy;
+        _scopeFactory = scopeFactory;
         _CleanupStartDelay = options.InitialCleanupDelay;
         _interval = options.CleanupInterval;
         _logger = logger;
@@ -21,7 +22,7 @@ public class JobCleanupManager : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        //initial Delay To make Sure all other Systems Are Running Before this Starts 
+        //initial Delay To make Sure all other Systems Are Running Before this Starts
          await Task.Delay(_CleanupStartDelay, ct);
 
         using var timer = new PeriodicTimer(_interval);
@@ -30,7 +31,8 @@ public class JobCleanupManager : BackgroundService
         {
             try
             {
-                await _cleanupStrategy.Clean(ct);
+                using var scope = new ScopeManager(_scopeFactory);
+                await scope.Resolve<ICleanupStrategy>().Clean(ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {

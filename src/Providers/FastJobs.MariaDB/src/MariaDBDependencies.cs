@@ -12,6 +12,10 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
 {
     private readonly FastJobsSqlStorageOptions _options;
 
+    static FastJobMysqlDependencies()
+    {
+    }
+
     public FastJobMysqlDependencies(Action<FastJobsSqlStorageOptions> configure)
     {
         _options = new FastJobsSqlStorageOptions();

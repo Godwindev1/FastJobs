@@ -103,8 +103,8 @@
                             </td>
                             <td><span class="queue-badge">@job.QueueName</span></td>
                             <td><span class="status-badge @(job.Status == RecurringJobStatus.Active ? "active" : job.Status == RecurringJobStatus.Disabled ? "disabled" : "deleted")">@job.Status</span></td>
-                            <td class="next-run-time">@(job.NextRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
-                            <td class="last-run-time">@(job.LastRunAt?.ToString("MMM dd, HH:mm") ?? "—")</td>
+                            <td class="next-run-time">@TimeDisplay.Utc(job.NextRunAt, "MMM dd, HH:mm")</td>
+                            <td class="last-run-time">@TimeDisplay.Utc(job.LastRunAt, "MMM dd, HH:mm")</td>
                             <td class="success-count">@job.SucceededCount.ToString("N0")</td>
                             <td class="failure-count @(job.FailedCount > 0 ? "has-failures" : "")">@job.FailedCount</td>
                             <td>
