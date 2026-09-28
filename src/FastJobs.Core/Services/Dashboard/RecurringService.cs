@@ -54,7 +54,9 @@ public class RecurringJobService
             CronDescription = ExpressionDescriptor.GetDescription(job.CronExpression, options), // 👈 pass options
             Interval = job.IntervalTicks.HasValue ? TimeSpan.FromTicks(job.IntervalTicks.Value) : null,
             TimeZoneId = "UTC",
-            Status = JobStore.ExpiresAt > DateTimeOffset.UtcNow ? RecurringJobStatus.Active : RecurringJobStatus.Disabled,
+            Status = !JobStore.ExpiresAt.HasValue || JobStore.ExpiresAt > DateTimeOffset.UtcNow
+                ? RecurringJobStatus.Active
+                : RecurringJobStatus.Disabled,
             NextRunAt = job.NextScheduledTime,
             LastRunAt = timestamps?.StartedAt,
             RegisteredAt = job.StartTime

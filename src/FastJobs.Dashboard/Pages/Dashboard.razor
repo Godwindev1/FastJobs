@@ -15,7 +15,7 @@
     </div>
     <div class="header-right">
         <span class="dot green pulse"></span>
-        <span id="genAt">@GeneratedAt</span>
+        <span id="genAt">Generated @TimeDisplay.Utc(GeneratedAt, "MMM dd, HH:mm:ss")</span>
     </div>
 </header>
 
@@ -182,7 +182,7 @@
                         <td><span class="table-row-queue">@job.QueueName</span></td>
                         <td><span class="pill @GetStateStyle(job.State)">@job.State</span></td>
                         <td class="table-row-duration">@FormatDuration(job.Duration)</td>
-                        <td class="table-row-time table-row-time-right">@job.StartedAt?.ToString("HH:mm:ss")</td>
+                        <td class="table-row-time table-row-time-right">@TimeDisplay.Utc(job.StartedAt, "HH:mm:ss")</td>
                     </tr>
                 }
             </tbody>
@@ -194,7 +194,7 @@
     private DashboardSummaryModel DashboardData { get; set; } = new();
     private WorkerOverviewModel WorkerData { get; set; } = new();
     private List<JobDetailModel> RecentJobs { get; set; } = new();
-    private string GeneratedAt => $"Generated {DateTime.Now.ToString("just now")}";
+    private DateTimeOffset GeneratedAt => DashboardData.GeneratedAt.ToUtcOffsetStrict();
     private int UtilizationPercent => WorkerData.TotalWorkers == 0 ? 0 : (int)Math.Round((double)WorkerData.ActiveWorkers / WorkerData.TotalWorkers * 100);
     private double SuccessRate => DashboardData.SucceededLastHour + DashboardData.FailedLastHour == 0 ? 0 : (double)DashboardData.SucceededLastHour / (DashboardData.SucceededLastHour + DashboardData.FailedLastHour) * 100;
 
