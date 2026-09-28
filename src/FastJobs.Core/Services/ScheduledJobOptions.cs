@@ -93,7 +93,7 @@ namespace FastJobs {
             StateName = QueueStateTypes.Scheduled,
             Reason    = $"Scheduled Job #{_job.Id} for execution at {_scheduledTime:O}",
             data      = $"Scheduled to {_scheduledTime:O}",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);

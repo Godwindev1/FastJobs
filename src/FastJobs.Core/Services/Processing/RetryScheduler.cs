@@ -4,8 +4,8 @@ using FastJobs.Persistence;
 internal  static class JobRetryScheduler
 {
     public static async Task RescheduleAsync(
-        Job job, 
-        DateTime scheduledTime,
+        Job job,
+        DateTimeOffset scheduledTime,
         IJobRepository jobRepository,
         IStateHistoryRepository stateHistoryRepository,
         IScheduledJobRepository scheduledJobRepository,
@@ -20,7 +20,7 @@ internal  static class JobRetryScheduler
             StateName = QueueStateTypes.Scheduled,
             Reason    = reason ?? $"Job #{job.Id} Requeued for {scheduledTime:O}",
             data      = $"Scheduled to {scheduledTime:O}",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);

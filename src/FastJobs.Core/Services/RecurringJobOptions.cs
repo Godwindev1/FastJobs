@@ -208,7 +208,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
             StateName = QueueStateTypes.Scheduled,
             Reason = $"Recurring job #{_job.Id} registered. First run at {firstRun:O}.",
             data = $"StartTime={_startTime:O}; Cron={_cronExpression}; IntervalTicks={_intervalTicks}",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         var stateId = await stateHistoryRepository.InsertAsync(state, cancellationToken);

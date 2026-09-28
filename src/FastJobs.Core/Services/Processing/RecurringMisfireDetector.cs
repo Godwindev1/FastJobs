@@ -29,7 +29,7 @@ public class RecurringMisfireDetector
     {
         
         var threshold = _options.MisfireThreshold;
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         //Only Returns Recurring Jobs that have misfired, as Non-Recurring Jobs are handled by the Scheduler directly
         var misfiredJobs = await _repository.GetMisfiredJobsAsync(
@@ -45,7 +45,7 @@ public class RecurringMisfireDetector
         }
     }
 
-    private async Task HandleMisfireAsync(Job job, DateTime now, CancellationToken ct)
+    private async Task HandleMisfireAsync(Job job, DateTimeOffset now, CancellationToken ct)
     {
         var policy = job.misfirePolicy == (int)MisfirePolicy.Smart
             ? await ResolveSmartPolicy(job, now)
@@ -75,7 +75,7 @@ public class RecurringMisfireDetector
 
     }
 
-    private async Task<MisfirePolicy> ResolveSmartPolicy(Job job, DateTime now)
+    private async Task<MisfirePolicy> ResolveSmartPolicy(Job job, DateTimeOffset now)
     {
         if(job.JobType == JobTypes.Recurring)
         {
@@ -90,7 +90,7 @@ public class RecurringMisfireDetector
         return MisfirePolicy.FireOnce; 
     }
 
-    private TimeSpan EstimateInterval(RecurringJob job, DateTime now)
+    private TimeSpan EstimateInterval(RecurringJob job, DateTimeOffset now)
     {
         return job.ComputeNextRun(now) - now ?? TimeSpan.FromHours(1);
     }

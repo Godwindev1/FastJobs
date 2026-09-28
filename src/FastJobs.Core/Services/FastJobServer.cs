@@ -29,14 +29,14 @@ public static class FastJobServer
             RetryCount              = 0,
             MaxRetries              = _options.DefaultMaxRetries,
             Priority                = (int)JobPriority.Normal,
-            CreatedAt               = DateTime.UtcNow,
+            CreatedAt               = DateTimeOffset.UtcNow,
             MethodName              = string.Empty,
             MethodDeclaringTypeName = string.Empty,
             ParameterTypeNamesJson  = string.Empty,
             ArgumentsJson           = string.Empty,
             ExpiresAt               = _options.DefaultJobExpiration == TimeSpan.Zero
-                                        ? (DateTime?)null
-                                        : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+                                        ? (DateTimeOffset?)null
+                                        : DateTimeOffset.UtcNow.Add(_options.DefaultJobExpiration)
         };
 
     internal static Job CreateJobTemplate(Expression<Action> actionExpression)
@@ -51,15 +51,15 @@ public static class FastJobServer
             RetryCount              = 0,
             MaxRetries              = _options.DefaultMaxRetries,
             Priority                = (int)JobPriority.Normal,
-            CreatedAt               = DateTime.UtcNow,
+            CreatedAt               = DateTimeOffset.UtcNow,
             stateID                 = 0,
             MethodName              = metadata.MethodName,
             MethodDeclaringTypeName = metadata.MethodDeclaringTypeName,
             ParameterTypeNamesJson  = metadata.ParameterTypeNamesJson,
             ArgumentsJson           = metadata.ArgumentsJson,
             ExpiresAt               = _options.DefaultJobExpiration == TimeSpan.Zero
-                                        ? (DateTime?)null
-                                        : DateTime.UtcNow.Add(_options.DefaultJobExpiration)
+                                        ? (DateTimeOffset?)null
+                                        : DateTimeOffset.UtcNow.Add(_options.DefaultJobExpiration)
         };
     }
 

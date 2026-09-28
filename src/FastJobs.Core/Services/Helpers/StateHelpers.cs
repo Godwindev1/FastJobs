@@ -61,7 +61,7 @@ public class StateHelpers
                 StateName = newStateName,
                 Reason = reason,
                 data = data,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             try

@@ -20,10 +20,10 @@ private ScopeManager? _observabilityScope;
         {
             WorkerName    = $"Worker-{_workerId:N}",
             ThreadName    = Thread.CurrentThread.Name ?? Thread.CurrentThread.ManagedThreadId.ToString(),
-            StartedAt     = DateTime.UtcNow,
+            StartedAt     = DateTimeOffset.UtcNow,
             isSleeping    = false,
             isCrashed     = false,
-            LastHeartbeat = DateTime.UtcNow
+            LastHeartbeat = DateTimeOffset.UtcNow
         };
 
         long workerId = await _workerRepo.InsertAsync(_workerRecord, _shutdownToken);
@@ -38,7 +38,7 @@ private ScopeManager? _observabilityScope;
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(_options.DefaultWOrkerHeartbeatIntervalSeconds), _heartbeatCts.Token);
-                    _workerRecord.LastHeartbeat = DateTime.UtcNow;
+                    _workerRecord.LastHeartbeat = DateTimeOffset.UtcNow;
                     await _workerRepo.UpdateAsync(_workerRecord, _heartbeatCts.Token);
                 }
                 catch (OperationCanceledException) { break; }

@@ -12,7 +12,7 @@ public class ChainJobBuilder
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly List<Job>            _steps = new();
 
-    private DateTime  OptionalSchedule;
+    private DateTimeOffset  OptionalSchedule;
     private bool FirstJobisScheduled = false;
 
     internal ChainJobBuilder(IServiceScopeFactory scopeFactory)
@@ -27,7 +27,7 @@ public class ChainJobBuilder
             throw new ArgumentException("Scheduled time must be in the future.", nameof(scheduledTime));
         }
 
-        OptionalSchedule = scheduledTime;
+        OptionalSchedule = scheduledTime.ToUniversalTime();
         FirstJobisScheduled = true;
         return this;
     }
@@ -38,10 +38,10 @@ public class ChainJobBuilder
         {
             throw new ArgumentException("Delay must be greater than zero.", nameof(delay));
         }
-        OptionalSchedule = DateTime.UtcNow.Add(delay);
+        OptionalSchedule = DateTimeOffset.UtcNow.Add(delay);
         FirstJobisScheduled = true;
         return this;
-    } 
+    }
 
 
     // Called by ChainStepOptions to keep ThenRun chains working And on First Addition 
@@ -112,7 +112,7 @@ public class ChainJobBuilder
                 StateName = QueueStateTypes.Scheduled,
                 Reason    = $"Scheduled chain head #{jobIds[0]} of type {_steps[0].TypeName} To Start At { OptionalSchedule }",
                 data      = "",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             var stateId = await stateHistoryRepo.InsertAsync(state, cancellationToken);
@@ -140,7 +140,7 @@ public class ChainJobBuilder
                 StateName = QueueStateTypes.Enqueued,
                 Reason    = $"Enqueued chain head #{jobIds[0]} of type {_steps[0].TypeName}",
                 data      = "",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             var stateId = await stateHistoryRepo.InsertAsync(state, cancellationToken);
@@ -148,7 +148,7 @@ public class ChainJobBuilder
             await jobRepo.UpdateByIdAsync(
                 jobIds[0],
                 "stateID = @stateID, StateName = @StateName, ScheduledRunAt = @ScheduledRunAt",
-                new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTime.UtcNow },
+                new Job { stateID = stateId, StateName = QueueStateTypes.Enqueued, ScheduledRunAt = DateTimeOffset.UtcNow },
                 cancellationToken
             );
 
@@ -157,7 +157,7 @@ public class ChainJobBuilder
                 JobId      = jobIds[0],
                 QueueName  = FastJobConstants.DefaultQueue,
                 Priority   = _steps[0].Priority,
-                DequeuedAt = DateTime.UtcNow
+                DequeuedAt = DateTimeOffset.UtcNow
             }, cancellationToken);
         }
        

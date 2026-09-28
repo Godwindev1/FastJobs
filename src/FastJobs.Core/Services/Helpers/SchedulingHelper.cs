@@ -26,7 +26,7 @@ internal static class RecurringJobScheduling
         if (job == null) return false;
 
 
-        if (job.ExpiresAt.HasValue && DateTime.UtcNow >= job.ExpiresAt.Value)
+        if (job.ExpiresAt.HasValue && DateTimeOffset.UtcNow >= job.ExpiresAt.Value)
         {
             try
             {
@@ -54,7 +54,7 @@ internal static class RecurringJobScheduling
             return false;
         }
 
-        var nextRun = recurringJob.ComputeNextRun(DateTime.UtcNow);
+        var nextRun = recurringJob.ComputeNextRun(DateTimeOffset.UtcNow);
         if (nextRun == null) return false;
 
         //If Next run would Be Expired optimistically handle it Here

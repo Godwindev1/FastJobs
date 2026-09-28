@@ -77,7 +77,7 @@ public class Scheduler
         if (nextJob is null)
             return IdleWait; 
 
-        var timeUntilNext = nextJob.ScheduledTo - DateTime.UtcNow;
+        var timeUntilNext = nextJob.ScheduledTo - DateTimeOffset.UtcNow;
 
         //if its Already Due During This Process Requery The Due Jobs Again
         if (timeUntilNext <= TimeSpan.Zero)
@@ -132,7 +132,7 @@ public class Scheduler
 
         try {
             //Update Run at Time
-            job.ScheduledRunAt = DateTime.UtcNow;
+            job.ScheduledRunAt = DateTimeOffset.UtcNow;
             await jobRepo.UpdateByIdAsync(job, ct);
 
             await EnqueueJob(entry, ct, QueueNames.Critical, manager);
