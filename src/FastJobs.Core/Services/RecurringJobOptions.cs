@@ -14,6 +14,7 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     private string?         _cronExpression   = null;
     private bool            _isConcurrent     = false;
     private DateTimeOffset? _expiresAt        = null;
+    private AfterActionExecutionMode _afterActionExecutionMode = AfterActionExecutionMode.RunPerInstance;
 
     private readonly List<Action<AfterActionBuilder>> _afterActionConfigs = new();
 
@@ -46,6 +47,16 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
     public RecurringJobOptions<TJob> AddAfterAction(Action<AfterActionBuilder> configure)
     {
         _afterActionConfigs.Add(configure);
+        return this;
+    }
+
+    /// <summary>
+    /// Controls when the after-action chain runs: on every instance completion (<see cref="AfterActionExecutionMode.RunPerInstance"/>,
+    /// the default), or only once this recurring job has no further occurrences left (<see cref="AfterActionExecutionMode.RunAfterFinalCompletion"/>).
+    /// </summary>
+    public RecurringJobOptions<TJob> SetAfterActionExecutionMode(AfterActionExecutionMode mode)
+    {
+        _afterActionExecutionMode = mode;
         return this;
     }
 
@@ -237,7 +248,8 @@ public class RecurringJobOptions<TJob> where TJob : class, IBackGroundJob
             IntervalTicks = _intervalTicks,
             NextScheduledTime = firstRun.Value,
             IsConcurrent = _isConcurrent,
-            IsCron = _isCronType
+            IsCron = _isCronType,
+            AfterActionExecutionMode = _afterActionExecutionMode
         };
 
         var recurringId = await recurringJobRepository.InsertAsync(recurringJob, cancellationToken);
