@@ -24,6 +24,7 @@ public class MariaDBRecurringJobTableInitializer : ISchemaInitializer
         IsCron           TINYINT(1) NOT NULL DEFAULT 0,
         ExecutingInstances INT NOT NULL DEFAULT 0,
         ExecutedInstances  INT NOT NULL DEFAULT 0,
+        AfterActionExecutionMode INT NOT NULL DEFAULT 0,
 
         CONSTRAINT FK_RecurringJobs_Jobs
             FOREIGN KEY (JobId)

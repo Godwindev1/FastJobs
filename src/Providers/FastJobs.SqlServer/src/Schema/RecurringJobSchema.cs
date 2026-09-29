@@ -25,6 +25,7 @@ CREATE TABLE dbo.RecurringJobs
     IsCron TINYINT NOT NULL DEFAULT 0,
     ExecutingInstances INT NOT NULL DEFAULT 0,
     ExecutedInstances INT NOT NULL DEFAULT 0,
+    AfterActionExecutionMode INT NOT NULL DEFAULT 0,
     CONSTRAINT FK_RecurringJobs_Jobs FOREIGN KEY (JobId)
         REFERENCES dbo.Jobs(Id)
         ON DELETE CASCADE

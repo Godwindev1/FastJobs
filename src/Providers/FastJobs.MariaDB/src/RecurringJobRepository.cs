@@ -19,9 +19,9 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
         const string sql = @"
         INSERT INTO RecurringJobs
-            (JobId, NextScheduledID, CronExpression, StartTime, IntervalTicks, NextScheduledTime, IsConcurrent, isCron, ExecutingInstances, ExecutedInstances)
+            (JobId, NextScheduledID, CronExpression, StartTime, IntervalTicks, NextScheduledTime, IsConcurrent, isCron, ExecutingInstances, ExecutedInstances, AfterActionExecutionMode)
         VALUES
-            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalTicks, @NextScheduledTime, @IsConcurrent, @isCron, @ExecutingInstances, @ExecutedInstances);
+            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalTicks, @NextScheduledTime, @IsConcurrent, @isCron, @ExecutingInstances, @ExecutedInstances, @AfterActionExecutionMode);
 
         SELECT LAST_INSERT_ID();";
 
@@ -36,7 +36,8 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             recurringJob.IsConcurrent,
             recurringJob.IsCron,
             recurringJob.ExecutingInstances,
-            recurringJob.ExecutedInstances
+            recurringJob.ExecutedInstances,
+            recurringJob.AfterActionExecutionMode
         }, cancellationToken: cancellationToken);
 
         return await connection.ExecuteScalarAsync<long>(command);
@@ -150,7 +151,8 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             IsConcurrent      = @IsConcurrent,
             isCron            = @IsCron,
             ExecutingInstances= @ExecutingInstances,
-            ExecutedInstances = @ExecutedInstances
+            ExecutedInstances = @ExecutedInstances,
+            AfterActionExecutionMode = @AfterActionExecutionMode
         WHERE Id = @Id;";
 
         var command = new CommandDefinition(sql, new
@@ -165,7 +167,8 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
             recurringJob.IsConcurrent,
             IsCron = recurringJob.IsCron,
             recurringJob.ExecutingInstances,
-            recurringJob.ExecutedInstances
+            recurringJob.ExecutedInstances,
+            recurringJob.AfterActionExecutionMode
         }, cancellationToken: cancellationToken);
 
         return await connection.ExecuteAsync(command);
@@ -201,9 +204,10 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         public DateTimeOffset NextScheduledTime { get; init; }
         public bool     IsConcurrent      { get; init; }
         public int ExecutedInstances {get; set; } = 0;
-        public int ExecutingInstances {get; set; } = 0; 
+        public int ExecutingInstances {get; set; } = 0;
 
         public bool IsCron {get; set; } = false;
+        public AfterActionExecutionMode AfterActionExecutionMode {get; set; } = AfterActionExecutionMode.RunPerInstance;
     }
 
     private static RecurringJob MapToDomain(RecurringJobRow row) => new()
@@ -218,6 +222,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
         IsConcurrent      = row.IsConcurrent,
         IsCron = row.IsCron,
         ExecutedInstances = row.ExecutedInstances,
-        ExecutingInstances = row.ExecutingInstances
+        ExecutingInstances = row.ExecutingInstances,
+        AfterActionExecutionMode = row.AfterActionExecutionMode
     };
 }

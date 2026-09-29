@@ -19,6 +19,8 @@ public class RecurringJob
 
      public bool IsCron {get; set; } = false;
 
+     public AfterActionExecutionMode AfterActionExecutionMode {get; set;} = AfterActionExecutionMode.RunPerInstance;
+
      public DateTimeOffset? ComputeNextRun(DateTimeOffset from)
      {
          if (IsCron && !string.IsNullOrWhiteSpace(CronExpression))
