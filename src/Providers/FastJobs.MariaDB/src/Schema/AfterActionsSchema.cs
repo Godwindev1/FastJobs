@@ -13,9 +13,6 @@ public  class MariaDBAfterActionTableInitializer : ISchemaInitializer
 
         TypeName    VARCHAR(500) NOT NULL,
 
-        Retries     INT NOT NULL DEFAULT 0,
-        MaxRetries  INT NOT NULL DEFAULT 3,
-
         JobId       BIGINT NOT NULL,
 
         NextActionId BIGINT NOT NULL DEFAULT 0,

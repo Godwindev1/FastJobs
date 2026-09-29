@@ -32,7 +32,6 @@ public abstract class AfterActionRepositoryTest<TFixture> where TFixture : FastJ
         var byJob = await _repository.GetByJobIdAsync(jobId);
         Assert.Contains(byJob, item => item.Id == insertedId);
 
-        fetched.Retries = 2;
         fetched.Payload = "updated";
 
         var updatedRows = await _repository.UpdateByIdAsync(fetched);
@@ -40,7 +39,6 @@ public abstract class AfterActionRepositoryTest<TFixture> where TFixture : FastJ
 
         var updated = await _repository.GetByIdAsync(insertedId);
         Assert.NotNull(updated);
-        Assert.Equal(2, updated!.Retries);
         Assert.Equal("updated", updated.Payload);
 
         var countByJob = await _repository.CountByJobIdAsync(jobId);
@@ -56,14 +54,11 @@ public abstract class AfterActionRepositoryTest<TFixture> where TFixture : FastJ
     {
         var jobId = await InsertJobAsync();
         var beforeAll = await _repository.CountAllAsync();
-        var beforeRetrying = await _repository.CountRetryingAsync();
-        var beforeExhausted = await _repository.CountExhaustedAsync();
-        var beforeSucceeded = await _repository.CountSucceededFirstAttemptAsync();
         var beforeByJob = await _repository.CountByJobIdAsync(jobId);
 
-        var firstId = await _repository.InsertAsync(CreateAction(jobId, retries: 0, maxRetries: 3));
-        var secondId = await _repository.InsertAsync(CreateAction(jobId, retries: 2, maxRetries: 3));
-        var thirdId = await _repository.InsertAsync(CreateAction(jobId, retries: 3, maxRetries: 3));
+        var firstId = await _repository.InsertAsync(CreateAction(jobId, chainNo: 1));
+        var secondId = await _repository.InsertAsync(CreateAction(jobId, chainNo: 2));
+        var thirdId = await _repository.InsertAsync(CreateAction(jobId, chainNo: 3));
 
         var allActions = await _repository.GetAllAsync();
         Assert.Contains(allActions, item => item.Id == firstId);
@@ -75,19 +70,16 @@ public abstract class AfterActionRepositoryTest<TFixture> where TFixture : FastJ
 
         var partialTarget = await _repository.GetByIdAsync(secondId);
         Assert.NotNull(partialTarget);
-        partialTarget!.Retries = 5;
+        partialTarget!.ChainNo = 5;
 
-        var partialRows = await _repository.UpdateByIdAsync(secondId, "Retries = @Retries", partialTarget);
+        var partialRows = await _repository.UpdateByIdAsync(secondId, "ChainNo = @ChainNo", partialTarget);
         Assert.True(partialRows >= 0);
 
         var updatedPartial = await _repository.GetByIdAsync(secondId);
         Assert.NotNull(updatedPartial);
-        Assert.True(updatedPartial!.Retries >= 0);
+        Assert.Equal(5, updatedPartial!.ChainNo);
 
         Assert.True(await _repository.CountAllAsync() >= beforeAll);
-        Assert.True(await _repository.CountRetryingAsync() >= beforeRetrying);
-        Assert.True(await _repository.CountExhaustedAsync() >= beforeExhausted);
-        Assert.True(await _repository.CountSucceededFirstAttemptAsync() >= beforeSucceeded);
         Assert.True(await _repository.CountByJobIdAsync(jobId) >= beforeByJob);
 
         var average = await _repository.AverageActionsPerJobAsync();
@@ -127,17 +119,15 @@ public abstract class AfterActionRepositoryTest<TFixture> where TFixture : FastJ
         };
     }
 
-    private static AfterActionModel CreateAction(long jobId, int retries = 0, int maxRetries = 3)
+    private static AfterActionModel CreateAction(long jobId, long chainNo = 1)
     {
         return new AfterActionModel
         {
             TypeName = "Retry",
-            Retries = retries,
-            MaxRetries = maxRetries,
             JobId = jobId,
             NextActionID = 0,
             LastActionID = 0,
-            ChainNo = 1,
+            ChainNo = chainNo,
             Payload = "initial"
         };
     }

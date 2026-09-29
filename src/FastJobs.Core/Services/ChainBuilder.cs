@@ -85,9 +85,6 @@ public class ChainJobBuilder
                 TypeName = typeof(ChainAfterAction).AssemblyQualifiedName!,
                 JobId    = jobIds[i],
                 Payload  = JsonSerializer.Serialize(new ChainAfterActionPayload(jobIds[i + 1])),
-                
-                Retries      = 0,
-                MaxRetries   = 3,
                 ChainNo      = 1,
                 LastActionID = 0,
                 NextActionID = 0

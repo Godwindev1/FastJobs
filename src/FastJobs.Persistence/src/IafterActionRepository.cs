@@ -28,12 +28,6 @@ public interface IAfterActionRepository
     // -------------------------------------------------------------------------
     Task<int> CountAllAsync(CancellationToken cancellationToken = default);
 
-    Task<int> CountRetryingAsync(CancellationToken cancellationToken = default);
-
-    Task<int> CountExhaustedAsync(CancellationToken cancellationToken = default);
-
-    Task<int> CountSucceededFirstAttemptAsync(CancellationToken cancellationToken = default);
-
     Task<int> CountByJobIdAsync(long jobId, CancellationToken cancellationToken = default);
 
     Task<double> AverageActionsPerJobAsync(CancellationToken cancellationToken = default);

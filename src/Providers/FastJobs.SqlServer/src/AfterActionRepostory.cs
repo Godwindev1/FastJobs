@@ -25,9 +25,9 @@ internal sealed class AfterActionRepository : IAfterActionRepository
 
         const string sql = @"
             INSERT INTO AfterActions
-                (TypeName, Retries, MaxRetries, JobId, NextActionId, LastActionId, ChainNo, Payload)
+                (TypeName, JobId, NextActionId, LastActionId, ChainNo, Payload)
             VALUES
-                (@TypeName, @Retries, @MaxRetries, @JobId, @NextActionId, @LastActionId, @ChainNo, @Payload);
+                (@TypeName, @JobId, @NextActionId, @LastActionId, @ChainNo, @Payload);
 
             SELECT SCOPE_IDENTITY();";
 
@@ -86,8 +86,6 @@ internal sealed class AfterActionRepository : IAfterActionRepository
             UPDATE AfterActions
             SET
                 TypeName     = @TypeName,
-                Retries      = @Retries,
-                MaxRetries   = @MaxRetries,
                 JobId        = @JobId,
                 NextActionId = @NextActionId,
                 LastActionId = @LastActionId,
@@ -151,43 +149,6 @@ internal sealed class AfterActionRepository : IAfterActionRepository
         using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
 
         const string sql = "SELECT COUNT(*) FROM AfterActions;";
-
-        return await connection.ExecuteScalarAsync<int>(
-            new CommandDefinition(sql, cancellationToken: cancellationToken));
-    }
-
-    public async Task<int> CountRetryingAsync(CancellationToken cancellationToken = default)
-    {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
-
-        const string sql = @"
-            SELECT COUNT(*) FROM AfterActions
-            WHERE Retries > 0
-              AND Retries < MaxRetries;";
-
-        return await connection.ExecuteScalarAsync<int>(
-            new CommandDefinition(sql, cancellationToken: cancellationToken));
-    }
-
-    public async Task<int> CountExhaustedAsync(CancellationToken cancellationToken = default)
-    {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
-
-        const string sql = @"
-            SELECT COUNT(*) FROM AfterActions
-            WHERE Retries >= MaxRetries;";
-
-        return await connection.ExecuteScalarAsync<int>(
-            new CommandDefinition(sql, cancellationToken: cancellationToken));
-    }
-
-    public async Task<int> CountSucceededFirstAttemptAsync(CancellationToken cancellationToken = default)
-    {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
-
-        const string sql = @"
-            SELECT COUNT(*) FROM AfterActions
-            WHERE Retries = 0;";
 
         return await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(sql, cancellationToken: cancellationToken));
