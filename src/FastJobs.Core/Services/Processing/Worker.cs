@@ -258,7 +258,7 @@ public partial class Worker
             else
             {
                 // Run Recurring Jobs After action on final completion if Job has not expired 
-                if (job.ExpiresAt.HasValue && DateTimeOffset.UtcNow >= job.ExpiresAt.Value)
+                if (job.ExpiresAt.HasValue && DateTimeOffset.UtcNow <= job.ExpiresAt.Value)
                 {
                    await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
                 } 
