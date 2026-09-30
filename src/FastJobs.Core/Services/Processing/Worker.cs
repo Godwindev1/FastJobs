@@ -190,10 +190,8 @@ public partial class Worker
                     }
 
 
-                    //TODO: Resolve The Order for these Two Functions 
-                    //AFTER ACTIONS FOR RECURRING JOBS NEED TO RUN BEFORE A RESCHEDULE IS DONE
+                  
                     await RunAfterAction(job, Scope, jobSucceeded); 
-                    //COOULD CAUSE MISFIRES IN SITUATIONS WHERE AFTER ACTIONS DO HEAVY LOGIC THAT TAKES MORE TIME THAN THE NEXT SCHEDULE
                     await Reschedule(job, Scope, jobSucceeded);
                     
                     jobContext.SetJob(null);
@@ -255,16 +253,34 @@ public partial class Worker
             {
                 await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);
             }
-            else
+            else if (JobSuceeded)
             {
-                // Run Recurring Jobs After action on final completion if Job has not expired 
-                if (job.ExpiresAt.HasValue && DateTimeOffset.UtcNow <= job.ExpiresAt.Value && JobSuceeded)
+                if (await ShouldRunRecurringAfterActionAsync(job, Scope))
                 {
-                   await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);                                 
-                } 
+                    await ExecuteAfterActionChainAsync(JobAfterActionID, Scope, _shutdownToken);
+                }
             }
         }
 
+    }
+
+    /// <summary>
+    /// Decides whether a recurring job's after-action chain should fire for this instance,
+    /// based on its AfterActionExecutionMode. For RunAfterFinalCompletion, this is the last
+    /// instance when there is no further occurrence, or the next occurrence would fall after
+    /// the job's expiry — computed from the schedule, not wall-clock time.
+    /// </summary>
+    private static async Task<bool> ShouldRunRecurringAfterActionAsync(Job job, ScopeManager scope)
+    {
+        var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
+        var recurringJob = await recurringJobRepository.GetByJob(job);
+        if (recurringJob == null) return false;
+
+        if (recurringJob.AfterActionExecutionMode == AfterActionExecutionMode.RunPerInstance)
+            return true;
+
+        var nextRun = recurringJob.ComputeNextRun(DateTimeOffset.UtcNow);
+        return nextRun == null || (job.ExpiresAt.HasValue && nextRun > job.ExpiresAt.Value);
     }
 
     internal async Task RestWorker(FSTJBS_Worker WorkerRecord)
