@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Routing
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,18 +9,10 @@
     <link href="_content/FastJobs.Dashboard/css/site.css?v=2" rel="stylesheet" />
 
     <script src="_content/FastJobs.Dashboard/js/theme.js?v=2"></script>
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 <body>
-    <Router AppAssembly="@typeof(DashboardRoot).Assembly">
-        <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
-        <NotFound>
-            <p>Page not found.</p>
-        </NotFound>
-    </Router>
+    <Routes @rendermode="InteractiveServer" />
 
     @* Suppress RZ9992 - this component is intentionally the document root shell *@
     @{

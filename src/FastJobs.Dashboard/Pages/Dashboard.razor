@@ -1,5 +1,5 @@
 @page "/FastJobs"
-@implements IDisposable
+@inherits AutoRefreshComponent
 @inject IJSRuntime JSRuntime
 @inject DashboardSummaryService summaryService
 @inject JobDetailService jobDetailService
@@ -200,21 +200,9 @@
     private int HourTotal => DashboardData.SucceededLastHour + DashboardData.FailedLastHour;
     private double SuccessRate => DashboardData.SucceededLastHour + DashboardData.FailedLastHour == 0 ? 0 : (double)DashboardData.SucceededLastHour / (DashboardData.SucceededLastHour + DashboardData.FailedLastHour) * 100;
 
-    private System.Timers.Timer? _timer;
+    protected override TimeSpan RefreshInterval => TimeSpan.FromSeconds(5);
 
-    protected override  async Task OnInitializedAsync()
-    {
-        await LoadData();
-        _timer = new System.Timers.Timer(5000); // Update every 5 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
-        {
-            await LoadData();
-            StateHasChanged();
-        });
-        _timer.Start();
-    }
-
-     private async Task LoadData()
+    protected override async Task LoadData()
     {
         DashboardData = await summaryService.GetDashboardSummaryAsync();
         
@@ -235,11 +223,5 @@
     private async Task<List<JobDetailModel>> GenerateRecentJobs()
     {
       return (await jobDetailService.GetAllJobDetailsAsync()).Take(10).ToList();
-    }
-
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }

@@ -1,5 +1,5 @@
 @page "/FastJobs/workers"
-@implements IDisposable
+@inherits AutoRefreshComponent
 @inject WorkerOverviewService WorkerService
 
 <PageTitle>FastJobs — Workers</PageTitle>
@@ -145,21 +145,9 @@
     private List<WorkerModel> FilteredWorkers { get; set; } = new();
     private string SelectedStateFilter { get; set; } = "";
 
-    private System.Timers.Timer? _timer;
+    protected override TimeSpan RefreshInterval => TimeSpan.FromSeconds(8);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-        _timer = new System.Timers.Timer(8000); // Update every 8 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
-        {
-            await LoadData();
-            StateHasChanged();
-        });
-        _timer.Start();
-    }
-
-    private async Task LoadData()
+    protected override async Task LoadData()
     {
         WorkerOverview = await GetWorkerOverview();
         ApplyFilters();
@@ -202,9 +190,4 @@
     private string GetSuccessRateColor(double rate) => rate >= 95 ? "bg-accent" : rate >= 80 ? "bg-warn" : "bg-danger";
 
     private string GetSuccessRateTextColor(double rate) => rate >= 95 ? "text-accent" : rate >= 80 ? "text-warn" : "text-danger";
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
-    }
 }

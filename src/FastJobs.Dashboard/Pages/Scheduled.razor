@@ -1,5 +1,5 @@
 @page "/FastJobs/scheduled"
-@implements IDisposable
+@inherits AutoRefreshComponent
 @inject ScheduledJobService ScheduledJobsService
 
 <PageTitle>FastJobs — Scheduled</PageTitle>
@@ -145,21 +145,9 @@
     private string SelectedQueueFilter { get; set; } = "";
     private string SelectedTypeFilter { get; set; } = "";
 
-    private System.Timers.Timer? _timer;
+    protected override TimeSpan RefreshInterval => TimeSpan.FromSeconds(12);
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-        _timer = new System.Timers.Timer(12000); // Update every 12 seconds
-        _timer.Elapsed += (sender, e) => InvokeAsync(async () =>
-        {
-            await LoadData();
-            StateHasChanged();
-        });
-        _timer.Start();
-    }
-
-    private async Task LoadData()
+    protected override async Task LoadData()
     {
         ScheduledJobs = await GetSchdeuledJobs();
         ApplyFilters();
@@ -215,10 +203,5 @@
         {
             return $"{(int)until.TotalSeconds}s";
         }
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
     }
 }
