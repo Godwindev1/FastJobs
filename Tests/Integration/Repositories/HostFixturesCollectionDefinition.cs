@@ -13,3 +13,9 @@ public class MSSQLCollectionDefinition : ICollectionFixture<MsSqlFastJobsHostFix
 {
     
 }
+
+[CollectionDefinition("PostgresHostFixture_Collection")]
+public class PostgresCollectionDefinition : ICollectionFixture<PostgresFastJobsHostFixture>
+{
+    
+}

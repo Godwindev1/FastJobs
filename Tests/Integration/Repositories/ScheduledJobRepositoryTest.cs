@@ -115,3 +115,10 @@ public class MariaDB_Scheduled_repositoryTest : ScheduledJobRepositoryTest<Maria
 {
     public MariaDB_Scheduled_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
+
+[Collection("PostgresHostFixture_Collection")]
+[Trait("Provider", "PostgreSQL")]
+public class Postgres_Scheduled_repositoryTest : ScheduledJobRepositoryTest<PostgresFastJobsHostFixture>
+{
+    public Postgres_Scheduled_repositoryTest(PostgresFastJobsHostFixture fixture) : base(fixture) { }
+}

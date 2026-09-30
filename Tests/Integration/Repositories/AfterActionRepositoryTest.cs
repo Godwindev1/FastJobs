@@ -147,3 +147,10 @@ public class MariaDB_AfterAction_repositoryTest : AfterActionRepositoryTest<Mari
 {
     public MariaDB_AfterAction_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
+
+[Collection("PostgresHostFixture_Collection")]
+[Trait("Provider", "PostgreSQL")]
+public class Postgres_AfterAction_repositoryTest : AfterActionRepositoryTest<PostgresFastJobsHostFixture>
+{
+    public Postgres_AfterAction_repositoryTest(PostgresFastJobsHostFixture fixture) : base(fixture) { }
+}

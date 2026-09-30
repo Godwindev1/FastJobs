@@ -145,3 +145,10 @@ public class MariaDB_Queue_repositoryTest : QueueRepositoryTest<MariaDbFastJobsH
 {
     public MariaDB_Queue_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
+
+[Collection("PostgresHostFixture_Collection")]
+[Trait("Provider", "PostgreSQL")]
+public class Postgres_Queue_repositoryTest : QueueRepositoryTest<PostgresFastJobsHostFixture>
+{
+    public Postgres_Queue_repositoryTest(PostgresFastJobsHostFixture fixture) : base(fixture) { }
+}

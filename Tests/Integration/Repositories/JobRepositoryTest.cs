@@ -263,3 +263,10 @@ public class MariaDB_Jobs_repositoryTest : JobRepositoryTest<MariaDbFastJobsHost
 {
     public MariaDB_Jobs_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
+
+[Collection("PostgresHostFixture_Collection")]
+[Trait("Provider", "PostgreSQL")]
+public class Postgres_Jobs_repositoryTest : JobRepositoryTest<PostgresFastJobsHostFixture>
+{
+    public Postgres_Jobs_repositoryTest(PostgresFastJobsHostFixture fixture) : base(fixture) { }
+}

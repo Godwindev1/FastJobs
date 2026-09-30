@@ -105,3 +105,10 @@ public class MariaDB_StateHistory_repositoryTest : StateHistoryRepositoryTest<Ma
 {
     public MariaDB_StateHistory_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
+
+[Collection("PostgresHostFixture_Collection")]
+[Trait("Provider", "PostgreSQL")]
+public class Postgres_StateHistory_repositoryTest : StateHistoryRepositoryTest<PostgresFastJobsHostFixture>
+{
+    public Postgres_StateHistory_repositoryTest(PostgresFastJobsHostFixture fixture) : base(fixture) { }
+}

@@ -139,3 +139,10 @@ public class MariaDB_Recurring_repositoryTest : RecurringJobRepositoryTest<Maria
 {
     public MariaDB_Recurring_repositoryTest(MariaDbFastJobsHostFixture fixture) : base(fixture) { }
 }
+
+[Collection("PostgresHostFixture_Collection")]
+[Trait("Provider", "PostgreSQL")]
+public class Postgres_Recurring_repositoryTest : RecurringJobRepositoryTest<PostgresFastJobsHostFixture>
+{
+    public Postgres_Recurring_repositoryTest(PostgresFastJobsHostFixture fixture) : base(fixture) { }
+}
