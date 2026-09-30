@@ -6,10 +6,9 @@
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Scheduled.css" />
 
 <!-- Top bar -->
-<header class="scheduled-header">
+<header class="scheduled-header page-header">
     <div class="header-left">
         <span class="header-title">Scheduled Jobs</span>
-        <span class="header-badge">ScheduledJobModel</span>
     </div>
     <div class="header-right">
         <span>@ScheduledJobs.Count pending</span>
@@ -36,8 +35,8 @@
         </div>
         <div class="summary-card">
             <div class="summary-card-label">Recurring Triggers</div>
-            <div class="summary-card-value">@ScheduledJobs.Count(j => j.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase)))</div>
-            <div class="summary-card-subtext">IsRecurringTrigger</div>
+            <div class="summary-card-value">@ScheduledJobs.Count(j => j.JobType.Contains("rec", StringComparison.OrdinalIgnoreCase))</div>
+            <div class="summary-card-subtext">from recurring jobs</div>
         </div>
     </div>
 
@@ -93,11 +92,11 @@
                         <tr>
                             <td class="table-cell-id">#@job.Id</td>
                             <td>
-                                <div class="table-cell-name">@job.JobName</div>
+                                <div class="table-cell-name" title="@job.JobName">@DisplayFormat.JobName(job.JobName, job.MethodName)</div>
                             </td>
                             <td>
                                 <div class="table-cell-method">
-                                    <span class="table-cell-method-type">@job.TypeName.</span><span class="table-cell-method-name">@job.MethodName</span>
+                                    <span class="table-cell-method-type" title="@job.TypeName">@DisplayFormat.ShortType(job.TypeName).</span><span class="table-cell-method-name">@job.MethodName</span>
                                 </div>
                             </td>
                             <td>
@@ -119,8 +118,8 @@
                             </td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="action-button" title="Enqueue now">bolt</button>
-                                    <button class="action-button danger" title="Cancel">cancel</button>
+                                    <button class="action-button trigger" title="Enqueue now" aria-label="Enqueue now"><span class="ms">play_arrow</span></button>
+                                    <button class="action-button danger" title="Cancel" aria-label="Cancel"><span class="ms">cancel</span></button>
                                 </div>
                             </td>
                         </tr>

@@ -1,0 +1,39 @@
+@* Icon-only job state with a hover card. Icon + hover text mean state is never conveyed by color alone. *@
+<span class="state-icon state-icon-@Kind" tabindex="0" role="img" aria-label="@StateDisplay.Label(Job.State)">
+    <span class="ms">@Icon</span>
+    <span class="state-card-pop" role="tooltip">
+        <span class="state-pop-title">@StateDisplay.Label(Job.State)</span>
+        <span class="state-pop-row"><span>Attempts</span><strong>@Job.AttemptCount</strong></span>
+        <span class="state-pop-row"><span>Created</span><strong>@TimeDisplay.Utc(Job.CreatedAt, "MMM dd, HH:mm:ss")</strong></span>
+        <span class="state-pop-row"><span>Started</span><strong>@TimeDisplay.Utc(Job.StartedAt, "MMM dd, HH:mm:ss")</strong></span>
+        <span class="state-pop-row"><span>Completed</span><strong>@TimeDisplay.Utc(Job.CompletedAt, "MMM dd, HH:mm:ss")</strong></span>
+        <span class="state-pop-row"><span>Duration</span><strong>@DisplayFormat.Duration(Job.Duration)</strong></span>
+    </span>
+</span>
+
+@code {
+    [Parameter, EditorRequired] public JobDetailModel Job { get; set; } = default!;
+
+    private string Icon => Job.State switch
+    {
+        JobState.Completed => "check_circle",
+        JobState.Failed => "cancel",
+        JobState.Processing => "autorenew",
+        JobState.Retrying => "replay",
+        JobState.Scheduled => "event",
+        JobState.Enqueued => "hourglass_top",
+        JobState.Dequeued => "inbox",
+        JobState.Deleted => "block",
+        _ => "help"
+    };
+
+    private string Kind => Job.State switch
+    {
+        JobState.Completed => "success",
+        JobState.Failed => "danger",
+        JobState.Processing => "info",
+        JobState.Scheduled => "info",
+        JobState.Retrying => "warn",
+        _ => "muted"
+    };
+}

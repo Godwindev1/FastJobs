@@ -1,18 +1,5 @@
 /* Recurring.css - Tailwind to CSS conversion */
 
-:root {
-    --surface: #191919;
-    --border: #272727;
-    --text: #e8e8e8;
-    --dim: #737373;
-    --subtext: #a0a0a0;
-    --accent: #10b981;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --info: #60a5fa;
-    --muted: rgba(58, 58, 58, 0.3);
-    --hover-bg: #1f1f1f;
-}
 
 /* Header */
 .recurring-header {
@@ -35,15 +22,15 @@
 }
 
 .header-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text);
 }
 
 .header-badge {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 2px 6px;
@@ -53,8 +40,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
-    color: #001a0e;
+    font-size: 13px;
+    color: var(--on-accent);
     background-color: var(--accent);
     border: none;
     padding: 6px 12px;
@@ -65,12 +52,12 @@
 }
 
 .new-recurring-button:hover {
-    background-color: #0da871;
+    background-color: var(--accent-hover);
 }
 
 .new-recurring-icon {
     font-size: 16px;
-    color: #001a0e;
+    color: var(--on-accent);
 }
 
 /* Main container */
@@ -112,9 +99,9 @@
 }
 
 .summary-stat-label {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 4px;
@@ -122,13 +109,13 @@
 
 .summary-stat-value {
     font-size: 22px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 600;
     color: var(--text);
 }
 
 .summary-stat-value.active {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .summary-stat-value.warn {
@@ -142,7 +129,7 @@
 }
 
 .summary-stat-icon.active {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .summary-stat-icon.warn {
@@ -157,11 +144,11 @@
 }
 
 .filter-select {
-    background-color: #1a1a1a;
+    background-color: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--text);
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 8px;
     cursor: pointer;
 }
@@ -195,11 +182,11 @@
 
 .recurring-table th {
     padding: 10px 20px;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 500;
 }
 
@@ -222,22 +209,22 @@
 }
 
 .recurring-name {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text);
     font-weight: 500;
 }
 
 .recurring-id {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
 }
 
 .cron-expression {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: #a0a0a0;
-    background-color: rgba(58, 58, 58, 0.5);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--subtext);
+    background-color: var(--muted-strong);
     padding: 2px 6px;
     border-radius: 3px;
     display: inline-block;
@@ -245,23 +232,23 @@
 
 .cron-description {
     display: block;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--dim);
     margin-top: 4px;
 }
 
 .queue-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--subtext);
-    background-color: rgba(58, 58, 58, 0.3);
+    background-color: var(--muted);
     padding: 2px 6px;
     border-radius: 4px;
     display: inline-block;
 }
 
 .status-badge {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
@@ -269,34 +256,34 @@
 }
 
 .status-badge.active {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    background-color: var(--success-soft);
+    color: var(--success);
 }
 
 .status-badge.disabled {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
+    background-color: var(--warn-soft);
+    color: var(--warn);
 }
 
 .status-badge.deleted {
-    background-color: rgba(115, 115, 115, 0.12);
-    color: #a0a0a0;
+    background-color: var(--muted);
+    color: var(--subtext);
 }
 
 .next-run-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--subtext);
 }
 
 .last-run-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
 }
 
 .last-state-badge {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
@@ -304,29 +291,29 @@
 }
 
 .last-state-badge.succeeded {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    background-color: var(--success-soft);
+    color: var(--success);
 }
 
 .last-state-badge.failed {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background-color: var(--danger-soft);
+    color: var(--danger);
 }
 
 .last-state-badge.unknown {
-    background-color: rgba(115, 115, 115, 0.12);
-    color: #a0a0a0;
+    background-color: var(--muted);
+    color: var(--subtext);
 }
 
 .success-count {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--success);
 }
 
 .failure-count {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--dim);
 }
 
@@ -367,7 +354,7 @@
 }
 
 .action-button.resume:hover {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .action-button.trigger:hover {
@@ -391,7 +378,7 @@
 }
 
 .action-button[title="Resume"]:hover {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .action-button[title="Trigger now"] {

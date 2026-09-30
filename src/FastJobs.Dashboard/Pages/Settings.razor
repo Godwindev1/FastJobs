@@ -1,0 +1,19 @@
+@page "/FastJobs/settings"
+
+<PageTitle>FastJobs — Settings</PageTitle>
+
+<header class="page-header">
+    <div class="header-left"><span class="header-title">Settings</span></div>
+</header>
+
+<div class="settings-card">
+    <div class="settings-row">
+        <span class="settings-label">Theme</span>
+        <span class="settings-hint">System follows your operating system setting.</span>
+        <div class="segmented">
+            <button type="button" data-theme-option="light" onclick="fastJobsSetTheme('light')">Light</button>
+            <button type="button" data-theme-option="dark" onclick="fastJobsSetTheme('dark')">Dark</button>
+            <button type="button" data-theme-option="system" onclick="fastJobsSetTheme('system')">System</button>
+        </div>
+    </div>
+</div>

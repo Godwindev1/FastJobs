@@ -8,14 +8,13 @@
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Dashboard.css" />
 
 <!-- Top bar -->
-<header class="dashboard-header">
+<header class="dashboard-header page-header">
     <div class="header-left">
         <span class="header-title">Overview</span>
-        <span class="header-badge">DashboardSummaryModel</span>
     </div>
     <div class="header-right">
-        <span class="dot green pulse"></span>
-        <span id="genAt">Generated @TimeDisplay.Utc(GeneratedAt, "MMM dd, HH:mm:ss")</span>
+        
+        <span id="genAt">Updated @TimeDisplay.Utc(GeneratedAt, "MMM dd, HH:mm:ss")</span>
     </div>
 </header>
 
@@ -36,26 +35,26 @@
             </div>
             <div class="state-card">
                 <span class="state-card-label">Processing</span>
-                <span class="state-card-value" style="color: #60a5fa;">@DashboardData.ProcessingCount</span>
-                <div class="state-card-description"><span class="dot green pulse"></span><span class="state-card-description-text">running</span></div>
+                <span class="state-card-value" style="color: var(--info);">@DashboardData.ProcessingCount</span>
+                <div class="state-card-description"><span class="state-card-description-text">running</span></div>
             </div>
             <div class="state-card">
                 <span class="state-card-label">Succeeded</span>
-                <span class="state-card-value" style="color: #10b981;">@DashboardData.SucceededCount</span>
+                <span class="state-card-value" style="color: var(--success);">@DashboardData.SucceededCount</span>
                 <div class="state-card-description"><span class="ms text-accent" style="font-size:13px">check_circle</span><span class="state-card-description-text">done</span></div>
             </div>
             <div class="state-card">
                 <span class="state-card-label">Failed</span>
-                <span class="state-card-value" style="color: #ef4444;">@DashboardData.FailedCount</span>
+                <span class="state-card-value" style="color: var(--danger);">@DashboardData.FailedCount</span>
                 <div class="state-card-description"><span class="ms text-danger" style="font-size:13px">error</span><span class="state-card-description-text">errored</span></div>
             </div>
             <div class="state-card">
                 <span class="state-card-label">Retrying</span>
-                <span class="state-card-value" style="color: #f59e0b;">@DashboardData.RetryingCount</span>
+                <span class="state-card-value" style="color: var(--warn);">@DashboardData.RetryingCount</span>
                 <div class="state-card-description"><span class="ms text-warn" style="font-size:13px">refresh</span><span class="state-card-description-text">retry</span></div>
             </div>
 
-            <div class="state-card" style="border-left: 2px solid #10b981;">
+            <div class="state-card" style="border-left: 2px solid var(--accent);">
                 <span class="state-card-label">Total</span>
                 <span class="state-card-value">@DashboardData.TotalJobs</span>
                 <div class="state-card-description"><span class="ms text-accent" style="font-size:13px">layers</span><span class="state-card-description-text">all time</span></div>
@@ -70,14 +69,14 @@
             <div class="card-header">
                 <div>
                     <div class="card-title">Hourly Throughput Trend</div>
-                    <div class="card-subtitle">ThroughputBucketModel · last 12 hrs</div>
+                    <div class="card-subtitle">Succeeded vs failed · last 12 hours</div>
                 </div>
                 <div class="card-legend">
                     <span class="legend-item"><span class="legend-color-box legend-success"></span>Succeeded</span>
                     <span class="legend-item"><span class="legend-color-box legend-failed"></span>Failed</span>
                     <div style="border-left: 1px solid var(--border); padding-left: 16px; display: flex; flex-direction: column; align-items: flex-end;">
-                        <span style="font-size: 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: var(--text); line-height: 1;">@DashboardData.ThroughputPerMinute.ToString("F1")</span>
-                        <span style="font-size: 10px; color: var(--dim);">jobs/min</span>
+                        <span style="font-size: 18px; font-family: var(--font-mono); font-weight: 600; color: var(--text); line-height: 1;">@DashboardData.ThroughputPerMinute.ToString("F1")</span>
+                        <span style="font-size:12px; color: var(--dim);">jobs/min</span>
                     </div>
                 </div>
             </div>
@@ -85,10 +84,15 @@
             <div class="chart-container" id="chart">
                 @foreach (var bucket in DashboardData.HourlyTrend)
                 {
-                    var maxS = DashboardData.HourlyTrend.Max(b => b.SucceededCount);
-                    var fh = maxS == 0 ? 0 : Math.Max(2, (int)Math.Round((double)bucket.FailedCount / maxS * 132));
-                    var sh = maxS == 0 ? 0 : (int)Math.Round((double)bucket.SucceededCount / maxS * 132);
+                    var maxS = Math.Max(1, DashboardData.HourlyTrend.Max(b => b.SucceededCount + b.FailedCount));
+                    var fh = bucket.FailedCount == 0 ? 0 : Math.Max(2, (int)Math.Round((double)bucket.FailedCount / maxS * 128));
+                    var sh = bucket.SucceededCount == 0 ? 0 : Math.Max(2, (int)Math.Round((double)bucket.SucceededCount / maxS * 128));
                     <div class="chart-bar">
+                        <div class="chart-tooltip">
+                            <div class="chart-tooltip-title">@bucket.HourStart.ToString("MMM dd, HH:mm")</div>
+                            <div class="chart-tooltip-row"><span class="legend-color-box legend-success"></span>Succeeded<strong>@bucket.SucceededCount</strong></div>
+                            <div class="chart-tooltip-row"><span class="legend-color-box legend-failed"></span>Failed<strong>@bucket.FailedCount</strong></div>
+                        </div>
                         <div class="chart-bar-failed" style="height:@fh.ToString()px;"></div>
                         <div class="chart-bar-succeeded" style="height:@sh.ToString()px;"></div>
                     </div>
@@ -148,7 +152,7 @@
             </div>
             <div class="success-rate-box">
                 <div class="success-rate-label">Success rate (1h)</div>
-                <div class="success-rate-value">@SuccessRate.ToString("F1")%</div>
+                <div class="success-rate-value">@(HourTotal == 0 ? "—" : SuccessRate.ToString("F1") + "%")</div>
             </div>
         </div>
     </div>
@@ -157,10 +161,7 @@
     <div class="dashboard-table-wrapper">
         <div class="table-header-section">
             <div class="table-title">Recent Execution Log</div>
-            <div class="table-live-indicator">
-                <span class="dot green pulse"></span>
-                <span>live</span>
-            </div>
+
         </div>
         <table class="dashboard-table">
             <thead>
@@ -178,10 +179,10 @@
                 {
                     <tr>
                         <td class="table-row-mono">#@job.Id</td>
-                        <td class="table-row-name">@job.JobName</td>
+                        <td class="table-row-name" title="@job.JobName">@DisplayFormat.JobName(job.JobName, job.MethodName)</td>
                         <td><span class="table-row-queue">@job.QueueName</span></td>
-                        <td><span class="pill @GetStateStyle(job.State)">@job.State</span></td>
-                        <td class="table-row-duration">@FormatDuration(job.Duration)</td>
+                        <td><JobStateIcon Job="job" /></td>
+                        <td class="table-row-duration">@DisplayFormat.Duration(job.Duration)</td>
                         <td class="table-row-time table-row-time-right">@TimeDisplay.Utc(job.StartedAt, "HH:mm:ss")</td>
                     </tr>
                 }
@@ -196,6 +197,7 @@
     private List<JobDetailModel> RecentJobs { get; set; } = new();
     private DateTimeOffset GeneratedAt => DashboardData.GeneratedAt.ToUtcOffsetStrict();
     private int UtilizationPercent => WorkerData.TotalWorkers == 0 ? 0 : (int)Math.Round((double)WorkerData.ActiveWorkers / WorkerData.TotalWorkers * 100);
+    private int HourTotal => DashboardData.SucceededLastHour + DashboardData.FailedLastHour;
     private double SuccessRate => DashboardData.SucceededLastHour + DashboardData.FailedLastHour == 0 ? 0 : (double)DashboardData.SucceededLastHour / (DashboardData.SucceededLastHour + DashboardData.FailedLastHour) * 100;
 
     private System.Timers.Timer? _timer;
@@ -235,16 +237,6 @@
       return (await jobDetailService.GetAllJobDetailsAsync()).Take(10).ToList();
     }
 
-    private string GetStateStyle(JobState state) => state switch
-    {
-        JobState.Completed => "bg-[rgba(16,185,129,0.12)] text-[#10b981]",
-        JobState.Failed => "bg-[rgba(239,68,68,0.12)] text-[#ef4444]",
-        JobState.Processing => "bg-[rgba(96,165,250,0.12)] text-[#60a5fa]",
-        JobState.Retrying => "bg-[rgba(245,158,11,0.12)] text-[#f59e0b]",
-        _ => "bg-[rgba(115,115,115,0.12)] text-[#a0a0a0]"
-    };
-
-    private string FormatDuration(TimeSpan? duration) => duration.HasValue ? $"{duration.Value.TotalSeconds:F1}s" : "—";
 
     public void Dispose()
     {

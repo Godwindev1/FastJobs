@@ -5,10 +5,9 @@
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Jobs.css" />
 
 <!-- Top bar -->
-<header class="jobs-header">
+<header class="jobs-header page-header">
     <div class="header-left">
         <span class="header-title">Jobs</span>
-        <span class="header-badge">JobDetailModel · PagedResult</span>
     </div>
     <!-- Search -->
     <div class="search-container">
@@ -20,34 +19,17 @@
 <div class="jobs-container">
     <!-- Stats row -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-card-label">Enqueued</div>
-            <div class="stat-card-value">@JobStats.Enqueued</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Scheduled</div>
-            <div class="stat-card-value info">@JobStats.Scheduled</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Processing</div>
-            <div style="display: flex; align-items: center; gap: 8px;"><div class="stat-card-value info">@JobStats.Processing</div><span class="dot green pulse"></span></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Succeeded</div>
-            <div class="stat-card-value accent">@JobStats.Succeeded</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Failed</div>
-            <div class="stat-card-value danger">@JobStats.Failed</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Retrying</div>
-            <div class="stat-card-value warn">@JobStats.Retrying</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card-label">Cancelled</div>
-            <div class="stat-card-value dim">@JobStats.Cancelled</div>
-        </div>
+        @foreach (var card in StatCards)
+        {
+            <div class="stat-card stat-card-clickable @(SelectedState == card.State.ToString() ? "selected" : "")" role="button" tabindex="0"
+                 @onclick="() => FilterByState(card.State)" @onkeydown="e => OnCardKey(e, card.State)">
+                <div class="stat-card-label">@card.Label</div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="stat-card-value @card.Css">@card.Count</div>
+                    @if (card.State == JobState.Processing) {  }
+                </div>
+            </div>
+        }
     </div>
 
     <!-- Filter bar -->
@@ -68,14 +50,10 @@
             <span class="filter-text">State</span>
             <select class="filter-select" @bind="SelectedState">
                 <option value="">All States</option>
-                <option>Enqueued</option>
-                <option>Scheduled</option>
-                <option>Processing</option>
-                <option>Succeeded</option>
-                <option>Failed</option>
-                <option>Retrying</option>
-                <option>Deleted</option>
-                <option>Deleted</option>
+                @foreach (var st in Enum.GetValues<JobState>().Where(x => x != JobState.Dequeued))
+                {
+                    <option value="@st">@StateDisplay.Label(st)</option>
+                }
             </select>
         </div>
         <div class="filter-group">
@@ -111,16 +89,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var job in FilteredJobs)
+                    @foreach (var job in PagedJobs)
                     {
                         <tr>
                             <td class="table-cell-id">#@job.Id</td>
-                            <td class="table-cell-name">@job.JobName</td>
+                            <td class="table-cell-name" title="@job.JobName">@DisplayFormat.JobName(job.JobName, job.MethodName)</td>
                             <td><span class="table-cell-queue">@job.QueueName</span></td>
-                            <td><span class="table-cell-state @GetStatePillClass(job.State)">@if (job.State == JobState.Processing) {<span class="dot green pulse" style="margin-right:5px"></span>} @job.State</span></td>
+                            <td><JobStateIcon Job="job" /></td>
                             <td class="table-cell-time">@TimeDisplay.Utc(job.CreatedAt, "MMM dd, HH:mm")</td>
                             <td class="table-cell-time">@TimeDisplay.Utc(job.StartedAt, "HH:mm:ss")</td>
-                            <td class="table-cell-duration">@FormatDuration(job.Duration)</td>
+                            <td class="table-cell-duration">@DisplayFormat.Duration(job.Duration)</td>
                             <td class="table-cell-attempts">@job.AttemptCount</td>
                             <td class="table-cell-actions">
                                 <button class="table-action-button ms">more_vert</button>
@@ -130,17 +108,17 @@
                 </tbody>
             </table>
         </div>
+        @if (!FilteredJobs.Any())
+        {
+            <div class="empty-state">No jobs match the current filters.</div>
+        }
         <!-- Pagination -->
         <div class="pagination-container">
-            <span class="pagination-info">Showing 1–@FilteredJobs.Count of <strong>@AllJobs.Count</strong></span>
+            <span class="pagination-info">Showing @(FilteredJobs.Count == 0 ? 0 : (CurrentPage - 1) * PageSize + 1)–@Math.Min(CurrentPage * PageSize, FilteredJobs.Count) of <strong>@FilteredJobs.Count</strong></span>
             <div class="pagination-buttons">
-                <button class="pagination-button" disabled>‹ Prev</button>
-                <button class="pagination-button active">1</button>
-                <button class="pagination-button">2</button>
-                <button class="pagination-button">3</button>
-                <span style="color: var(--dim); font-size: 11px; padding: 0 4px;">…</span>
-                <button class="pagination-button">@TotalPages</button>
-                <button class="pagination-button">Next ›</button>
+                <button class="pagination-button" disabled="@(CurrentPage <= 1)" @onclick="() => GoToPage(CurrentPage - 1)">‹ Prev</button>
+                <span class="pagination-info">Page @CurrentPage of @TotalPages</span>
+                <button class="pagination-button" disabled="@(CurrentPage >= TotalPages)" @onclick="() => GoToPage(CurrentPage + 1)">Next ›</button>
             </div>
         </div>
     </div>
@@ -151,11 +129,44 @@
     private List<JobDetailModel> FilteredJobs { get; set; } = new();
     private JobStatsModel JobStats { get; set; } = new();
 
-    private string SearchQuery { get; set; } = "";
+    private string _searchQuery = "";
+    private string SearchQuery
+    {
+        get => _searchQuery;
+        set { _searchQuery = value; CurrentPage = 1; ApplyFilters(); }
+    }
     private string SelectedQueue { get; set; } = "";
     private string SelectedState { get; set; } = "";
     private string SortBy { get; set; } = "CreatedAt ↓";
-    private int TotalPages => (int)Math.Ceiling(AllJobs.Count / 25.0);
+    private const int PageSize = 25;
+    private int CurrentPage { get; set; } = 1;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(FilteredJobs.Count / (double)PageSize));
+    private IEnumerable<JobDetailModel> PagedJobs => FilteredJobs.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+
+    private record StatCard(string Label, JobState State, int Count, string Css);
+    private IEnumerable<StatCard> StatCards => new[]
+    {
+        new StatCard("Enqueued", JobState.Enqueued, JobStats.Enqueued, ""),
+        new StatCard("Scheduled", JobState.Scheduled, JobStats.Scheduled, "info"),
+        new StatCard("Processing", JobState.Processing, JobStats.Processing, "info"),
+        new StatCard("Succeeded", JobState.Completed, JobStats.Succeeded, "accent"),
+        new StatCard("Failed", JobState.Failed, JobStats.Failed, "danger"),
+        new StatCard("Retrying", JobState.Retrying, JobStats.Retrying, "warn"),
+        new StatCard("Cancelled", JobState.Deleted, JobStats.Cancelled, "dim"),
+    };
+
+    private void OnCardKey(KeyboardEventArgs e, JobState state)
+    {
+        if (e.Key == "Enter") FilterByState(state);
+    }
+
+    private void FilterByState(JobState state)
+    {
+        SelectedState = SelectedState == state.ToString() ? "" : state.ToString();
+        ApplyFilters();
+    }
+
+    private void GoToPage(int page) => CurrentPage = Math.Clamp(page, 1, TotalPages);
 
     private System.Timers.Timer? _timer;
 
@@ -203,7 +214,7 @@
 
         if (!string.IsNullOrEmpty(SearchQuery))
         {
-            filtered = filtered.Where(j => j.JobName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(j => j.JobName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) || j.Id.ToString() == SearchQuery.TrimStart('#'));
         }
 
         if (!string.IsNullOrEmpty(SelectedQueue))
@@ -227,30 +238,18 @@
         };
 
         FilteredJobs = filtered.ToList();
+        CurrentPage = Math.Clamp(CurrentPage, 1, TotalPages);
     }
 
     private void ClearFilters()
     {
-        SearchQuery = "";
+        _searchQuery = "";
         SelectedQueue = "";
         SelectedState = "";
         SortBy = "CreatedAt ↓";
         ApplyFilters();
     }
 
-    private string GetStatePillClass(JobState state) => state switch
-    {
-        JobState.Completed => "pill-green",
-        JobState.Failed => "pill-red",
-        JobState.Processing => "pill-blue",
-        JobState.Retrying => "pill-amber",
-        JobState.Enqueued => "pill-gray",
-        JobState.Scheduled => "pill-blue",
-        JobState.Deleted => "pill-gray",
-        _ => "pill-gray"
-    };
-
-    private string FormatDuration(TimeSpan? duration) => duration.HasValue ? $"{duration.Value.TotalSeconds:F1}s" : "—";
 
     public void Dispose()
     {

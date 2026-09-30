@@ -1,18 +1,5 @@
 /* Jobs.css - Tailwind to CSS conversion */
 
-:root {
-    --surface: #191919;
-    --border: #272727;
-    --text: #e8e8e8;
-    --dim: #737373;
-    --subtext: #a0a0a0;
-    --accent: #10b981;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --info: #60a5fa;
-    --muted: rgba(58, 58, 58, 0.3);
-    --hover-bg: #1f1f1f;
-}
 
 /* Header */
 .jobs-header {
@@ -35,15 +22,15 @@
 }
 
 .header-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text);
 }
 
 .header-badge {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 2px 6px;
@@ -70,8 +57,8 @@
     padding-top: 6px;
     padding-bottom: 6px;
     width: 240px;
-    font-size: 12px;
-    background-color: #1a1a1a;
+    font-size: 13px;
+    background-color: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
@@ -117,9 +104,9 @@
 }
 
 .stat-card-label {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 4px;
@@ -127,7 +114,7 @@
 
 .stat-card-value {
     font-size: 20px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 600;
     color: var(--text);
 }
@@ -137,7 +124,7 @@
 }
 
 .stat-card-value.accent {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .stat-card-value.danger {
@@ -165,9 +152,9 @@
 }
 
 .filter-label {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-right: 4px;
@@ -186,16 +173,16 @@
 }
 
 .filter-text {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
 }
 
 .filter-select {
-    background-color: #1a1a1a;
+    background-color: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--text);
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 8px;
     cursor: pointer;
 }
@@ -213,7 +200,7 @@
 }
 
 .filter-button {
-    font-size: 11px;
+    font-size: 12px;
     padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
@@ -232,11 +219,11 @@
 
 .filter-button-apply {
     color: var(--text);
-    background-color: rgba(58, 58, 58, 0.5);
+    background-color: var(--muted-strong);
 }
 
 .filter-button-apply:hover {
-    background-color: rgba(68, 68, 68, 0.7);
+    background-color: var(--muted-strong);
 }
 
 /* Table wrapper */
@@ -263,11 +250,11 @@
 
 .jobs-table th {
     padding: 10px 20px;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 500;
     white-space: nowrap;
 }
@@ -286,30 +273,30 @@
 }
 
 .table-cell-id {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
     white-space: nowrap;
 }
 
 .table-cell-name {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text);
     font-weight: 500;
 }
 
 .table-cell-queue {
-    font-size: 11px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-family: var(--font-mono);
     color: var(--subtext);
-    background-color: rgba(58, 58, 58, 0.3);
+    background-color: var(--muted);
     padding: 2px 8px;
     border-radius: 4px;
     display: inline-block;
 }
 
 .table-cell-state {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
@@ -319,61 +306,61 @@
 }
 
 .table-cell-state.enqueued {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
+    background-color: var(--warn-soft);
+    color: var(--warn);
 }
 
 .table-cell-state.scheduled {
-    background-color: rgba(96, 165, 250, 0.12);
-    color: #60a5fa;
+    background-color: var(--info-soft);
+    color: var(--info);
 }
 
 .table-cell-state.processing {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    background-color: var(--success-soft);
+    color: var(--success);
 }
 
 .table-cell-state.succeeded {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    background-color: var(--success-soft);
+    color: var(--success);
 }
 
 .table-cell-state.failed {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background-color: var(--danger-soft);
+    color: var(--danger);
 }
 
 .table-cell-state.retrying {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
+    background-color: var(--warn-soft);
+    color: var(--warn);
 }
 
 .table-cell-state.cancelled {
-    background-color: rgba(115, 115, 115, 0.12);
-    color: #a0a0a0;
+    background-color: var(--muted);
+    color: var(--subtext);
 }
 
 .table-cell-time {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
 }
 
 .table-cell-duration {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--subtext);
 }
 
 .table-cell-attempts {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--subtext);
 }
 
 .table-cell-worker {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
 }
 
@@ -394,7 +381,7 @@
 
 .jobs-table tbody tr:hover .table-action-button {
     opacity: 1;
-    color: var(--accent);
+    color: var(--success);
 }
 
 /* Pagination */
@@ -407,9 +394,9 @@
 }
 
 .pagination-info {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
 }
 
 .pagination-info strong {
@@ -425,10 +412,10 @@
 .pagination-button {
     padding: 6px 10px;
     border-radius: 4px;
-    background-color: #1f1f1f;
+    background-color: var(--hover-bg);
     border: 1px solid var(--border);
     color: var(--dim);
-    font-size: 11px;
+    font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -444,7 +431,7 @@
 
 .pagination-button.active {
     background-color: var(--accent);
-    color: #001a0e;
+    color: var(--on-accent);
     border-color: var(--accent);
     font-weight: 600;
 }

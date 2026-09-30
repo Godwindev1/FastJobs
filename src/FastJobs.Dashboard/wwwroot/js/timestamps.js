@@ -34,7 +34,14 @@
         });
 
         document.querySelectorAll('[data-time-toggle]').forEach(btn => {
-            btn.textContent = mode === 'local' ? 'Show UTC' : 'Show Local Time';
+            const label = mode === 'local' ? 'Show UTC' : 'Show Local Time';
+            // Rebuild the icon + label structure if anything flattened it to plain text.
+            if (!btn.querySelector('.nav-label')) {
+                btn.innerHTML = '<span class="ms">schedule</span><span class="nav-label"></span>';
+            }
+            const target = btn.querySelector('.nav-label');
+            if (target.textContent !== label) target.textContent = label;
+            btn.title = label;
         });
     }
 

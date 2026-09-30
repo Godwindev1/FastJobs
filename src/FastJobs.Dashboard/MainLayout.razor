@@ -1,51 +1,91 @@
 @inherits LayoutComponentBase
 
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet"/>
-<link href="css/site.css" rel="stylesheet"/>
+<link href="css/site.css?v=2" rel="stylesheet"/>
 
-<div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-full w-[220px] bg-surface border-r border-border flex flex-col z-30">
-        <div class="px-5 py-5 border-b border-border">
-            <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 bg-accent rounded flex items-center justify-center">
-                    <span class="ms text-[#001a0e]" style="font-size:16px">bolt</span>
-                </div>
-                <div>
-                    <div class="text-[14px] font-semibold text-text leading-none">FastJobs</div>
-                    <div class="text-[10px] text-dim font-mono mt-0.5">v2.4.0</div>
-                </div>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-text">
+                <a href="/FastJobs" class="nav-logo">
+                    <span class="logo-text">FastJobs</span>
+                    <span class="logo-dot"></span>
+                    <span class="logo-tld">.tech</span>
+                </a>
             </div>
         </div>
-        <nav class="flex-1 py-2">
-            <a href="/FastJobs" class="nav-item @GetNavClass("/")"><span class="ms">dashboard</span>Overview</a>
-            <a href="/FastJobs/jobs" class="nav-item @GetNavClass("/jobs")"><span class="ms">list_alt</span>Jobs</a>
-            <a href="/FastJobs/workers" class="nav-item @GetNavClass("/workers")"><span class="ms">engineering</span>Workers</a>
-            <a href="/FastJobs/recurring" class="nav-item @GetNavClass("/recurring")"><span class="ms">autorenew</span>Recurring</a>
-            <a href="/FastJobs/scheduled" class="nav-item @GetNavClass("/scheduled")"><span class="ms">schedule</span>Scheduled</a>
+        <nav class="sidebar-nav">
+            @foreach (var item in NavItems)
+            {
+                <a href="/FastJobs@(item.Path)" class="nav-item @GetNavClass(item.Path)" title="@item.Label">
+                    <span class="ms">@item.Icon</span><span class="nav-label">@item.Label</span>
+                </a>
+            }
         </nav>
-        <div class="border-t border-border py-2">
-            <button type="button" class="nav-item" style="width:100%; background:none; border:none; cursor:pointer;"
-                    data-time-toggle onclick="fastJobsToggleLocalTime()">
-                <span class="ms">schedule</span>Show Local Time
+        <div class="sidebar-foot">
+            <button type="button" class="nav-item" data-time-toggle onclick="fastJobsToggleLocalTime()" title="Toggle time display">
+                <span class="ms">schedule</span><span class="nav-label">Show Local Time</span>
             </button>
-            <a class="nav-item"><span class="ms">settings</span>Settings</a>
+            <a href="/FastJobs/settings" class="nav-item @GetNavClass("/settings")" title="Settings">
+                <span class="ms">settings</span><span class="nav-label">Settings</span>
+            </a>
         </div>
     </aside>
 
-    <!-- Main -->
-    <main class="ml-[220px] flex flex-col justify-center items-center min-h-screen w-full">
-        @Body
-    </main>
+    <div class="main-col">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button type="button" class="icon-button" onclick="fastJobsToggleSidebar()" title="Collapse or expand sidebar" aria-label="Toggle sidebar"><span class="ms">menu</span></button>
+                <nav class="breadcrumbs" aria-label="Breadcrumb">
+                    <a href="/FastJobs">FastJobs</a>
+                    <span class="ms crumb-sep">chevron_right</span>
+                    <span class="crumb-current">@CurrentTitle</span>
+                </nav>
+            </div>
+            <div class="topbar-right">
+                <button type="button" class="icon-button" onclick="fastJobsToggleTheme()" title="Toggle theme" aria-label="Toggle theme">
+                    <span class="ms" data-theme-icon>dark_mode</span>
+                </button>
+            </div>
+        </header>
+        <main class="content">
+            @Body
+        </main>
+    </div>
 </div>
 
 @code {
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private string GetNavClass(string href)
+    private static readonly string Version =
+        typeof(MainLayout).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+
+    private record NavEntry(string Path, string Label, string Icon);
+
+    private static readonly NavEntry[] NavItems =
     {
-        var currentPage = Navigation.ToBaseRelativePath(Navigation.Uri);
-        return currentPage == href.TrimStart('/') ? "active" : "";
+        new("", "Overview", "dashboard"),
+        new("/jobs", "Jobs", "list_alt"),
+        new("/workers", "Workers", "engineering"),
+        new("/recurring", "Recurring", "autorenew"),
+        new("/scheduled", "Scheduled", "schedule"),
+    };
+
+    private string CurrentPath =>
+        new Uri(Navigation.Uri).AbsolutePath.TrimEnd('/');
+
+    private string CurrentTitle
+    {
+        get
+        {
+            var path = CurrentPath;
+            if (path.EndsWith("/settings", StringComparison.OrdinalIgnoreCase)) return "Settings";
+            return NavItems.FirstOrDefault(n => n.Path != "" && path.EndsWith(n.Path, StringComparison.OrdinalIgnoreCase))?.Label
+                   ?? "Overview";
+        }
     }
+
+    private string GetNavClass(string href) =>
+        string.Equals(CurrentPath, "/FastJobs" + href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
 }

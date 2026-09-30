@@ -1,17 +1,17 @@
 /* Workers.css - Tailwind to CSS conversion */
 
 :root {
-    --surface: #191919;
-    --border: #272727;
-    --text: #e8e8e8;
-    --dim: #737373;
-    --subtext: #a0a0a0;
-    --accent: #10b981;
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --info: #60a5fa;
-    --muted: rgba(58, 58, 58, 0.3);
-    --hover-bg: #1f1f1f;
+    --surface: var(--surface);
+    --border: var(--border);
+    --text: var(--text);
+    --dim: var(--dim);
+    --subtext: var(--subtext);
+    --accent: var(--success);
+    --danger: var(--danger);
+    --warn: var(--warn);
+    --info: var(--info);
+    --muted: var(--muted);
+    --hover-bg: var(--hover-bg);
 }
 
 /* Header */
@@ -35,15 +35,15 @@
 }
 
 .header-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text);
 }
 
 .header-badge {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 2px 6px;
@@ -53,9 +53,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
 }
 
 /* Main container */
@@ -89,9 +89,9 @@
 }
 
 .summary-card-label {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 6px;
@@ -99,13 +99,13 @@
 
 .summary-card-value {
     font-size: 22px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 600;
     color: var(--text);
 }
 
 .summary-card-value.accent {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .summary-card-value.danger {
@@ -117,7 +117,7 @@
 }
 
 .summary-card-subtext {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
     margin-top: 2px;
 }
@@ -139,7 +139,7 @@
 }
 
 .worker-table-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text);
 }
@@ -151,11 +151,11 @@
 }
 
 .worker-filter-select {
-    background-color: #1a1a1a;
+    background-color: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--text);
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     padding: 4px 8px;
     cursor: pointer;
 }
@@ -181,11 +181,11 @@
 
 .workers-table th {
     padding: 10px 20px;
-    font-size: 10px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 500;
 }
 
@@ -203,25 +203,25 @@
 }
 
 .worker-name-column {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text);
     font-weight: 500;
 }
 
 .worker-id {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
 }
 
 .worker-server {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--subtext);
 }
 
 .worker-state-badge {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
@@ -231,18 +231,18 @@
 }
 
 .worker-state-badge.active {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    background-color: var(--success-soft);
+    color: var(--success);
 }
 
 .worker-state-badge.sleeping {
-    background-color: rgba(115, 115, 115, 0.12);
-    color: #a0a0a0;
+    background-color: var(--muted);
+    color: var(--subtext);
 }
 
 .worker-state-badge.dead {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background-color: var(--danger-soft);
+    color: var(--danger);
 }
 
 .worker-queues {
@@ -252,39 +252,39 @@
 }
 
 .queue-badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--subtext);
-    background-color: rgba(58, 58, 58, 0.3);
+    background-color: var(--muted);
     padding: 2px 6px;
     border-radius: 4px;
 }
 
 .current-job {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text);
 }
 
 .current-job-id {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     color: var(--dim);
 }
 
 .current-job-empty {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
 }
 
 .job-runtime {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--subtext);
 }
 
 .heartbeat {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--dim);
 }
 
@@ -293,8 +293,8 @@
 }
 
 .jobs-processed {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
     color: var(--subtext);
 }
 
@@ -307,7 +307,7 @@
 .success-rate-bar {
     height: 4px;
     width: 56px;
-    background-color: rgba(58, 58, 58, 0.3);
+    background-color: var(--muted);
     border-radius: 9999px;
     overflow: hidden;
 }
@@ -318,7 +318,7 @@
 }
 
 .success-rate-fill.success {
-    background-color: var(--accent);
+    background-color: var(--success);
 }
 
 .success-rate-fill.warning {
@@ -330,12 +330,12 @@
 }
 
 .success-rate-text {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    font-family: var(--font-mono);
+    font-size: 12px;
 }
 
 .success-rate-text.success {
-    color: var(--accent);
+    color: var(--success);
 }
 
 .success-rate-text.warning {
@@ -353,9 +353,9 @@
 }
 
 .metrics-title {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 12px;
@@ -390,13 +390,13 @@
 }
 
 .metric-card-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text);
 }
 
 .metric-card-badge {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 4px;
@@ -406,18 +406,18 @@
 }
 
 .metric-card-badge.active {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    background-color: var(--success-soft);
+    color: var(--success);
 }
 
 .metric-card-badge.sleeping {
-    background-color: rgba(115, 115, 115, 0.12);
-    color: #a0a0a0;
+    background-color: var(--muted);
+    color: var(--subtext);
 }
 
 .metric-card-badge.dead {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
+    background-color: var(--danger-soft);
+    color: var(--danger);
 }
 
 .metrics-grid-values {
@@ -434,14 +434,14 @@
 }
 
 .metric-value-label {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
 }
 
 .metric-value-number {
     font-size: 18px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: var(--font-mono);
     font-weight: 600;
     color: var(--text);
 }
@@ -463,14 +463,14 @@
 .metric-success-rate-label {
     display: flex;
     justify-content: space-between;
-    font-size: 10px;
+    font-size: 12px;
     color: var(--dim);
     margin-bottom: 4px;
 }
 
 .metric-success-rate-bar {
     height: 6px;
-    background-color: rgba(58, 58, 58, 0.3);
+    background-color: var(--muted);
     border-radius: 9999px;
     overflow: hidden;
 }
@@ -478,7 +478,7 @@
 .metric-success-rate-fill {
     height: 100%;
     border-radius: 9999px;
-    background-color: var(--accent);
+    background-color: var(--success);
 }
 
 .metric-success-rate-fill.warning {

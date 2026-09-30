@@ -6,19 +6,18 @@
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Workers.css" />
 
 <!-- Top bar -->
-<header class="workers-header">
+<header class="workers-header page-header">
     <div class="header-left">
         <span class="header-title">Workers</span>
-        <span class="header-badge">WorkerOverviewModel · WorkerModel</span>
     </div>
     <div class="header-right">
-        <span class="dot green pulse"></span>
-        <span>Heartbeat: @(DateTime.Now.Second % 60)s</span>
+        
+        <span>Auto-refresh every 8s</span>
     </div>
 </header>
 
 <div class="workers-container">
-    <!-- WorkerOverviewModel summary -->
+    <!-- Summary -->
     <div class="summary-grid">
         <div class="summary-card">
             <div class="summary-card-label">Total</div>
@@ -28,7 +27,7 @@
         <div class="summary-card">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div class="summary-card-value accent">@WorkerOverview.ActiveWorkers</div>
-                <span class="dot green pulse"></span>
+                
             </div>
             <div class="summary-card-label">Active</div>
             <div class="summary-card-subtext">processing jobs</div>
@@ -46,7 +45,7 @@
         <div class="summary-card">
             <div class="summary-card-value info">@WorkerOverview.TotalActiveJobs</div>
             <div class="summary-card-label">Active Jobs</div>
-            <div class="summary-card-subtext">TotalActiveJobs</div>
+            <div class="summary-card-subtext">currently running</div>
         </div>
     </div>
 
@@ -80,19 +79,11 @@
                     {
                         <tr>
                             <td>
-                                <div class="worker-name-column">@worker.WorkerName</div>
-                                <div class="worker-id">@worker.WorkerId</div>
+                                <div class="worker-name-column">@DisplayFormat.WorkerName(worker.WorkerName)</div>
+                                <div class="worker-id" title="@worker.WorkerId">@DisplayFormat.ShortId(worker.WorkerId)</div>
                             </td>
-                            
-                            <td><span class="worker-state-badge @GetStatePillClass(worker.State)">@if (worker.State == WorkerState.Active) {<span class="dot green pulse" style="margin-right:4px"></span>} @worker.State</span></td>
-                            <td>
-                                <div class="worker-queues">
-                                    @foreach (var queue in GetWorkerQueues(worker))
-                                    {
-                                        <span class="queue-badge">@queue</span>
-                                    }
-                                </div>
-                            </td>
+                            <td><span class="worker-state-badge @GetStatePillClass(worker.State)">@if (worker.State == WorkerState.Active) {}@worker.State</span></td>
+                            <td class="text-dim" title="Queue assignment is not reported by workers">—</td>
 
                             
                             <td class="heartbeat @(worker.State == WorkerState.Dead ? "dead" : "")">@FormatHeartbeat(worker.HeartbeatAge)</td>
@@ -100,9 +91,9 @@
                             <td>
                                 <div class="success-rate-cell">
                                     <div class="success-rate-bar">
-                                        <div class="success-rate-fill @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
+                                        <div class="success-rate-fill @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@(worker.Metrics.SuccessRate.ToString("F0", System.Globalization.CultureInfo.InvariantCulture))%"></div>
                                     </div>
-                                    <span class="success-rate-text @GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span>
+                                    <span class="success-rate-text @GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@DisplayFormat.Percent(worker.Metrics.SuccessRate, worker.Metrics.JobsProcessed)</span>
                                 </div>
                             </td>
                         </tr>
@@ -114,13 +105,13 @@
 
     <!-- Metrics cards -->
     <div class="metrics-section">
-        <div class="metrics-title">Worker Metrics (WorkerMetricsModel)</div>
+        <div class="metrics-title">Worker Metrics</div>
         <div class="metrics-grid">
             @foreach (var worker in WorkerOverview.Workers.Take(3))
             {
                 <div class="metric-card">
                     <div class="metric-card-header">
-                        <span class="metric-card-name">@worker.WorkerName</span>
+                        <span class="metric-card-name">@DisplayFormat.WorkerName(worker.WorkerName)</span>
                         <span class="metric-card-badge @GetStatePillClass(worker.State)">@worker.State</span>
                     </div>
                     <div class="metrics-grid-values">
@@ -138,9 +129,9 @@
                         </div>
                     </div>
                     <div class="metric-success-rate-section">
-                        <div class="metric-success-rate-label"><span>Success Rate</span><span class="@GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@worker.Metrics.SuccessRate.ToString("F0")%</span></div>
+                        <div class="metric-success-rate-label"><span>Success Rate</span><span class="@GetSuccessRateTextColor(worker.Metrics.SuccessRate)">@DisplayFormat.Percent(worker.Metrics.SuccessRate, worker.Metrics.JobsProcessed)</span></div>
                         <div class="metric-success-rate-bar">
-                            <div class="metric-success-rate-fill @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@worker.Metrics.SuccessRate%"></div>
+                            <div class="metric-success-rate-fill @GetSuccessRateColor(worker.Metrics.SuccessRate)" style="width:@(worker.Metrics.SuccessRate.ToString("F0", System.Globalization.CultureInfo.InvariantCulture))%"></div>
                         </div>
                     </div>
                 </div>
@@ -198,21 +189,6 @@
         WorkerState.Dead => "pill-red",
         _ => "pill-gray"
     };
-
-    private List<string> GetWorkerQueues(WorkerModel worker)
-    {
-        // For demo, assign queues based on worker
-        return worker.WorkerId switch
-        {
-            "wkr-01" => new List<string> { "default", "critical" },
-            "wkr-02" => new List<string> { "default" },
-            "wkr-03" => new List<string> { "critical" },
-            "wkr-04" => new List<string> { "analytics" },
-            "wkr-05" => new List<string> { "low-priority" },
-            "wkr-06" => new List<string> { "default", "critical" },
-            _ => new List<string> { "default" }
-        };
-    }
 
     private string FormatRunTime(TimeSpan? runTime) => runTime.HasValue ? $"{runTime.Value.TotalSeconds:F0}s" : "—";
 

@@ -6,10 +6,9 @@
 <link rel="stylesheet" href="_content/FastJobs.Dashboard/css/Recurring.css" />
 
 <!-- Top bar -->
-<header class="recurring-header">
+<header class="recurring-header page-header">
     <div class="header-left">
         <span class="header-title">Recurring Jobs</span>
-        <span class="header-badge">RecurringJobModel</span>
     </div>
     <button class="new-recurring-button">
         <span class="new-recurring-icon ms">add</span>New Recurring
@@ -76,8 +75,8 @@
                         <th>Status</th>
                         <th>Next Run</th>
                         <th>Last Run</th>
-                        <th>✓ Runs</th>
-                        <th>✗ Fails</th>
+                        <th>Runs</th>
+                        <th>Fails</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -86,7 +85,7 @@
                     {
                         <tr>
                             <td>
-                                <div class="recurring-name">@job.DisplayName</div>
+                                <div class="recurring-name" title="@job.DisplayName">@DisplayFormat.ShortType(job.DisplayName)</div>
                                 <div class="recurring-id">@job.Id</div>
                             </td>
                             <td>
@@ -98,27 +97,27 @@
                                 else
                                 {
                                     <span class="cron-expression">@job.Interval?.ToString(@"hh\:mm\:ss")</span>
-                                    <span class="cron-description">Every @job.Interval?.ToString(@"hh\:mm\:ss")</span>
+                                    <span class="cron-description">Every @DisplayFormat.Interval(job.Interval)</span>
                                 }
                             </td>
                             <td><span class="queue-badge">@job.QueueName</span></td>
                             <td><span class="status-badge @(job.Status == RecurringJobStatus.Active ? "active" : job.Status == RecurringJobStatus.Disabled ? "disabled" : "deleted")">@job.Status</span></td>
                             <td class="next-run-time">@TimeDisplay.Utc(job.NextRunAt, "MMM dd, HH:mm")</td>
                             <td class="last-run-time">@TimeDisplay.Utc(job.LastRunAt, "MMM dd, HH:mm")</td>
-                            <td class="success-count">@job.SucceededCount.ToString("N0")</td>
-                            <td class="failure-count @(job.FailedCount > 0 ? "has-failures" : "")">@job.FailedCount</td>
+                            <td class="success-count">@(job.SucceededCount < 0 ? "—" : job.SucceededCount.ToString("N0"))</td>
+                            <td class="failure-count @(job.FailedCount > 0 ? "has-failures" : "")">@(job.FailedCount < 0 ? "—" : job.FailedCount.ToString("N0"))</td>
                             <td>
                                 <div class="table-actions">
                                     @if (job.Status == RecurringJobStatus.Active)
                                     {
-                                        <button class="action-button pause" title="Pause">pause</button>
+                                        <button class="action-button pause" title="Pause" aria-label="Pause"><span class="ms">pause_circle</span></button>
                                     }
                                     else
                                     {
-                                        <button class="action-button resume" title="Resume">play_arrow</button>
+                                        <button class="action-button resume" title="Resume" aria-label="Resume"><span class="ms">play_circle</span></button>
                                     }
-                                    <button class="action-button trigger" title="Trigger now">bolt</button>
-                                    <button class="action-button delete" title="Delete">delete</button>
+                                    <button class="action-button trigger" title="Trigger now" aria-label="Trigger now"><span class="ms">play_arrow</span></button>
+                                    <button class="action-button delete" title="Delete" aria-label="Delete"><span class="ms">delete</span></button>
                                 </div>
                             </td>
                         </tr>
