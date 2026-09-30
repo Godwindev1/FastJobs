@@ -1,0 +1,224 @@
+using Dapper;
+using Npgsql;
+
+namespace FastJobs.Persistence;
+
+internal sealed class RecurringJobRepository : IRecurringJobRepository
+{
+    private readonly DbConnectionFactory _connectionFactory;
+
+    public RecurringJobRepository(DbConnectionFactory connectionFactory)
+    {
+        _connectionFactory = connectionFactory;
+    }
+
+    public async Task<long> InsertAsync(RecurringJob recurringJob, CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+        INSERT INTO RecurringJobs
+            (JobId, NextScheduledID, CronExpression, StartTime, IntervalTicks, NextScheduledTime, IsConcurrent, isCron, ExecutingInstances, ExecutedInstances, AfterActionExecutionMode)
+        VALUES
+            (@JobId, @NextScheduledID, @CronExpression, @StartTime, @IntervalTicks, @NextScheduledTime, @IsConcurrent, @isCron, @ExecutingInstances, @ExecutedInstances, @AfterActionExecutionMode)
+        RETURNING Id;";
+
+        var command = new CommandDefinition(sql, new
+        {
+            recurringJob.JobId,
+            recurringJob.NextScheduledID,
+            recurringJob.CronExpression,
+            recurringJob.StartTime,
+            recurringJob.IntervalTicks,
+            recurringJob.NextScheduledTime,
+            recurringJob.IsConcurrent,
+            recurringJob.IsCron,
+            recurringJob.ExecutingInstances,
+            recurringJob.ExecutedInstances,
+            recurringJob.AfterActionExecutionMode
+        }, cancellationToken: cancellationToken);
+
+        return await connection.ExecuteScalarAsync<long>(command);
+    }
+
+    public async Task<RecurringJob?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM RecurringJobs WHERE Id = @Id;";
+
+        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+
+        var row = await connection.QuerySingleOrDefaultAsync<RecurringJobRow>(command);
+        return row is null ? null : MapToDomain(row);
+    }
+
+    public async Task<RecurringJob?> GetByJob(Job job, CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM RecurringJobs WHERE JobId = @JobId;";
+
+        var command = new CommandDefinition(sql, new { JobId = job.Id }, cancellationToken: cancellationToken);
+
+        var row = await connection.QuerySingleOrDefaultAsync<RecurringJobRow>(command);
+        return row is null ? null : MapToDomain(row);
+    }
+
+    public async Task<IEnumerable<RecurringJob>> GetAllAsync(CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "SELECT * FROM RecurringJobs ORDER BY Id ASC;";
+
+        var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
+
+        var rows = await connection.QueryAsync<RecurringJobRow>(command);
+        return rows.Select(MapToDomain).ToList();
+    }
+
+    public async Task<IEnumerable<RecurringJob>> GetOrphanedRecurringJobsAsync(CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+        SELECT r.* FROM RecurringJobs r
+        LEFT JOIN ScheduledJobs s ON r.NextScheduledID = s.Id
+        LEFT JOIN Jobs j ON r.JobId = j.Id
+        WHERE (j.StateName NOT IN (@ExpiredState))
+        AND (r.NextScheduledID IS NULL OR s.Id IS NULL)
+        AND r.NextScheduledTime < NOW();";
+
+        var command = new CommandDefinition(sql,
+            new { ExpiredState = QueueStateTypes.Expired },
+            cancellationToken: cancellationToken);
+
+        var rows = await connection.QueryAsync<RecurringJobRow>(command);
+        return rows.Select(MapToDomain).ToList();
+    }
+
+    public async Task<IEnumerable<RecurringJob>> GetDueAsync(CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT * FROM RecurringJobs
+            WHERE NextScheduledTime <= @CurrentTime
+            ORDER BY NextScheduledTime ASC;";
+
+        var command = new CommandDefinition(sql,
+            new { CurrentTime = DateTimeOffset.UtcNow },
+            cancellationToken: cancellationToken);
+
+        var rows = await connection.QueryAsync<RecurringJobRow>(command);
+        return rows.Select(MapToDomain).ToList();
+    }
+
+    public async Task<RecurringJob?> GetNextScheduledRecurringJob(CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+            SELECT * FROM RecurringJobs
+            WHERE NextScheduledTime > @CurrentTime
+            ORDER BY NextScheduledTime ASC
+            LIMIT 1;";
+
+        var command = new CommandDefinition(sql,
+            new { CurrentTime = DateTimeOffset.UtcNow },
+            cancellationToken: cancellationToken);
+
+        var row = await connection.QuerySingleOrDefaultAsync<RecurringJobRow>(command);
+        return row is null ? null : MapToDomain(row);
+    }
+
+    public async Task<int> UpdateByIdAsync(RecurringJob recurringJob, CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = @"
+        UPDATE RecurringJobs
+        SET
+            JobId             = @JobId,
+            NextScheduledID   = @NextScheduledID,
+            CronExpression    = @CronExpression,
+            StartTime         = @StartTime,
+            IntervalTicks     = @IntervalTicks,
+            NextScheduledTime = @NextScheduledTime,
+            IsConcurrent      = @IsConcurrent,
+            isCron            = @IsCron,
+            ExecutingInstances= @ExecutingInstances,
+            ExecutedInstances = @ExecutedInstances,
+            AfterActionExecutionMode = @AfterActionExecutionMode
+        WHERE Id = @Id;";
+
+        var command = new CommandDefinition(sql, new
+        {
+            Id = recurringJob.id,
+            recurringJob.JobId,
+            recurringJob.NextScheduledID,
+            recurringJob.CronExpression,
+            recurringJob.StartTime,
+            recurringJob.IntervalTicks,
+            recurringJob.NextScheduledTime,
+            recurringJob.IsConcurrent,
+            recurringJob.IsCron,
+            recurringJob.ExecutingInstances,
+            recurringJob.ExecutedInstances,
+            recurringJob.AfterActionExecutionMode
+        }, cancellationToken: cancellationToken);
+
+        return await connection.ExecuteAsync(command);
+    }
+
+    public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default)
+    {
+        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+
+        const string sql = "DELETE FROM RecurringJobs WHERE Id = @Id;";
+
+        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        return await connection.ExecuteAsync(command);
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Flat projection that Dapper can auto-map directly from the DB row.
+    /// IntervalTicks arrives as a raw long (ticks).
+    /// </summary>
+    private sealed class RecurringJobRow
+    {
+        public long Id { get; init; }
+        public long JobId { get; init; }
+        public long? NextScheduledID { get; init; }
+        public string CronExpression { get; init; } = string.Empty;
+        public DateTimeOffset StartTime { get; init; }
+        public long? IntervalTicks { get; init; }
+        public DateTimeOffset NextScheduledTime { get; init; }
+        public bool IsConcurrent { get; init; }
+        public int ExecutedInstances { get; set; } = 0;
+        public int ExecutingInstances { get; set; } = 0;
+
+        public bool IsCron { get; set; } = false;
+        public AfterActionExecutionMode AfterActionExecutionMode { get; set; } = AfterActionExecutionMode.RunPerInstance;
+    }
+
+    private static RecurringJob MapToDomain(RecurringJobRow row) => new()
+    {
+        id = row.Id,
+        JobId = row.JobId,
+        NextScheduledID = row.NextScheduledID,
+        CronExpression = row.CronExpression,
+        StartTime = row.StartTime,
+        IntervalTicks = row.IntervalTicks,
+        NextScheduledTime = row.NextScheduledTime,
+        IsConcurrent = row.IsConcurrent,
+        IsCron = row.IsCron,
+        ExecutedInstances = row.ExecutedInstances,
+        ExecutingInstances = row.ExecutingInstances,
+        AfterActionExecutionMode = row.AfterActionExecutionMode
+    };
+}
