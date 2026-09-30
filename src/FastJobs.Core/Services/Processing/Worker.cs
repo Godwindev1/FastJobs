@@ -276,8 +276,7 @@ public partial class Worker
         var recurringJob = await recurringJobRepository.GetByJob(job);
         if (recurringJob == null) return false;
 
-        if (recurringJob.AfterActionExecutionMode == AfterActionExecutionMode.RunPerInstance)
-            return true;
+        if (recurringJob.AfterActionExecutionMode == AfterActionExecutionMode.RunPerInstance) return true;
 
         var nextRun = recurringJob.ComputeNextRun(DateTimeOffset.UtcNow);
         return nextRun == null || (job.ExpiresAt.HasValue && nextRun > job.ExpiresAt.Value);
