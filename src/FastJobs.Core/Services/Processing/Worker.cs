@@ -241,7 +241,7 @@ public partial class Worker
             bool RetriesExhausted = job.RetryCount >= job.MaxRetries;
             if(RetriesExhausted || JobSuceeded)
             {
-                await RescheduleRecurringJobAsync(job.Id ?? 0, Scope, _shutdownToken);
+                await RescheduleRecurringJobAsync(job, Scope, _shutdownToken);
             }
          }
     }
@@ -358,12 +358,12 @@ public partial class Worker
 }
 
 
-    private async Task RescheduleRecurringJobAsync(long RecurringjobId, ScopeManager scope, CancellationToken ct)
+    private async Task RescheduleRecurringJobAsync(Job job, ScopeManager scope, CancellationToken ct)
     {
         var recurringJobRepository = scope.Resolve<IRecurringJobRepository>();
         var processingServer = scope.Resolve<ProcessingServer>();
 
-        var recurringJob = await recurringJobRepository.GetByIdAsync(RecurringjobId);
+        var recurringJob = await recurringJobRepository.GetByJob(job);
         if (recurringJob == null) return;
 
         var scheduled = await RecurringJobScheduling.ScheduleNextOccurrenceAsync(recurringJob, scope, ct);
