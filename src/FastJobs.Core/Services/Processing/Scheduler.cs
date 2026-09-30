@@ -9,12 +9,12 @@ public class Scheduler
     
     private readonly SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
     
-    // Configured via FastJobsOptions.IdleWaitPeriod
+    // Configured via FastJobsOptions.SchedulerIdleWait
     private readonly TimeSpan _idleWait;
 
     // Don't sleep longer than this even if next job is far away
     // Protects against clock drift and missed signals
-    // Configured via FastJobsOptions.MaxSleep
+    // Configured via FastJobsOptions.SchedulerMaxSleep
     private readonly TimeSpan _maxSleep;
 
     private readonly ILogger<Scheduler> _logger;
@@ -27,8 +27,8 @@ public class Scheduler
         
         _logger = scope.Resolve<ILogger<Scheduler>>();
         var options = scope.Resolve<FastJobsOptions>();
-        _idleWait = options.IdleWaitPeriod;
-        _maxSleep = options.MaxSleep;
+        _idleWait = options.SchedulerIdleWait;
+        _maxSleep = options.SchedulerMaxSleep;
     }
 
 
@@ -75,7 +75,7 @@ public class Scheduler
 
     private TimeSpan ComputeDelay(ScheduledJobInfo? nextJob)
     {
-        //if there is Nothing Sleep For IdleWait time
+        //if there is Nothing Sleep For SchedulerIdleWait time
         if (nextJob is null)
             return _idleWait;
 
@@ -85,7 +85,7 @@ public class Scheduler
         if (timeUntilNext <= TimeSpan.Zero)
             return TimeSpan.Zero; 
 
-        // Cap at MaxSleep — safety net against missed signals
+        // Cap at SchedulerMaxSleep — safety net against missed signals
         return timeUntilNext < _maxSleep ? timeUntilNext : _maxSleep;
     }
 

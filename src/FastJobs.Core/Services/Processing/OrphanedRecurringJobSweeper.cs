@@ -9,7 +9,7 @@ internal class OrphanedRecurringJobSweeper
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
-    private readonly TimeSpan _idleWait;
+    private readonly TimeSpan _sweepInterval;
     private readonly Action _notifyScheduledJobAdded;
     private readonly ILogger<OrphanedRecurringJobSweeper > _logger;
 
@@ -21,7 +21,7 @@ internal class OrphanedRecurringJobSweeper
         using var scope = new ScopeManager(scopeFactory);
         _logger = scope.Resolve<ILogger<OrphanedRecurringJobSweeper>>();
         var options = scope.Resolve<FastJobsOptions>();
-        _idleWait = options.IdleWaitPeriod;
+        _sweepInterval = options.RecurringSweepInterval;
     }
 
     public void NotifyJobAdded()
@@ -37,7 +37,7 @@ internal class OrphanedRecurringJobSweeper
             try
             {
                 await RunRecoverySweepAsync(ct);
-                await Task.Delay(_idleWait, ct); 
+                await Task.Delay(_sweepInterval, ct);
             }
             catch (OperationCanceledException)
             {
