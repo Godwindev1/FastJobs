@@ -13,7 +13,7 @@ public class RecurringJobSweepJobTestFixture : FastJobsHostFixtureBase
     {
         services.AddJobService<RecurringJobSweepTestJob>();
         services.AddLogging();
-        services.AddFastJobs(o => { o.WorkerCount = 1; o.IdleWaitPeriod = TimeSpan.FromSeconds(5);  },
+        services.AddFastJobs(o => { o.WorkerCount = 1; o.SchedulerIdleWait = TimeSpan.FromSeconds(5); o.RecurringSweepInterval = TimeSpan.FromSeconds(5);  },
             new FastJobMysqlDependencies(x =>
             {
                 x.ConnectionString = connectionString;

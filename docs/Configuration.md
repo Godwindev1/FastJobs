@@ -29,9 +29,15 @@ All available global options and their defaults:
 var options = new FastJobsOptions
 {
     WorkerCount = 2,
-    MaxSleep = TimeSpan.FromSeconds(10),
     DefaultWorkerHeartbeatIntervalSeconds = 30,
-    IdleWaitPeriod = TimeSpan.FromSeconds(30),
+
+    // Scheduler (moves due scheduled jobs onto the queue)
+    SchedulerIdleWait = TimeSpan.FromSeconds(30),
+    SchedulerMaxSleep = TimeSpan.FromMinutes(5),
+
+    // Recurring jobs (recovery sweep for recurring jobs with no pending occurrence)
+    RecurringSweepInterval = TimeSpan.FromSeconds(30),
+
     DefaultJobExpiration = TimeSpan.FromHours(24),
     DefaultMaxRetries = 4
 };
