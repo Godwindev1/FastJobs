@@ -1,61 +1,151 @@
-name: Publish NuGet Package
+name: Publish NuGet Packages
 
+# Manual only. Run from the CLI:
+#   gh workflow run Publish.yml -f packages=list
+#   gh workflow run Publish.yml -f packages="FastJobs.Core,FastJobs.Persistence" -f version=1.0.1
+#   gh workflow run Publish.yml -f packages=all
 on:
-  push:
-    tags:
-      - 'sqlserver-v*.*.*'
-      - 'core-v*.*.*'
-      - 'dashboard-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'Comma-separated PackageIds, "all", or "list" to only print eligible packages'
+        required: true
+        default: 'list'
+      version:
+        description: 'Version to publish. Leave empty to use each project''s <Version>'
+        required: false
+        default: ''
+      release:
+        description: 'Create a GitHub Release for each published package'
+        type: boolean
+        default: true
 
 jobs:
-  publish:
+  discover:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+      any: ${{ steps.select.outputs.any }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Discover eligible packages
+        id: select
+        env:
+          PKGS: ${{ inputs.packages }}
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          # Eligible = has a <PackageId> and is not <IsPackable>false</IsPackable>
+          ALL=$(for f in $(find src -name '*.csproj' | sort); do
+            id=$(sed -n 's:.*<PackageId>\(.*\)</PackageId>.*:\1:p' "$f" | head -1)
+            [ -z "$id" ] && continue
+            grep -qi '<IsPackable>false' "$f" && continue
+            ver=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' "$f" | head -1)
+            jq -nc --arg id "$id" --arg path "$f" --arg ver "$ver" \
+              '{id:$id, path:$path, csprojVersion:$ver}'
+          done | jq -sc 'sort_by(
+              if .id=="FastJobs.Core" then 0
+              elif .id=="FastJobs.Persistence" then 1
+              elif .id=="FastJobs.Dashboard" then 3
+              else 2 end)')
+
+          {
+            echo "### Eligible packages"
+            echo "| PackageId | Project | csproj version |"
+            echo "|---|---|---|"
+            echo "$ALL" | jq -r '.[] | "| \(.id) | \(.path) | \(.csprojVersion) |"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          WANT=$(echo "$PKGS" | tr -d ' ' | tr 'A-Z' 'a-z')
+
+          if [ "$WANT" = "list" ]; then
+            echo "Listing only; nothing will be published."
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "any=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$WANT" = "all" ]; then
+            SEL="$ALL"
+          else
+            SEL=$(echo "$ALL" | jq -c --arg p "$WANT" \
+              '($p | split(",")) as $w | map(select((.id | ascii_downcase) | IN($w[])))')
+
+            MISSING=$(echo "$ALL" | jq -r --arg p "$WANT" \
+              '($p | split(",")) - map(.id | ascii_downcase) | .[]')
+            if [ -n "$MISSING" ]; then
+              echo "::error::Unknown package(s): $MISSING"
+              echo "Eligible: $(echo "$ALL" | jq -r 'map(.id) | join(", ")')"
+              exit 1
+            fi
+          fi
+
+          # Resolve the version for each selected package
+          SEL=$(echo "$SEL" | jq -c --arg v "$VERSION_INPUT" \
+            'map(. + {version: (if $v != "" then $v else .csprojVersion end)})')
+
+          BAD=$(echo "$SEL" | jq -r \
+            '.[] | select(.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$") | not) | .id')
+          if [ -n "$BAD" ]; then
+            echo "::error::No valid version resolved for: $BAD"
+            exit 1
+          fi
+
+          echo "matrix=$SEL" >> "$GITHUB_OUTPUT"
+          echo "any=$([ "$SEL" = "[]" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: discover
+    if: needs.discover.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      max-parallel: 1   # keeps dependency order: Core, Persistence, providers, Dashboard
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
-
-      - name: Resolve package from tag
-        id: meta
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-
-          if [[ "$TAG" == sqlserver-v* ]]; then
-            echo "PATH=FastJobs.SqlServer/FastJobs.SqlServer.csproj" >> $GITHUB_OUTPUT
-            echo "VERSION=${TAG#sqlserver-v}" >> $GITHUB_OUTPUT
-
-          elif [[ "$TAG" == core-v* ]]; then
-            echo "PATH=FastJobs.Core/FastJobs.csproj" >> $GITHUB_OUTPUT
-            echo "VERSION=${TAG#core-v}" >> $GITHUB_OUTPUT
-
-          elif [[ "$TAG" == dashboard-v* ]]; then
-            echo "PATH=FastJobs.Dashboard/FastJobs.Dashboard.csproj" >> $GITHUB_OUTPUT
-            echo "VERSION=${TAG#dashboard-v}" >> $GITHUB_OUTPUT
-          fi
+          dotnet-version: '9.0.x'
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore ${{ matrix.path }}
 
-      - name: Build
+      - name: Pack ${{ matrix.id }} ${{ matrix.version }}
         run: |
-          dotnet build ${{ steps.meta.outputs.PATH }} \
+          dotnet pack ${{ matrix.path }} \
             --configuration Release \
-            --no-restore
-
-      - name: Pack
-        run: |
-          dotnet pack ${{ steps.meta.outputs.PATH }} \
-            --configuration Release \
-            --no-build \
-            -p:PackageVersion=${{ steps.meta.outputs.VERSION }} \
+            --no-restore \
+            -p:PackageVersion=${{ matrix.version }} \
             --output ./artifacts
 
-      - name: Push
+      - name: Push to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           dotnet nuget push ./artifacts/*.nupkg \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
+
+      - name: Create GitHub Release
+        if: inputs.release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ matrix.id }}-v${{ matrix.version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping."
+          else
+            gh release create "$TAG" ./artifacts/*.nupkg \
+              --title "${{ matrix.id }} v${{ matrix.version }}" \
+              --generate-notes \
+              --target "${{ github.sha }}"
+          fi
