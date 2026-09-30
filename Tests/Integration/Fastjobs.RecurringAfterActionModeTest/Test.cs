@@ -49,11 +49,10 @@ public class RecurringAfterActionModeTest : IClassFixture<RecurringAfterActionMo
     [Fact]
     public async Task RunAfterFinalCompletion_Fires_AfterAction_Exactly_Once_On_The_Final_Instance()
     {
-        // Interval is far longer than the window before ExpiresAt, so the first (and only)
-        // completed instance's next occurrence is guaranteed to fall after ExpiresAt —
-        // making it the final instance regardless of scheduling jitter.
+        // WithInterval schedules the first occurrence one interval after the supplied start time.
+        // This puts the first run before expiry and its next occurrence after expiry.
         await FastJobServer.AddRecurringJob<RunAfterFinalCompletionModeTestJob>()
-            .WithInterval(TimeSpan.FromSeconds(60), DateTime.UtcNow.AddSeconds(1))
+            .WithInterval(TimeSpan.FromSeconds(5), DateTime.UtcNow.AddSeconds(1))
             .SetExpiresAt(DateTime.UtcNow.AddSeconds(10))
             .SetAfterActionExecutionMode(AfterActionExecutionMode.RunAfterFinalCompletion)
             .AddAfterAction(x => x.WithType<FinalCompletionTrackingAfterAction>())
