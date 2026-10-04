@@ -8,14 +8,16 @@ FastJobs is a lightweight .NET background job processing library built for simpl
 ## Features
 - **Job types:** fire-and-forget (enqueued), delayed/scheduled, and recurring jobs (interval or cron), defined from lambda expressions or `IBackGroundJob` classes
 - **Chained jobs:** run jobs in sequence with `CreateChain(...)` and `ThenRun(...)`
-- **After actions:** run follow-up actions once a job finishes
+- **After actions:** run follow-up actions once a job finishes; for recurring jobs, run per instance or only on final completion
+- **Scheduler tuning:** configurable idle wait and max sleep
+- **UTC-safe dates:** all timestamps use `DateTimeOffset` and are stored as UTC across every provider
 - **Retries:** configurable max retries with exponential backoff and jitter, plus `TerminateJobException` to fail a job immediately without retrying
 - **Expiration:** jobs, including recurring jobs, move to an `Expired` state once they pass their expiry, which releases their queue entry and resource lock
 - **Misfire handling:** `Skip`, `FireOnce` and `Smart` misfire policies for recurring jobs, with a background misfire detector
 - **Orphaned recurring job recovery:** a sweeper reschedules recurring jobs that are no longer tracked by the scheduling pipeline
 - **Database cleanup:** pluggable pruning strategies for completed and expired jobs (off by default)
 - **Worker observability:** worker heartbeats and state tracking
-- **Web dashboard:** optional Blazor dashboard for jobs, workers and summary metrics
+- **Web dashboard:** optional Blazor dashboard for jobs, workers and summary metrics, with periodic auto-refresh
 - **Pluggable persistence:** storage is provider based (see below), with automatic schema initialization
 
 ## Supported Databases
@@ -23,8 +25,9 @@ FastJobs is a lightweight .NET background job processing library built for simpl
 |---|---|---|
 | MariaDB / MySQL | `FastJobs.MariaDB` | `FastJobMysqlDependencies` |
 | Microsoft SQL Server | `FastJobs.SqlServer` | `FastJobMSSQLDependencies` |
+| PostgreSQL | `FastJobs.PostgreSQL` | `FastJobPostgresDependencies` |
 
-More providers are planned. Both providers are covered by integration tests that run against real databases using Testcontainers.
+More providers are planned. All providers are covered by integration tests that run against real databases using Testcontainers.
 
 Full documentation lives in the [docs](docs/index.md) folder (quickstart, configuration, enqueued/delayed/recurring jobs, after actions, monitoring).
 
@@ -71,6 +74,12 @@ dotnet add package FastJobs.MariaDB
 dotnet add package FastJobs.SqlServer
 ```
 
+`FastJobs.PostgreSQL`  Persistence provider for PostgreSQL
+
+```bash
+dotnet add package FastJobs.PostgreSQL
+```
+
 Install one persistence provider alongside the core package.
 
 `FastJobs.Dashboard` Optional RCL dashboard for monitoring and  observability 
@@ -108,6 +117,14 @@ builder.Services.AddFastJobs(
 // builder.Services.AddFastJobs(
 //     option => {  option.WorkerCount = 4; },
 //     new FastJobMSSQLDependencies(
+//         options => options.ConnectionString = connectionString
+//     )
+// );
+
+// ...or PostgreSQL (FastJobs.PostgreSQL)
+// builder.Services.AddFastJobs(
+//     option => {  option.WorkerCount = 4; },
+//     new FastJobPostgresDependencies(
 //         options => options.ConnectionString = connectionString
 //     )
 // );
