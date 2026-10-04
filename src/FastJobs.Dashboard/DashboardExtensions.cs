@@ -31,10 +31,17 @@ public static class FastJobsDashboardExtensions
 
         app.Use(async (context, next) =>
         {
-            if (context.Request.Path.StartsWithSegments(path, out var remaining))
+            if (context.Request.Path.StartsWithSegments(path, out var matched, out var remaining))
             {
-                //Rewrite to Internal Path Regardlesss of Setpath
-                context.Request.Path = InternalPath + remaining;
+                // Mount the dashboard as a path base so the browser, router and circuit all agree on the URL.
+                context.Request.PathBase = context.Request.PathBase.Add(matched);
+
+                // Framework requests (_blazor, _framework, _content) keep their own paths; pages map to the internal routes.
+                context.Request.Path = remaining.StartsWithSegments("/_blazor") ||
+                                       remaining.StartsWithSegments("/_framework") ||
+                                       remaining.StartsWithSegments("/_content")
+                    ? remaining
+                    : InternalPath + remaining;
             }
             await next();
         });

@@ -97,6 +97,7 @@ public static class StateDisplay
         JobState.Processing => "pill-blue",
         JobState.Scheduled => "pill-blue",
         JobState.Retrying => "pill-amber",
+        JobState.Expired => "pill-amber",
         _ => "pill-gray"
     };
 }

@@ -8,7 +8,7 @@
     <aside class="sidebar">
         <div class="sidebar-brand">
             <div class="brand-text">
-                <a href="/FastJobs" class="nav-logo">
+                <a href="./" class="nav-logo">
                     <span class="logo-text">FastJobs</span>
                     <span class="logo-dot"></span>
                     <span class="logo-tld">.tech</span>
@@ -18,7 +18,7 @@
         <nav class="sidebar-nav">
             @foreach (var item in NavItems)
             {
-                <a href="/FastJobs@(item.Path)" class="nav-item @GetNavClass(item.Path)" title="@item.Label">
+                <a href="@(item.Path == "" ? "./" : item.Path.TrimStart('/'))" class="nav-item @GetNavClass(item.Path)" title="@item.Label">
                     <span class="ms">@item.Icon</span><span class="nav-label">@item.Label</span>
                 </a>
             }
@@ -27,7 +27,7 @@
             <button type="button" class="nav-item" data-time-toggle onclick="fastJobsToggleLocalTime()" title="Toggle time display">
                 <span class="ms">schedule</span><span class="nav-label">Show Local Time</span>
             </button>
-            <a href="/FastJobs/settings" class="nav-item @GetNavClass("/settings")" title="Settings">
+            <a href="settings" class="nav-item @GetNavClass("/settings")" title="Settings">
                 <span class="ms">settings</span><span class="nav-label">Settings</span>
             </a>
         </div>
@@ -38,7 +38,7 @@
             <div class="topbar-left">
                 <button type="button" class="icon-button" onclick="fastJobsToggleSidebar()" title="Collapse or expand sidebar" aria-label="Toggle sidebar"><span class="ms">menu</span></button>
                 <nav class="breadcrumbs" aria-label="Breadcrumb">
-                    <a href="/FastJobs">FastJobs</a>
+                    <a href="./">FastJobs</a>
                     <span class="ms crumb-sep">chevron_right</span>
                     <span class="crumb-current">@CurrentTitle</span>
                 </nav>
@@ -72,8 +72,7 @@
         new("/scheduled", "Scheduled", "schedule"),
     };
 
-    private string CurrentPath =>
-        new Uri(Navigation.Uri).AbsolutePath.TrimEnd('/');
+    private string CurrentPath => "/" + DashboardPath.Relative(Navigation);
 
     private string CurrentTitle
     {
@@ -87,5 +86,5 @@
     }
 
     private string GetNavClass(string href) =>
-        string.Equals(CurrentPath, "/FastJobs" + href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+        string.Equals(CurrentPath.TrimEnd('/'), href, StringComparison.OrdinalIgnoreCase) ? "active" : "";
 }

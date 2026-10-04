@@ -11,8 +11,10 @@
         const pref = read(THEME_KEY, 'system');
         const resolved = pref === 'system' ? (media.matches ? 'dark' : 'light') : pref;
         const root = document.documentElement;
-        root.setAttribute('data-theme', resolved);
-        root.setAttribute('data-sidebar', read(SIDEBAR_KEY, 'expanded'));
+        // Only write when the value differs: the <html> observer below would otherwise re-trigger itself.
+        const sidebar = read(SIDEBAR_KEY, 'expanded');
+        if (root.getAttribute('data-theme') !== resolved) root.setAttribute('data-theme', resolved);
+        if (root.getAttribute('data-sidebar') !== sidebar) root.setAttribute('data-sidebar', sidebar);
         document.querySelectorAll('[data-theme-option]').forEach(b =>
             b.classList.toggle('active', b.getAttribute('data-theme-option') === pref));
         const icon = resolved === 'dark' ? 'light_mode' : 'dark_mode';
@@ -39,6 +41,13 @@
     document.addEventListener('DOMContentLoaded', apply);
     // Blazor re-renders can drop the attributes/active states; re-apply after enhanced navigation and renders.
     new MutationObserver(apply).observe(document.body || document.documentElement, { childList: true, subtree: true });
+    // Blazor's enhanced navigation syncs <html> attributes with the server-rendered markup (which has none),
+    // stripping data-theme/data-sidebar. Restore them whenever they change.
+    new MutationObserver(apply).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme', 'data-sidebar']
+    });
+    document.addEventListener('enhancedload', apply);
 })();
 
 // Position state hover cards with fixed coordinates so table overflow never clips them.

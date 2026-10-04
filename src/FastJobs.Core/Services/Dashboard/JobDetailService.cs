@@ -25,6 +25,7 @@ public class JobDetailService
                 "Failed" => JobState.Failed,
                 "Scheduled" => JobState.Scheduled,
                 "Dequeued" => JobState.Dequeued,
+                "Expired" => JobState.Expired,
                 _ => throw new ArgumentException($"Unknown job state: {state}")
             };
         }
@@ -67,6 +68,7 @@ public class JobDetailService
                 StartedAt = timestamps?.StartedAt,
                 CompletedAt = timestamps?.CompletedAt,
                 Duration = timestamps?.StartedAt.HasValue == true && timestamps?.CompletedAt.HasValue == true
+                    && timestamps.CompletedAt.Value >= timestamps.StartedAt.Value
                     ? (timestamps.CompletedAt.Value - timestamps.StartedAt.Value)
                     : (TimeSpan?)null,
                 AttemptCount = job.RetryCount + 1,

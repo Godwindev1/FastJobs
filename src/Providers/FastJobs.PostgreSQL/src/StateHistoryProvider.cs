@@ -69,12 +69,22 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
         const string sql = @"
             SELECT
-                MAX(CASE WHEN StateName = 'Enqueued'   THEN CreatedAt END) AS EnqueuedAt,
-                MAX(CASE WHEN StateName = 'Processing' THEN CreatedAt END) AS StartedAt,
-                MAX(CASE WHEN StateName IN ('Succeeded', 'Failed') THEN CreatedAt END) AS CompletedAt
-            FROM State
-            WHERE JobId = @JobId
-            AND DeletedAt IS NULL";
+                s.EnqueuedAt,
+                s.StartedAt,
+                (SELECT MIN(c.CreatedAt)
+                 FROM State c
+                 WHERE c.JobId = @JobId
+                   AND c.DeletedAt IS NULL
+                   AND c.StateName IN ('Completed', 'Failed')
+                   AND c.CreatedAt >= s.StartedAt) AS CompletedAt
+            FROM (
+                SELECT
+                    MAX(CASE WHEN StateName = 'Enqueued'   THEN CreatedAt END) AS EnqueuedAt,
+                    MAX(CASE WHEN StateName = 'Processing' THEN CreatedAt END) AS StartedAt
+                FROM State
+                WHERE JobId = @JobId
+                AND DeletedAt IS NULL
+            ) s";
 
         return await _connection.QuerySingleOrDefaultAsync<JobTimestamps>(
             new CommandDefinition(sql, new { JobId = jobId }, cancellationToken: cancellationToken));

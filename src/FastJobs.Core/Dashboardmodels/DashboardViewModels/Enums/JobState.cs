@@ -9,5 +9,6 @@ public enum JobState
     Completed,
     Failed,
     Retrying,
-    Deleted
+    Deleted,
+    Expired
 }

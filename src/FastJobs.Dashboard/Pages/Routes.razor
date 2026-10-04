@@ -1,9 +1,37 @@
-<Router AppAssembly="@typeof(DashboardRoot).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
+@implements IDisposable
+@inject NavigationManager Navigation
+
+@* The dashboard is mounted under a configurable path base, so the browser URL (e.g. /Dashboard/jobs) never matches the
+   internal @page routes (/FastJobs/jobs). Resolve the page from the base-relative path instead of using <Router>. *@
+<LayoutView Layout="typeof(MainLayout)">
+    @if (ResolvePage() is { } page)
+    {
+        <DynamicComponent Type="page" @key="page" />
+    }
+    else
+    {
         <p>Page not found.</p>
-    </NotFound>
-</Router>
+    }
+</LayoutView>
+
+@code {
+    private static readonly Dictionary<string, Type> PageMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [""] = typeof(Dashboard),
+        ["jobs"] = typeof(Jobs),
+        ["workers"] = typeof(Workers),
+        ["recurring"] = typeof(Recurring),
+        ["scheduled"] = typeof(Scheduled),
+        ["settings"] = typeof(Settings),
+    };
+
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
+        InvokeAsync(StateHasChanged);
+
+    private Type? ResolvePage() =>
+        PageMap.TryGetValue(DashboardPath.Relative(Navigation), out var page) ? page : null;
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

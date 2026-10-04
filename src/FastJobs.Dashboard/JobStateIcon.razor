@@ -24,6 +24,7 @@
         JobState.Enqueued => "hourglass_top",
         JobState.Dequeued => "inbox",
         JobState.Deleted => "block",
+        JobState.Expired => "timer_off",
         _ => "help"
     };
 
@@ -34,6 +35,7 @@
         JobState.Processing => "info",
         JobState.Scheduled => "info",
         JobState.Retrying => "warn",
+        JobState.Expired => "warn",
         _ => "muted"
     };
 }
