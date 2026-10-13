@@ -7,7 +7,7 @@ Fire-and-forget, delayed and recurring jobs with database-backed persistence and
 
 [![CI](https://github.com/Godwindev1/FastJobs/actions/workflows/ValidatePackages.yml/badge.svg)](https://github.com/Godwindev1/FastJobs/actions/workflows/ValidatePackages.yml)
 
-[Website](https://fastjobs.tech) · [Documentation](https://godwindev1.github.io/FastJobs) · [NuGet](https://www.nuget.org/packages/FastJobs) · [Issues](https://github.com/Godwindev1/FastJobs/issues)
+[Website](https://fastjobs.tech) · [Documentation](https://godwindev1.github.io/FastJobs) · [NuGet](https://www.nuget.org/profiles/GodwinOluowho) · [Issues](https://github.com/Godwindev1/FastJobs/issues)
 
 </div>
 
