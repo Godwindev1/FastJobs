@@ -1,51 +1,157 @@
-# FastJobs Architecture
+<div align="center">
 
-This document covers the design decisions behind FastJobs. For installation and usage, see the [README](README.md).
+# FastJobs
 
-## Overview
+**Lightweight background job processing for .NET, built for simplicity and speed.**
+Fire-and-forget, delayed and recurring jobs with database-backed persistence and an optional Blazor dashboard.
 
-FastJobs is a decoupled background job engine for ASP.NET Core:
+[![CI](https://github.com/Godwindev1/FastJobs/actions/workflows/ValidatePackages.yml/badge.svg)](https://github.com/Godwindev1/FastJobs/actions/workflows/ValidatePackages.yml)
 
-- **Core engine** (`FastJobs`): scheduling, workers, retries, misfire handling and cleanup. It has no database dependency.
-- **Persistence abstractions** (`FastJobs.Persistence`): shared models and interfaces used by the core and every provider.
-- **Providers** (`FastJobs.SqlServer`, `FastJobs.MariaDB`, `FastJobs.PostgreSQL`): swappable storage implementations with automatic schema initialization.
-- **Dashboard** (`FastJobs.Dashboard`): optional Blazor monitoring UI.
+[Website](https://fastjobs.tech) · [Documentation](docs/index.md) · [NuGet](https://www.nuget.org/packages/FastJobs) · [Issues](https://github.com/Godwindev1/FastJobs/issues)
 
-## Reliability
+</div>
 
-- **Exponential backoff with jitter:** configurable base delay (default 10s), max delay cap (default 300s) and jitter (default 5s), so failing jobs don't retry in lockstep.
-- **Misfire detection:** a background detector finds jobs that missed their scheduled time and applies the `Skip`, `FireOnce` or `Smart` policy.
-- **Recurring jobs:** the next occurrence is scheduled from the scheduled time and missed runs are skipped, which avoids drift.
-- **Job chaining:** steps execute without overlapping, verified in tests.
-- **Per-job-type concurrency limits:** one job type can't saturate the worker pool.
-- **UTC-consistent timestamps:** `DateTimeOffset` across storage and scheduling.
+<p align="center">
+  <img src="https://fastjobs.tech/assets/Dashboard.png" alt="The FastJobs dashboard showing jobs and summary metrics" width="900" />
+</p>
 
-## Cleanup strategies
+## 🚀 Quick Start
 
-- A pluggable `ICleanupStrategy` runs on an interval inside a `BackgroundService`.
-- Built-in strategies: `CompletedJobsPruningStrategy`, `ExpiredJobsPruningStrategy` and `NullStrategy`.
-- **Custom strategies:** implement `ICleanupStrategy` with full DI access to encode your own retention, archival or compliance rules.
-- `CancellationToken` is supported end to end. A faulty strategy is caught and logged, so it can't crash the host.
+### 1. Install
 
-## Logging and observability
+Add the core package and **one** persistence provider:
 
-- Structured logging through `ILogger`. Sinks are configured by hooking up Serilog, NLog, etc.
-- Metrics are covered by tests using `Microsoft.Extensions.Diagnostics.Testing`.
-- The Blazor dashboard uses path-rewriting middleware, interactive server rendering, and static assets embedded in a Razor class library.
+```bash
+dotnet add package FastJobs
+dotnet add package FastJobs.PostgreSQL   # or FastJobs.SqlServer / FastJobs.MariaDB
+dotnet add package FastJobs.Dashboard    # optional
+```
 
-## Decoupled storage
+| Package | Purpose |
+|---|---|
+| `FastJobs` | Core engine, required for all setups |
+| `FastJobs.Persistence` | Shared abstractions and models (pulled in by the providers) |
+| `FastJobs.MariaDB` | Provider for MariaDB / MySQL |
+| `FastJobs.SqlServer` | Provider for Microsoft SQL Server |
+| `FastJobs.PostgreSQL` | Provider for PostgreSQL |
+| `FastJobs.Dashboard` | Optional Razor class library dashboard |
 
-The core has no database dependency. Each provider implements the persistence abstractions for one database (SQL Server, MariaDB / MySQL, PostgreSQL), so adding a database means adding a package, not changing the engine.
+Prefer Visual Studio? Use `Install-Package FastJobs` in the Package Manager Console.
 
-## Testing
+### 2. Register the services
 
-- **xUnit** integration suite running against real databases via **Testcontainers**.
-- **Contract tests:** one abstract base suite runs against every provider, guaranteeing identical behavior.
-- **Fixture design:** `IClassFixture`, `ICollectionFixture` and serialized collections for shared static state.
-- Pruning, misfire detection and job chaining are covered by tests. See `TESTING.md` for how to run them.
+```csharp
+using FastJobs;
+using FastJobs.Persistence;
 
-## Delivery
+string connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 
-- Independently versioned NuGet packages (`.nupkg` plus `.snupkg` symbols).
-- GitHub Actions: CI on every push to `main`, and NuGet publish on version tags with automatic semver extraction.
-- Docs and demo site: [fastjobs.tech](https://fastjobs.tech).
+// PostgreSQL (FastJobs.PostgreSQL)
+builder.Services.AddFastJobs(
+    option => { option.WorkerCount = 4; },
+    new FastJobPostgresDependencies(
+        options => options.ConnectionString = connectionString
+    )
+);
+
+// ...or Microsoft SQL Server (FastJobs.SqlServer)
+// builder.Services.AddFastJobs(
+//     option => { option.WorkerCount = 4; },
+//     new FastJobMSSQLDependencies(
+//         options => options.ConnectionString = connectionString
+//     )
+// );
+
+// ...or MariaDB / MySQL (FastJobs.MariaDB)
+// builder.Services.AddFastJobs(
+//     option => { option.WorkerCount = 4; },
+//     new FastJobMysqlDependencies(
+//         options => options.ConnectionString = connectionString
+//     )
+// );
+```
+
+### 3. Start the engine
+
+```csharp
+var app = builder.Build();
+
+app.Services.UseFastJobs();
+```
+
+### 4. Add the dashboard (optional)
+
+> [!NOTE]
+> The dashboard requires a web host. It will not work in applications without one.
+
+Register the dashboard services alongside the setup above:
+
+```csharp
+builder.Services.AddFastjobsDashboard();
+```
+
+Then wire it into the pipeline:
+
+```csharp
+using FastJobs.Dashboard;
+
+var app = builder.Build();
+
+app.UseFastJobsDashboard("/Dashboard"); // must come before routing so the path can be rewritten to the internal dashboard path
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAntiforgery();
+
+// Expose dashboard components
+app.MapFastJobsDashboard();
+```
+
+## ✨ Features
+
+- **Job types:** fire-and-forget (enqueued), delayed/scheduled, and recurring jobs (interval or cron), defined from lambda expressions or `IBackGroundJob` classes
+- **Chained jobs:** run jobs in sequence with `CreateChain(...)` and `ThenRun(...)`
+- **After actions:** run follow-up actions once a job finishes; for recurring jobs, run per instance or only on final completion
+- **Retries:** configurable max retries with exponential backoff and jitter (defaults: 10s base, 300s cap, 5s jitter), plus `TerminateJobException` to fail a job immediately without retrying
+- **Misfire handling:** `Skip`, `FireOnce` and `Smart` policies for recurring jobs, with a background misfire detector
+- **Concurrency limits:** per-job-type limits so one job type can't saturate the worker pool
+- **Expiration:** jobs, including recurring jobs, move to an `Expired` state once they pass their expiry, which releases their queue entry and resource lock
+- **Orphaned recurring job recovery:** a sweeper reschedules recurring jobs that are no longer tracked by the scheduling pipeline
+- **UTC-safe dates:** all timestamps use `DateTimeOffset` and are stored as UTC across every provider
+- **Scheduler tuning:** configurable idle wait and max sleep
+- **Observability:** worker heartbeats, state tracking, and structured `ILogger` logging (plug in Serilog, NLog, etc.)
+- **Web dashboard:** optional Blazor dashboard for jobs, workers and summary metrics, with periodic auto-refresh
+- **Pluggable persistence:** provider-based storage with automatic schema initialization
+
+<p align="center">
+  <img src="https://fastjobs.tech/assets/Workers.png" alt="The FastJobs dashboard showing worker status and heartbeats" width="900" />
+</p>
+
+### 🗄️ Supported databases
+
+| Database | Package | Dependency class |
+|---|---|---|
+| MariaDB / MySQL | `FastJobs.MariaDB` | `FastJobMysqlDependencies` |
+| Microsoft SQL Server | `FastJobs.SqlServer` | `FastJobMSSQLDependencies` |
+| PostgreSQL | `FastJobs.PostgreSQL` | `FastJobPostgresDependencies` |
+
+More providers are planned.
+
+### 🧹 Cleanup
+
+Pruning is pluggable and **off by default**. Built-in strategies are `CompletedJobsPruningStrategy`, `ExpiredJobsPruningStrategy` and `NullStrategy`. Implement `ICleanupStrategy` (with full DI access) to write your own retention or archival rules.
+
+### 🧪 Testing
+
+All providers are covered by integration tests that run against real databases using Testcontainers, with one shared contract suite guaranteeing identical behavior across providers.
+
+## 🔧 Under the hood
+
+- **Decoupled core:** no database dependency; storage is a swappable provider package.
+- **Fault-tolerant background work:** a faulty cleanup strategy is caught and logged, and can't crash the host.
+- **Automated releases:** independently versioned NuGet packages with symbols, built and published by GitHub Actions on version tags.
+
+For the full design, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## 📚 Documentation
+
+Full documentation is in the [docs](docs/index.md) folder: quickstart, configuration, enqueued/delayed/recurring jobs, after actions and monitoring. Docs and demo site: [fastjobs.tech](https://fastjobs.tech).
