@@ -154,4 +154,4 @@ For the full design, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## 📚 Documentation
 
-Full documentation is in the [docs](docs/index.md) folder: quickstart, configuration, enqueued/delayed/recurring jobs, after actions and monitoring. Docs and demo site: [fastjobs.tech](https://fastjobs.tech).
+Full documentation is in the [docs](https://godwindev1.github.io/FastJobs) folder: quickstart, configuration, enqueued/delayed/recurring jobs, after actions and monitoring. Docs and demo site: [fastjobs.tech](https://fastjobs.tech).
