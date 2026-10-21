@@ -1,0 +1,253 @@
+2026-10-21 15:54:26.591 +01:00 [WRN] [ThreadId:1] Server GC mode is not enabled. For better performance and more accurate load test results, enable it by adding <ServerGarbageCollection>true</ServerGarbageCollection> to your .csproj file, or #:property ServerGarbageCollection=true to the top of your .cs file script. Docs: https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
+2026-10-21 15:54:26.671 +01:00 [INF] [ThreadId:1] NBomber 6.7.1 started a new session: 2026-10-21_14-54-26_8290e266
+2026-10-21 15:54:26.674 +01:00 [INF] [ThreadId:1] NBomber started as single node
+2026-10-21 15:54:26.680 +01:00 [INF] [ThreadId:1] License validation....
+2026-10-21 15:54:26.682 +01:00 [WRN] [ThreadId:1] THIS VERSION IS FREE ONLY FOR PERSONAL USE. You can't use it for an organization.
+2026-10-21 15:54:26.712 +01:00 [INF] [ThreadId:1] Reports folder: C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\bin\release\net9.0\results/SqlServer
+2026-10-21 15:54:26.714 +01:00 [INF] [ThreadId:1] Plugins: no plugins were loaded
+2026-10-21 15:54:26.715 +01:00 [INF] [ThreadId:1] Reporting sinks: no reporting sinks were loaded
+2026-10-21 15:54:26.716 +01:00 [INF] [ThreadId:1] Starting init...
+2026-10-21 15:54:26.737 +01:00 [INF] [ThreadId:1] Target scenarios: enqueue_offloaded_calls, enqueue_invoice_pdf, enqueue_image_compress
+2026-10-21 15:54:26.743 +01:00 [INF] [ThreadId:1] Init finished
+2026-10-21 15:54:26.797 +01:00 [INF] [ThreadId:1] Starting warm up...
+2026-10-21 15:54:26.800 +01:00 [INF] [ThreadId:1] Warm up for scenarios: enqueue_offloaded_calls, enqueue_invoice_pdf, enqueue_image_compress
+2026-10-21 15:54:26.807 +01:00 [INF] [ThreadId:1] Warm up duration: 00:00:10
+2026-10-21 15:54:34.913 +01:00 [WRN] [ThreadId:48] Stopping test early: stop command activated by CLI
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:8] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:30] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:16] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:37] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:17] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:32] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:36] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:28] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:31] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:35] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:11] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:25] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:10] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.JobRepository.InsertAsync(Job job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()
+2026-10-21 15:54:42.774 +01:00 [ERR] [ThreadId:33] Unhandled exception for Scenario: 0
+System.InvalidOperationException: Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.
+   at Microsoft.Data.SqlClient.SqlConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
+   at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, SqlConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
+   at Microsoft.Data.SqlClient.SqlConnection.Open()
+   at FastJobs.Persistence.SqlServerDbCinnectionFactory.OpenConnection(IDbConnection connection)
+   at FastJobs.Persistence.DbConnectionFactory.CreateConnection()
+   at FastJobs.Persistence.StateHistoryRepository.InsertAsync(State job, CancellationToken cancellationToken)
+   at FastJobs.EnqueueOptions`1.Start(CancellationToken cancellationToken)
+   at EnqueueScenarios.<>c__DisplayClass3_0.<<Build>b__0>d.MoveNext() in C:\Dev\csharp\FastJobs\Tests\Metrics\NbomberTutorial\EnqueueScenarios.cs:line 15
+--- End of stack trace from previous location ---
+   at <StartupCode$NBomber>.$FSharp.typedRun@84-1.MoveNext()
+   at NBomber.Domain.Scheduler.ScenarioActor.clo@72-1.MoveNext()

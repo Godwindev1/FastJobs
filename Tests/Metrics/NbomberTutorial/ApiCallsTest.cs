@@ -1,15 +1,28 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using FastJobs;
 using Microsoft.Extensions.Logging;
 
-public class OffloadedCalls(IHttpClientFactory http, IJobContext ctx, ILogger<OffloadedCalls> logger)
+public static class OffloadedCalls
 {
-    public Task RunAsync() => JobTimer.RunAsync(nameof(OffloadedCalls), ctx.CurrentJob?.Id, logger, async () =>
+    private static readonly HttpClient Client = new();
+
+    public static async Task RunAsync()
     {
-        var client = http.CreateClient();
-        await client.PostAsJsonAsync("https://httpbin.org/post",
-            new { to = "user@example.com", subject = "Welcome", body = "Hello" });          // email simulation
-        await client.PostAsJsonAsync("https://jsonplaceholder.typicode.com/posts",
-            new { pipeline = "build-main", branch = "main", trigger = "load-test" });       // CI/CD trigger simulation
-    });
+        var runId = Guid.NewGuid();
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            await Client.PostAsJsonAsync("https://httpbin.org/post",
+                new { to = "user@example.com", subject = "Welcome", body = "Hello" });
+            await Client.PostAsJsonAsync("https://jsonplaceholder.typicode.com/posts",
+                new { pipeline = "build-main", branch = "main", trigger = "load-test" });
+        }
+        finally
+        {
+            sw.Stop();
+            JobTimer.Record(nameof(OffloadedCalls), sw.Elapsed.TotalMilliseconds);
+            Console.WriteLine($"{nameof(OffloadedCalls)} {runId} completed in {sw.ElapsedMilliseconds} ms");
+        }
+    }
 }

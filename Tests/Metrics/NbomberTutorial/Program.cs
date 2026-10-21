@@ -1,41 +1,58 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Net.Http;
-
+﻿using FastJobs;
+using FastJobs.Persistence;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NBomber.CSharp;
-using NBomber.Http.CSharp;
 
-namespace NBomberTest
+
+await LoadTestHarness.RunAsync();
+
+public static class LoadTestHarness
 {
-    class Program
+    static IHost? _host;
+
+    public static async Task RunAsync()
     {
-        static void Main(string[] args)
+        string connectionString = "Server=(localdb)\\FastjobsDBServer;Database=FastJobs;Trusted_Connection=True;MultipleActiveResultSets=true";
+
+        await StartFastJobsAsync(connectionString);
+        try
         {
-            var httpClient = Http.CreateDefaultClient();
-
-            var scenario = Scenario.Create("http_scenario", async context =>
-            {
-                var request =
-                    Http.CreateRequest("GET", "https://nbomber.com")
-                        .WithHeader("Accept", "text/html");
-                        // .WithHeader("Accept", "application/json")
-                        // .WithBody(new StringContent("{ id: 1 }", Encoding.UTF8, "application/json");
-                        // .WithBody(new ByteArrayContent(new [] {1,2,3}))                        
-
-                var response = await Http.Send(httpClient, request);
-
-                return response;
-            })
-            .WithoutWarmUp()
-            .WithLoadSimulations(
-                Simulation.Inject(rate: 100, 
-                                  interval: TimeSpan.FromSeconds(1),
-                                  during: TimeSpan.FromSeconds(30))
-            );
-
             NBomberRunner
-                .RegisterScenarios(scenario)
+                .RegisterScenarios(
+                    EnqueueScenarios.FireAndForget(),
+                    EnqueueScenarios.InvoicePdf(),
+                    EnqueueScenarios.ImageCompress())
+                .WithReportFolder("results/SqlServer")
                 .Run();
-            }
+        }
+        finally
+        {
+            await StopFastJobsAsync();
+        }
+    }
+
+    static async Task StartFastJobsAsync(string connectionString)
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddJobService<ImageCompressJob>(); // register concrete jobs if your scenarios use them
+        builder.Services.AddJobService<InvoicePdfJob>(); // register concrete jobs if your scenarios use them
+
+        builder.Services.AddFastJobs(
+            o => { o.WorkerCount = 2; },
+            new FastJobMSSQLDependencies(     // assumed name, see note
+                opts => opts.ConnectionString = connectionString));
+
+        _host = builder.Build();
+        _host.Services.UseFastJobs();
+        await _host.StartAsync();
+    }
+
+    static async Task StopFastJobsAsync()
+    {
+        if (_host is null) return;
+        await _host.StopAsync();
+        _host.Dispose();
     }
 }
