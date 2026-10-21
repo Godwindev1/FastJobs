@@ -22,14 +22,14 @@ Fire-and-forget, delayed and recurring jobs with database-backed persistence and
 Add the core package and **one** persistence provider:
 
 ```bash
-dotnet add package FastJobs
+dotnet add package FastJobs.core
 dotnet add package FastJobs.PostgreSQL   # or FastJobs.SqlServer / FastJobs.MariaDB
 dotnet add package FastJobs.Dashboard    # optional
 ```
 
 | Package | Purpose |
 |---|---|
-| `FastJobs` | Core engine, required for all setups |
+| `FastJobs.core` | Core engine, required for all setups |
 | `FastJobs.Persistence` | Shared abstractions and models (pulled in by the providers) |
 | `FastJobs.MariaDB` | Provider for MariaDB / MySQL |
 | `FastJobs.SqlServer` | Provider for Microsoft SQL Server |
