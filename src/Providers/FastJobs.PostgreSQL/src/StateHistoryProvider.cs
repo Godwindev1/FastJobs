@@ -14,7 +14,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<long> InsertAsync(State job, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         INSERT INTO State
@@ -28,7 +28,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task InsertAsync(IEnumerable<State> states, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             INSERT INTO State
@@ -42,7 +42,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<State?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM State WHERE Id = @Id AND DeletedAt IS NULL";
 
@@ -52,7 +52,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<int> SoftDeleteByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             UPDATE State
@@ -65,7 +65,7 @@ internal sealed class StateHistoryRepository : IStateHistoryRepository
 
     public async Task<JobTimestamps?> GetTimestampsByJobIdAsync(long jobId, CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT

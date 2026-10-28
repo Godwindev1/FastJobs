@@ -15,7 +15,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<long> InsertAsync(RecurringJob recurringJob, CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         INSERT INTO RecurringJobs
@@ -45,7 +45,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<RecurringJob?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM RecurringJobs WHERE Id = @Id;";
 
@@ -58,7 +58,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<RecurringJob?> GetByJob(Job job, CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM RecurringJobs WHERE JobId = @JobId;";
 
@@ -72,7 +72,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<IEnumerable<RecurringJob>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM RecurringJobs ORDER BY Id ASC;";
 
@@ -84,7 +84,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<IEnumerable<RecurringJob>> GetOrphanedRecurringJobsAsync(CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         string sql = $@"
         SELECT r.* FROM RecurringJobs r
@@ -102,7 +102,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<IEnumerable<RecurringJob>> GetDueAsync(CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT * FROM RecurringJobs
@@ -119,7 +119,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<RecurringJob?> GetNextScheduledRecurringJob(CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT TOP 1 * FROM RecurringJobs
@@ -136,7 +136,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
 
     public async Task<int> UpdateByIdAsync(RecurringJob recurringJob, CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         UPDATE RecurringJobs
@@ -176,7 +176,7 @@ internal sealed class RecurringJobRepository : IRecurringJobRepository
     
     public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        using SqlConnection connection = (SqlConnection)_connectionFactory.CreateConnection();
+        using SqlConnection connection = (SqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM RecurringJobs WHERE Id = @Id;";
 

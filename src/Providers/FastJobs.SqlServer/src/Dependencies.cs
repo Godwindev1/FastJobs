@@ -71,7 +71,7 @@ public class FastJobMSSQLDependencies : IDatabaseProviderDependencies
         try {
             _Logger.LogInformation("Connecting To Database {DBName} {DateTime}", DBName, DateTime.UtcNow);
 
-            using IDbConnection db = new SqlConnection(ConnectionString);
+            using DbConnection db = new SqlConnection(ConnectionString);
             db.Open();
         }
         catch(Exception ex)
@@ -83,7 +83,7 @@ public class FastJobMSSQLDependencies : IDatabaseProviderDependencies
                 Console.WriteLine(ex.Message);
 
                 stringBuilder.Remove("Database");
-                using IDbConnection db = new SqlConnection(stringBuilder.ConnectionString);
+                using DbConnection db = new SqlConnection(stringBuilder.ConnectionString);
                 var safeDbName = DBName.Replace("'", "''");
                 db.Execute($@"IF DB_ID(N'{safeDbName}') IS NULL
                 BEGIN

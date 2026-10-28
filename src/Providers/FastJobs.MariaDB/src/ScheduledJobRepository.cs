@@ -19,7 +19,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<long> InsertAsync(ScheduledJobInfo scheduledJob, CancellationToken cancellationToken)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         INSERT INTO ScheduledJobs 
@@ -44,7 +44,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<ScheduledJobInfo?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM ScheduledJobs WHERE Id = @Id;";
 
@@ -54,7 +54,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
     public async Task<List<ScheduledJobInfo>> GetAllAsync(CancellationToken cancellationToken)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM ScheduledJobs;";
 
@@ -68,7 +68,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM ScheduledJobs WHERE Id = @Id;";
 
@@ -81,7 +81,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<int> UpdateByIdAsync(ScheduledJobInfo scheduledJob, CancellationToken cancellationToken)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         UPDATE ScheduledJobs
@@ -105,7 +105,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<IEnumerable<ScheduledJobInfo>> GetReadyJobsAsync(CancellationToken cancellationToken)
     {
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         SELECT * FROM ScheduledJobs 
@@ -128,7 +128,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
         if (!ids.Any())
             return 0;
 
-        using MySqlConnection connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using MySqlConnection connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM ScheduledJobs WHERE Id IN @Ids;";
 
@@ -142,7 +142,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
     public async Task<ScheduledJobInfo?> GetNextScheduledJob(CancellationToken ct)
     {
-        using var connection = (MySqlConnection)_connectionFactory.CreateConnection();
+        using var connection = (MySqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT * FROM ScheduledJobs

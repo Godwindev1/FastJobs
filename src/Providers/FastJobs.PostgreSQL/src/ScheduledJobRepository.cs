@@ -17,7 +17,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<long> InsertAsync(ScheduledJobInfo scheduledJob, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         INSERT INTO ScheduledJobs
@@ -37,7 +37,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
     public async Task<ScheduledJobInfo?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM ScheduledJobs WHERE Id = @Id;";
 
@@ -47,7 +47,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
     public async Task<List<ScheduledJobInfo>> GetAllAsync(CancellationToken cancellationToken)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM ScheduledJobs;";
 
@@ -58,7 +58,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
     public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM ScheduledJobs WHERE Id = @Id;";
 
@@ -71,7 +71,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<int> UpdateByIdAsync(ScheduledJobInfo scheduledJob, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         UPDATE ScheduledJobs
@@ -95,7 +95,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
     /// </summary>
     public async Task<IEnumerable<ScheduledJobInfo>> GetReadyJobsAsync(CancellationToken cancellationToken)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         SELECT * FROM ScheduledJobs
@@ -118,7 +118,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
         if (idArray.Length == 0)
             return 0;
 
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM ScheduledJobs WHERE Id = ANY(@Ids);";
 
@@ -131,7 +131,7 @@ internal sealed class ScheduledJobRepository : IScheduledJobRepository
 
     public async Task<ScheduledJobInfo?> GetNextScheduledJob(CancellationToken ct)
     {
-        using NpgsqlConnection connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT * FROM ScheduledJobs

@@ -15,7 +15,7 @@ internal class MSSQLLockProvider : LockProvider
 
     public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout, CancellationToken cancellationToken)
     {
-        SqlConnection dbConnection = (SqlConnection)dbConnectionFactory.CreateConnection();
+        SqlConnection dbConnection = (SqlConnection)await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
 
         if (dbConnection.State != ConnectionState.Open)
         {

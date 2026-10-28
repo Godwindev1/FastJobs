@@ -1,12 +1,9 @@
-using System.Data;
-using Microsoft.Extensions.Options;
+using System.Data.Common;
 
 namespace FastJobs.Persistence;
 
 /// <summary>
-/// This Class is an Interface for  Creating And Opens IdbConnections On The Go It Does Not Dispose This Connections 
-/// So Implemented Services Using Connections From these Must handle Closing or Disposing IdbConnections To Avoid Starving 
-/// The Connection Pool
+/// Creates and opens connections. Callers must dispose returned connections.
 /// </summary>
 public abstract class DbConnectionFactory
 {
@@ -17,14 +14,22 @@ public abstract class DbConnectionFactory
         _jobsOptions = jobsOptions;
     }
 
-    public IDbConnection CreateConnection()
+    public async Task<DbConnection> CreateConnectionAsync(CancellationToken cancellationToken = default)
     {
         var connection = GetConnection();
-        OpenConnection(connection);
 
-        return connection;
+        try
+        {
+            await OpenConnectionAsync(connection, cancellationToken);
+            return connection;
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
     }
 
-    protected abstract void OpenConnection(IDbConnection connection);
-    protected abstract IDbConnection GetConnection();
+    protected abstract Task OpenConnectionAsync(DbConnection connection, CancellationToken cancellationToken);
+    protected abstract DbConnection GetConnection();
 }

@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 
 namespace FastJobs.Persistence;
@@ -38,7 +39,7 @@ public class PostgresRecurringJobTableInitializer : ISchemaInitializer
     CREATE INDEX IF NOT EXISTS IX_RecurringJobs_NextScheduledTime
     ON RecurringJobs (NextScheduledTime ASC);";
 
-    public async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(DbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexJobIdSql);

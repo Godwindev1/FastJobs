@@ -19,7 +19,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns>Returns Id of inserted Job</returns>
     public async Task<long> InsertAsync(Job job, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         INSERT INTO Jobs
@@ -35,7 +35,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<List<Job>> GetAllAsync(CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM Jobs ORDER BY CreatedAt DESC;";
 
@@ -47,7 +47,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<Job?> GetByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT * FROM Jobs WHERE Id = @Id";
 
@@ -57,7 +57,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> DeleteByIdAsync(long id, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM Jobs WHERE Id = @Id";
 
@@ -71,7 +71,7 @@ internal sealed class JobRepository : IJobRepository
     /// <returns> returns affected rows</returns>
     public async Task<int> UpdateByIdAsync(Job job, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
         UPDATE Jobs
@@ -125,7 +125,7 @@ internal sealed class JobRepository : IJobRepository
     /// <param name="SqlValues"> Values formatted By @value (dapper format) </param>
     public async Task<int> UpdateByIdAsync(long id, string SqlValues, Job job, CancellationToken cancellationToken)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         string sql = $@"
         UPDATE Jobs
@@ -138,7 +138,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountByStateAsync(string stateName, CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "SELECT COUNT(*) FROM Jobs WHERE StateName = @StateName";
 
@@ -148,7 +148,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountRetryingAsync(CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -161,7 +161,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountCompletedSinceAsync(DateTimeOffset since, CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -174,7 +174,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountFailedSinceAsync(DateTimeOffset since, CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -187,7 +187,7 @@ internal sealed class JobRepository : IJobRepository
 
     public async Task<int> CountStateBetween(string statename, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT COUNT(*) FROM Jobs
@@ -202,7 +202,7 @@ internal sealed class JobRepository : IJobRepository
     public async Task<List<Job>> GetMisfiredJobsAsync(DateTimeOffset cutoff, CancellationToken ct = default)
     {
         //Misfired Job Cannot be Completed or Failed
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = @"
             SELECT * FROM Jobs
@@ -219,7 +219,7 @@ internal sealed class JobRepository : IJobRepository
     //Return Count of jobs deleted
     public async Task<int> PruneCompletedJobs(CancellationToken ct = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM Jobs WHERE StateName = @CompletedState";
 
@@ -230,7 +230,7 @@ internal sealed class JobRepository : IJobRepository
     //Return Count of jobs deleted
     public async Task<int> PruneExpiredJobs(CancellationToken ct = default)
     {
-        using NpgsqlConnection _connection = (NpgsqlConnection)_connectionFactory.CreateConnection();
+        using NpgsqlConnection _connection = (NpgsqlConnection)await _connectionFactory.CreateConnectionAsync();
 
         const string sql = "DELETE FROM Jobs WHERE NOW() > ExpiresAt;";
 

@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 namespace FastJobs.Persistence;
 
@@ -34,7 +35,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_AfterActions_NextActio
 CREATE INDEX IX_AfterActions_NextActionId_LastActionId
 ON dbo.AfterActions (NextActionId, LastActionId);";
 
-    public async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(DbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexJobIdSql);

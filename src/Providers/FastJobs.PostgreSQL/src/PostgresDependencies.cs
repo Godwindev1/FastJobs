@@ -68,7 +68,7 @@ public class FastJobPostgresDependencies : IDatabaseProviderDependencies
         {
             logger.LogInformation("Connecting To Database {DBName} {DateTime}", dbName, DateTime.UtcNow);
 
-            using IDbConnection db = new NpgsqlConnection(connectionString);
+            using DbConnection db = new NpgsqlConnection(connectionString);
             db.Open();
         }
         catch (Exception ex)
@@ -84,7 +84,7 @@ public class FastJobPostgresDependencies : IDatabaseProviderDependencies
                 stringBuilder.Database = "postgres";
                 stringBuilder.Pooling = false;
 
-                using IDbConnection db = new NpgsqlConnection(stringBuilder.ConnectionString);
+                using DbConnection db = new NpgsqlConnection(stringBuilder.ConnectionString);
                 var safeDbName = dbName.Replace("\"", "\"\"");
                 db.Execute($"CREATE DATABASE \"{safeDbName}\";");
             }

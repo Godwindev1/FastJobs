@@ -1,4 +1,4 @@
-using System.Data;
+using System.Data.Common;
 
 namespace FastJobs.Persistence;
 
@@ -17,5 +17,5 @@ public interface ISchemaInitializer
     /// Ensures all tables/indexes required by this provider package exist.
     /// Must be idempotent — safe to call on every startup.
     /// </summary>
-    Task EnsureCreatedAsync(IDbConnection connection /*, CancellationToken ct = default */);
+    Task EnsureCreatedAsync(DbConnection connection /*, CancellationToken ct = default */);
 }

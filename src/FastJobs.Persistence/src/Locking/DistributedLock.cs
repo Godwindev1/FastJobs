@@ -1,19 +1,19 @@
 using System.ComponentModel;
-using System.Data;
+using System.Data.Common;
 
 namespace FastJobs.Persistence;
 
 //[EditorBrowsable(EditorBrowsableState.Never)] //To stop End users from Seeing this 
 public abstract class SessionDatabaseLock : IDisposable
 {
-    protected readonly IDbConnection _connection;
+    protected readonly DbConnection _connection;
     protected readonly string _LockResourceName;
     protected bool _disposed;
     protected bool _lockReleased;
 
     protected TimeSpan TTL  = TimeSpan.FromMinutes(1);
 
-    public SessionDatabaseLock(IDbConnection connection, string resource, TimeSpan ttl)
+    public SessionDatabaseLock(DbConnection connection, string resource, TimeSpan ttl)
     {
         _connection = connection;
         _LockResourceName = resource;

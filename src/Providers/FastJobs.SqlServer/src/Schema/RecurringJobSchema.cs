@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
  
 namespace FastJobs.Persistence;
@@ -41,7 +42,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_RecurringJobs_NextSche
 CREATE INDEX IX_RecurringJobs_NextScheduledTime
 ON dbo.RecurringJobs (NextScheduledTime);";
 
-    public async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(DbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexJobIdSql);
