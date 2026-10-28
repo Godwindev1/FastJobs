@@ -16,7 +16,7 @@ internal class MySqlLockProvider  : LockProvider
 
     public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout, CancellationToken cancellationToken)
     {
-        MySqlConnection dbConnection = (MySqlConnection)dbConnectionFactory.CreateConnection();
+        MySqlConnection dbConnection = (MySqlConnection)await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
 
         if(dbConnection.State != ConnectionState.Open)
         {

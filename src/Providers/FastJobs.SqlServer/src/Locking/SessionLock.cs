@@ -1,12 +1,13 @@
 
 using System.Data;
+using System.Data.Common;
 using Microsoft.Data.SqlClient;
 
 namespace FastJobs.Persistence;
 
 internal class MSSQLSessionDBLock : SessionDatabaseLock
 {
-    public MSSQLSessionDBLock(IDbConnection connection, string resource, TimeSpan ttl)
+    public MSSQLSessionDBLock(DbConnection connection, string resource, TimeSpan ttl)
         : base(connection, resource, ttl)
     {
     }

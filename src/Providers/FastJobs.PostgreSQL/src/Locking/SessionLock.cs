@@ -1,11 +1,12 @@
 using System.Data;
+using System.Data.Common;
 using Npgsql;
 
 namespace FastJobs.Persistence;
 
 internal class PostgresSessionDBLock : SessionDatabaseLock
 {
-    public PostgresSessionDBLock(IDbConnection connection, string resource, TimeSpan ttl)
+    public PostgresSessionDBLock(DbConnection connection, string resource, TimeSpan ttl)
         : base(connection, resource, ttl)
     {
     }

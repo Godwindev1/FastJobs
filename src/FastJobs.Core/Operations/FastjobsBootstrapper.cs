@@ -1,4 +1,4 @@
-using System.Data;
+using System.Data.Common;
 using FastJobs.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +18,7 @@ public class FastJobsDatabaseBootstrapper
     public async Task InitializeAsync()
     {
         using var scope = new ScopeManager(_scopeFactory);
-        IDbConnection connection = scope.Resolve<DbConnectionFactory>().CreateConnection();
+        using DbConnection connection = await scope.Resolve<DbConnectionFactory>().CreateConnectionAsync();
         var ordered = _initializers.OrderBy(i => i.Order);
 
         foreach (var initializer in ordered)

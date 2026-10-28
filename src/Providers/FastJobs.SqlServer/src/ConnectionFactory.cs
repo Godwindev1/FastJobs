@@ -1,6 +1,4 @@
-using System.Data;
 using System.Data.Common;
-using Microsoft.Extensions.Options;
 using Microsoft.Data.SqlClient;
 
 namespace FastJobs.Persistence;
@@ -13,13 +11,13 @@ internal class SqlServerDbCinnectionFactory : DbConnectionFactory
     {
     }
 
-    protected override void OpenConnection(IDbConnection connection)
+    protected override Task OpenConnectionAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        connection.Open();
+        return connection.OpenAsync(cancellationToken);
     }
 
 
-    protected override IDbConnection GetConnection()
+    protected override DbConnection GetConnection()
     {
         return new SqlConnection(_jobsOptions.ConnectionString);
     }

@@ -74,7 +74,7 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
         try {
             _Logger.LogInformation("Connecting To Database {DBName} {DateTime}", DBName, DateTime.UtcNow);
 
-            using IDbConnection db = new MySqlConnection(ConnectionString);
+            using DbConnection db = new MySqlConnection(ConnectionString);
             db.Open();
         }
         catch(Exception ex)
@@ -86,7 +86,7 @@ public class FastJobMysqlDependencies : IDatabaseProviderDependencies
                 Console.WriteLine(ex.Message);
 
                 stringBuilder.Remove("Database");
-                using IDbConnection db = new MySqlConnection(stringBuilder.ConnectionString);
+                using DbConnection db = new MySqlConnection(stringBuilder.ConnectionString);
                 db.Execute($"CREATE DATABASE IF NOT EXISTS {DBName};");   
             }   
             else

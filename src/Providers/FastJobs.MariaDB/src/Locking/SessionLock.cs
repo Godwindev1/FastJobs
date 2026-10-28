@@ -1,12 +1,13 @@
 
 
 using System.Data;
+using System.Data.Common;
 using MySqlConnector;
 namespace FastJobs.Persistence;
 
 internal class MySqlSessionDBLock : SessionDatabaseLock
 {
-    public MySqlSessionDBLock(IDbConnection connection, string resource, TimeSpan ttl)
+    public MySqlSessionDBLock(DbConnection connection, string resource, TimeSpan ttl)
     :base(connection, resource, ttl)
     {
     }

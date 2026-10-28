@@ -27,7 +27,7 @@ internal class PostgresLockProvider : LockProvider
 
     public override async Task<SessionDatabaseLock?> AcquireLock(string LockResourceName, TimeSpan Timeout, CancellationToken cancellationToken)
     {
-        NpgsqlConnection dbConnection = (NpgsqlConnection)dbConnectionFactory.CreateConnection();
+        NpgsqlConnection dbConnection = (NpgsqlConnection)await dbConnectionFactory.CreateConnectionAsync(cancellationToken);
 
         if (dbConnection.State != ConnectionState.Open)
         {

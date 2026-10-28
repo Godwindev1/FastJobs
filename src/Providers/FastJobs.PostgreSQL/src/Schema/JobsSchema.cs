@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Dapper;
 
 namespace FastJobs.Persistence;
@@ -51,7 +52,7 @@ public class PostgresJobTableInitializer : ISchemaInitializer
     CREATE INDEX IF NOT EXISTS IX_Jobs_JobType
     ON Jobs (JobType);";
 
-    public async Task EnsureCreatedAsync(IDbConnection connection)
+    public async Task EnsureCreatedAsync(DbConnection connection)
     {
         await connection.ExecuteAsync(CreateTableSql);
         await connection.ExecuteAsync(CreateIndexQueueSql);
